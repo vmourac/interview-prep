@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valid Palindrome - Interview Prep</title>
+  <style>
+    :root {
+      --bg: #fbf8f1;
+      --panel: #fffdf8;
+      --ink: #22201d;
+      --muted: #70675c;
+      --accent: #2e5b6e;
+      --accent-soft: #dceaf0;
+      --line: #d6ccbf;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(46, 91, 110, 0.08), transparent 35%),
+        linear-gradient(180deg, #faf7ef 0%, #f2ebdf 100%);
+    }
+
+    .page {
+      width: min(980px, calc(100% - 28px));
+      margin: 24px auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      box-shadow: 0 16px 40px rgba(34, 32, 29, 0.12);
+    }
+
+    aside {
+      padding: 24px 18px;
+      background: linear-gradient(180deg, var(--accent), #244656);
+      color: #f5f1ea;
+    }
+
+    aside h1 {
+      font-size: 2rem;
+      margin: 0 0 12px;
+      line-height: 1.05;
+    }
+
+    aside p {
+      line-height: 1.6;
+      color: rgba(245, 241, 234, 0.86);
+    }
+
+    main {
+      padding: 28px;
+    }
+
+    section + section {
+      margin-top: 24px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.15rem;
+      color: var(--accent);
+    }
+
+    .note {
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      padding: 14px 16px;
+      line-height: 1.6;
+    }
+
+    .path {
+      border: 1px solid var(--line);
+      padding: 16px;
+      background: #fffaf3;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+    }
+
+    .meta div {
+      padding: 12px;
+      border: 1px solid var(--line);
+      background: #fcfaf4;
+    }
+
+    pre {
+      margin: 0;
+      padding: 16px;
+      overflow-x: auto;
+      background: #1f2528;
+      color: #eef4f7;
+      border-radius: 12px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    ul { line-height: 1.7; }
+
+    @media (max-width: 760px) {
+      .page { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <article class="page">
+    <aside>
+      <div>Treino local</div>
+      <h1>Valid Palindrome</h1>
+      <p>Pagina editorial para revisar leitura de enunciado, limpeza de entrada e o padrao de dois ponteiros.</p>
+    </aside>
+    <main>
+      <section>
+        <h2>Prompt</h2>
+        <p>Dada uma string, determine se ela e um palindromo considerando apenas caracteres alfanumericos e ignorando caixa.</p>
+      </section>
+
+      <section>
+        <h2>Hints</h2>
+        <div class="note">Nao trate a string inteira como limpa desde o inicio. O enunciado exige filtrar caracteres e ignorar diferencas entre maiusculas e minusculas.</div>
+      </section>
+
+      <section>
+        <h2>Caminho ingenuo</h2>
+        <div class="path">
+          <ul>
+            <li>Filtre apenas os caracteres alfanumericos.</li>
+            <li>Converta tudo para minusculas.</li>
+            <li>Compare a string normalizada com sua reversa.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>Caminho otimizado</h2>
+        <div class="path">
+          <ul>
+            <li>Use um ponteiro no inicio e outro no fim.</li>
+            <li>Pule simbolos e espacos dos dois lados.</li>
+            <li>Compare apenas caracteres validos em lowercase.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>Complexidade</h2>
+        <div class="meta">
+          <div><strong>Ingenua</strong><br />Tempo O(n), espaco O(n)</div>
+          <div><strong>Otimizada</strong><br />Tempo O(n), espaco O(1)</div>
+        </div>
+        <p class="note">O tempo continua linear porque cada caractere e lido no maximo algumas vezes. O ganho real esta em evitar a copia completa da string.</p>
+      </section>
+
+      <section>
+        <h2>Solucao final</h2>
+        <pre>def is_palindrome(s):
+    esquerda = 0
+    direita = len(s) - 1
+
+    while esquerda < direita:
+        while esquerda < direita and not s[esquerda].isalnum():
+            esquerda += 1
+        while esquerda < direita and not s[direita].isalnum():
+            direita -= 1
+
+        if s[esquerda].lower() != s[direita].lower():
+            return False
+
+        esquerda += 1
+        direita -= 1
+
+    return True</pre>
+      </section>
+    </main>
+  </article>
+</body>
+</html>

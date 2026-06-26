@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number of Connected Components in an Undirected Graph - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f5f1e8;
+      --ink: #16212b;
+      --muted: #4d5a66;
+      --line: rgba(22, 33, 43, 0.14);
+      --rail: #1a6a7a;
+      --rail-soft: rgba(26, 106, 122, 0.14);
+      --signal: #d76d3c;
+      --station: #fffaf2;
+      --shadow: 0 24px 48px rgba(15, 28, 38, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(215, 109, 60, 0.16), transparent 24%),
+        linear-gradient(180deg, rgba(26, 106, 122, 0.08), transparent 22%),
+        var(--paper);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(90deg, transparent 0 72px, rgba(22, 33, 43, 0.035) 72px 73px),
+        linear-gradient(0deg, transparent 0 72px, rgba(22, 33, 43, 0.03) 72px 73px);
+      opacity: 0.6;
+    }
+
+    .page {
+      position: relative;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 18px 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: rgba(255, 250, 242, 0.9);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-main::after {
+      content: "";
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 22px;
+      height: 8px;
+      background:
+        linear-gradient(90deg,
+          var(--rail) 0%,
+          var(--rail) 18%,
+          var(--signal) 18%,
+          var(--signal) 21%,
+          var(--rail) 21%,
+          var(--rail) 42%,
+          var(--signal) 42%,
+          var(--signal) 45%,
+          var(--rail) 45%,
+          var(--rail) 67%,
+          var(--signal) 67%,
+          var(--signal) 70%,
+          var(--rail) 70%,
+          var(--rail) 100%);
+      border-radius: 999px;
+      opacity: 0.92;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 12px;
+      color: var(--rail);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.1rem, 4vw, 3.8rem);
+      line-height: 0.96;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      color: var(--rail);
+      font-size: 1.1rem;
+    }
+
+    p, li {
+      margin-top: 0;
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .stats {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .stat {
+      padding: 14px;
+      background: var(--rail-soft);
+      border: 1px solid var(--line);
+      position: relative;
+    }
+
+    .stat::before {
+      content: "";
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      margin-top: -5px;
+      background: var(--signal);
+      border-radius: 50%;
+      box-shadow: 26px 0 0 var(--rail), 52px 0 0 var(--rail), 78px 0 0 var(--signal);
+      opacity: 0.75;
+    }
+
+    .stat strong {
+      display: block;
+      padding-left: 108px;
+      color: var(--ink);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      background: #12202a;
+      color: #f7f3ec;
+      line-height: 1.55;
+      font-size: 0.93rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+
+      .hero-main::after {
+        position: relative;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: block;
+        margin-top: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card hero-main">
+        <div class="eyebrow">Transit Map Drill</div>
+        <h1>Number of Connected Components in an Undirected Graph</h1>
+        <p>Este prompt mede se voce sabe decompor um grafo em blocos desconectados e contar cada travessia nova como um componente.</p>
+        <p>Nota de fonte: este material e sintetizado a partir do topico do curso, porque a aula original nao tem captions nem transcript disponiveis.</p>
+      </article>
+
+      <aside class="card stats">
+        <div class="stat"><strong>Graph Build: O(E)</strong></div>
+        <div class="stat"><strong>Traversal: O(V + E)</strong></div>
+        <div class="stat"><strong>Aux Space: O(V + E)</strong></div>
+        <div class="stat"><strong>Core Idea: unvisited node starts a new component</strong></div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dado um grafo nao direcionado com `n` vertices e uma lista `edges`, retorne quantos componentes conectados existem.</p>
+      </article>
+
+      <article class="card">
+        <h2>Why This Matters</h2>
+        <p>O entrevistador quer ver se voce traduz conectividade em travessias completas e se sabe justificar `O(V + E)` sem decorar formula.</p>
+      </article>
+
+      <article class="card">
+        <h2>Naive Route</h2>
+        <p>Reexaminar a lista de arestas varias vezes para descobrir quem se conecta com quem. Funciona mal porque repete checagens que a lista de adjacencia resolveria de forma natural.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Route</h2>
+        <p>Monte a lista de adjacencia e inicie DFS ou BFS apenas quando encontrar um vertice ainda nao visitado. Cada inicio desses conta um componente novo.</p>
+      </article>
+
+      <article class="card">
+        <h2>Reasoning Steps</h2>
+        <ol>
+          <li>Construa o grafo nos dois sentidos.</li>
+          <li>Passe por `0` ate `n - 1`.</li>
+          <li>Se o no ja foi visitado, ignore.</li>
+          <li>Se nao foi, incremente o contador e explore todo o bloco conectado.</li>
+          <li>No fim, o contador e o numero de componentes.</li>
+        </ol>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>from collections import defaultdict
+
+
+class Solution:
+    def countComponents(self, n: int, edges: list[list[int]]) -&gt; int:
+        graph = defaultdict(list)
+
+        for u, v in edges:
+            graph[u].append(v)
+            graph[v].append(u)
+
+        visited = set()
+        components = 0
+
+        def dfs(node: int) -&gt; None:
+            visited.add(node)
+
+            for neighbor in graph[node]:
+                if neighbor not in visited:
+                    dfs(neighbor)
+
+        for node in range(n):
+            if node in visited:
+                continue
+
+            components += 1
+            dfs(node)
+
+        return components</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

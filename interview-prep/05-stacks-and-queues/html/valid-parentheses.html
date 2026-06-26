@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>05 Stacks and Queues - Valid Parentheses</title>
+  <style>
+    :root {
+      --paper: #f7f1e6;
+      --ink: #1f1a17;
+      --muted: #655a51;
+      --accent: #8a3b12;
+      --accent-soft: #efd8c7;
+      --line: #d7c9bb;
+      --panel: rgba(255, 252, 247, 0.9);
+      --code: #201b26;
+      --code-ink: #f8eee2;
+      --shadow: 0 20px 40px rgba(73, 42, 18, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      background:
+        linear-gradient(180deg, rgba(138, 59, 18, 0.08), transparent 18%),
+        repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(101, 90, 81, 0.06) 31px, rgba(101, 90, 81, 0.06) 32px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 18px 72px;
+    }
+
+    .hero, .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 28px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "LIFO";
+      position: absolute;
+      right: 24px;
+      top: 18px;
+      font-size: clamp(3rem, 8vw, 6rem);
+      color: rgba(138, 59, 18, 0.08);
+      font-weight: bold;
+      letter-spacing: 0.08em;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      font-size: 0.78rem;
+    }
+
+    h1 { margin: 10px 0 12px; font-size: clamp(2.1rem, 4.5vw, 3.4rem); }
+    h2 { margin-top: 0; color: var(--accent); font-size: 1.2rem; }
+    p, li { line-height: 1.72; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      padding: 22px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow: auto;
+      background: var(--code);
+      color: var(--code-ink);
+      font-family: "Courier New", monospace;
+      white-space: pre-wrap;
+    }
+
+    .note {
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+      color: var(--muted);
+    }
+
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Topico 05 · Roteiro de entrevista</div>
+      <h1>Valid Parentheses</h1>
+      <p><strong>Prompt:</strong> Dada uma string com parenteses, colchetes e chaves, decida se todos os fechamentos acontecem no tipo certo e na ordem certa.</p>
+      <p class="note">Este exercicio e citado diretamente como problema relacionado na aula de stacks. A pagina abaixo transforma essa ideia em um roteiro curto para treino local.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Hints</h2>
+        <ul>
+          <li>Um fechamento so pode casar com a abertura mais recente ainda pendente.</li>
+          <li>Se a estrutura certa e LIFO, a pergunta sobre pilha deixa de ser opcional.</li>
+          <li>Falhe cedo quando surgir fechamento sem topo compativel.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>Caminho ingenuo</h2>
+        <p>Remover pares validos diretamente da string parece simples, mas revarre e reconstrui a entrada varias vezes. Em casos ruins, isso escala quadraticamente.</p>
+      </article>
+
+      <article class="card">
+        <h2>Caminho otimizado</h2>
+        <p>Empilhe aberturas. Quando um fechamento aparece, confira se o topo contem a abertura correspondente. Se nao contiver, a resposta ja e falsa.</p>
+      </article>
+
+      <article class="card">
+        <h2>Complexidade</h2>
+        <p><strong>Tempo:</strong> O(n)</p>
+        <p><strong>Espaco:</strong> O(n)</p>
+        <p>Cada simbolo entra na analise uma vez; as aberturas entram e saem da stack no maximo uma vez.</p>
+      </article>
+    </section>
+
+    <section class="card" style="margin-top: 20px;">
+      <h2>Solucao final</h2>
+      <pre>def isValid(s):
+    pairs = {
+        ')': '(',
+        ']': '[',
+        '}': '{',
+    }
+    stack = []
+
+    for ch in s:
+        if ch not in pairs:
+            stack.append(ch)
+            continue
+
+        if not stack or stack[-1] != pairs[ch]:
+            return False
+
+        stack.pop()
+
+    return len(stack) == 0</pre>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Search II - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #efe7da;
+      --ink: #1f1b17;
+      --muted: #63584d;
+      --line: rgba(31, 27, 23, 0.14);
+      --accent: #365a78;
+      --accent-soft: rgba(54, 90, 120, 0.14);
+      --card: rgba(255, 251, 245, 0.9);
+      --shadow: 0 24px 54px rgba(35, 31, 26, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(54, 90, 120, 0.14), transparent 22%),
+        repeating-linear-gradient(90deg, transparent 0 68px, rgba(31, 27, 23, 0.04) 68px 69px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 38px 18px 76px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.25rem, 4vw, 3.95rem);
+      line-height: 0.96;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 1.14rem;
+    }
+
+    p, li {
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .map {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      max-width: 280px;
+      margin-top: 14px;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      background: var(--accent-soft);
+      border: 1px solid var(--line);
+      font-weight: bold;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .metrics {
+      display: grid;
+      gap: 12px;
+    }
+
+    .metric {
+      background: var(--accent-soft);
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      background: #171513;
+      color: #f8f1e6;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Grid Expedition</div>
+        <h1>Word Search II</h1>
+        <p>Este e o problema em que tries deixam de ser uma estrutura isolada e passam a guiar uma DFS sobre o board. O conceito-chave e pruning por prefixo.</p>
+        <div class="map" aria-hidden="true">
+          <div class="cell">o</div>
+          <div class="cell">a</div>
+          <div class="cell">a</div>
+          <div class="cell">n</div>
+          <div class="cell">e</div>
+          <div class="cell">t</div>
+          <div class="cell">a</div>
+          <div class="cell">e</div>
+          <div class="cell">i</div>
+          <div class="cell">h</div>
+          <div class="cell">k</div>
+          <div class="cell">r</div>
+          <div class="cell">i</div>
+          <div class="cell">f</div>
+          <div class="cell">l</div>
+          <div class="cell">v</div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Build trie:</strong> O(S)</div>
+        <div class="metric"><strong>Board search:</strong> pior caso O(M * N * 4 * 3^(L - 1))</div>
+        <div class="metric"><strong>Trie space:</strong> O(S)</div>
+        <div class="metric"><strong>DFS stack:</strong> O(L)</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dado um board de letras e uma lista de palavras, retorne todas as palavras que podem ser montadas por adjacencia horizontal ou vertical sem reutilizar a mesma celula no mesmo caminho.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Buscar cada palavra separadamente repete muito trabalho.</li>
+          <li>Se o caminho atual nao e prefixo de nenhuma palavra, a DFS deve morrer na hora.</li>
+          <li>Deduplicacao de resposta pode ser feita no proprio no terminal.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Rodar backtracking completo para cada palavra da lista. O board inteiro pode ser revisitato muitas vezes para prefixos semelhantes.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Insira todas as palavras em uma trie e faca uma DFS unica por celula inicial. O caminho no board avanca junto com o caminho na trie; quando o prefixo some, a busca para.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O melhor discurso aqui nao vende um milagre de Big O. Ele explica que o pior caso ainda e alto, mas o pruning por prefixo derruba brutalmente o trabalho repetido na pratica.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.word = None
+
+
+def findWords(board: list[list[str]], words: list[str]) -&gt; list[str]:
+    root = TrieNode()
+
+    for word in words:
+        node = root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.word = word
+
+    rows = len(board)
+    cols = len(board[0]) if board else 0
+    found = []
+
+    def dfs(row: int, col: int, node: TrieNode) -&gt; None:
+        char = board[row][col]
+
+        if char not in node.children:
+            return
+
+        next_node = node.children[char]
+
+        if next_node.word is not None:
+            found.append(next_node.word)
+            next_node.word = None
+
+        board[row][col] = "#"
+
+        for delta_row, delta_col in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            new_row = row + delta_row
+            new_col = col + delta_col
+
+            if 0 &lt;= new_row &lt; rows and 0 &lt;= new_col &lt; cols and board[new_row][new_col] != "#":
+                dfs(new_row, new_col, next_node)
+
+        board[row][col] = char
+
+    for row in range(rows):
+        for col in range(cols):
+            dfs(row, col, root)
+
+    return found</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

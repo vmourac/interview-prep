@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Two Sum - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f5f0e6;
+      --ink: #1f1a17;
+      --accent: #9b3d22;
+      --accent-soft: #d9a88f;
+      --line: #b9ab97;
+      --note: #fffaf1;
+      --shadow: rgba(31, 26, 23, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(155, 61, 34, 0.12), transparent 28%),
+        repeating-linear-gradient(0deg, var(--paper), var(--paper) 32px, #efe7da 32px, #efe7da 33px);
+    }
+
+    .sheet {
+      width: min(980px, calc(100% - 32px));
+      margin: 24px auto;
+      background: rgba(255, 250, 241, 0.95);
+      border: 1px solid var(--line);
+      box-shadow: 0 20px 50px var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sheet::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 72px;
+      width: 2px;
+      height: 100%;
+      background: rgba(155, 61, 34, 0.18);
+    }
+
+    header, main {
+      padding: 28px 28px 28px 104px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.74rem;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    h1, h2 {
+      font-weight: 600;
+      margin: 0 0 12px;
+    }
+
+    h1 { font-size: clamp(2rem, 4vw, 3.5rem); }
+    h2 { font-size: 1.3rem; border-bottom: 1px dashed var(--line); padding-bottom: 8px; }
+
+    .lede {
+      max-width: 62ch;
+      line-height: 1.7;
+      font-size: 1.05rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 26px 0;
+    }
+
+    .card {
+      background: var(--note);
+      border: 1px solid var(--line);
+      padding: 16px;
+      box-shadow: 8px 8px 0 rgba(155, 61, 34, 0.08);
+    }
+
+    .card strong {
+      color: var(--accent);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .code {
+      background: #201a17;
+      color: #f8f1e4;
+      padding: 16px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    ul {
+      padding-left: 20px;
+      line-height: 1.7;
+    }
+
+    .complexity {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .chip {
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(155, 61, 34, 0.06);
+    }
+
+    @media (max-width: 720px) {
+      .sheet::before { left: 28px; }
+      header, main { padding: 24px 18px 24px 48px; }
+    }
+  </style>
+</head>
+<body>
+  <article class="sheet">
+    <header>
+      <div class="eyebrow">Caderno de entrevista</div>
+      <h1>Two Sum</h1>
+      <p class="lede">Guia sintetizado para treino de entrevista. A fonte do topico original e introdutoria e sem transcricao; por isso, este material organiza um problema canonico de arrays e hash map em formato de entrevistador.</p>
+    </header>
+    <main>
+      <section>
+        <h2>Prompt</h2>
+        <p>Dado um array de inteiros e um target, retorne os indices de dois elementos cuja soma seja exatamente igual ao target. Existe exatamente uma solucao valida.</p>
+      </section>
+
+      <section>
+        <h2>Hints</h2>
+        <div class="grid">
+          <div class="card"><strong>Hint 1</strong>Pense no que falta para cada numero atingir o target.</div>
+          <div class="card"><strong>Hint 2</strong>Se voce ja viu o complemento antes, a resposta esta pronta.</div>
+          <div class="card"><strong>Hint 3</strong>Troque um segundo loop por memoria auxiliar.</div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Caminho ingenuo</h2>
+        <p>Teste todos os pares com dois loops. E correto, mas compara pares demais.</p>
+        <ul>
+          <li>Escolha um indice.</li>
+          <li>Compare com todos os indices seguintes.</li>
+          <li>Retorne quando a soma bater.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Caminho otimizado</h2>
+        <p>Use um hash map de valor para indice. Para cada numero, procure o complemento antes de inserir o valor atual.</p>
+        <ul>
+          <li>Calcule complemento = target - valor.</li>
+          <li>Se complemento ja existe no mapa, termine.</li>
+          <li>Senao, registre o valor atual.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Complexidade</h2>
+        <div class="complexity">
+          <div class="chip">Ingenua: tempo O(n^2)</div>
+          <div class="chip">Ingenua: espaco O(1)</div>
+          <div class="chip">Otimizada: tempo O(n)</div>
+          <div class="chip">Otimizada: espaco O(n)</div>
+        </div>
+        <p>A queda para O(n) acontece porque cada elemento e processado uma vez e cada consulta ao hash map custa O(1) em media. O espaco sobe para O(n) porque o mapa pode guardar quase todos os elementos.</p>
+      </section>
+
+      <section>
+        <h2>Solucao final</h2>
+        <pre class="code">def two_sum(nums, target):
+    vistos = {}
+
+    for indice, valor in enumerate(nums):
+        complemento = target - valor
+        if complemento in vistos:
+            return [vistos[complemento], indice]
+        vistos[valor] = indice
+
+    return []</pre>
+      </section>
+    </main>
+  </article>
+</body>
+</html>

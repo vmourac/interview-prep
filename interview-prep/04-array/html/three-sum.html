@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04 Array - Three Sum</title>
+  <style>
+    :root {
+      --paper: #f2eee8;
+      --ink: #1d1815;
+      --muted: #64594f;
+      --accent: #3c4f7b;
+      --accent-soft: #dde4f5;
+      --line: #d0c6bb;
+      --panel: rgba(255, 255, 255, 0.9);
+      --shadow: 0 20px 48px rgba(40, 57, 101, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Baskerville, Georgia, serif;
+      background:
+        radial-gradient(circle at 84% 14%, rgba(60, 79, 123, 0.13), transparent 22%),
+        radial-gradient(circle at 14% 82%, rgba(60, 79, 123, 0.08), transparent 18%),
+        linear-gradient(180deg, #f6f2ec 0%, #eee7dc 100%);
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 42px 20px 76px;
+    }
+
+    .hero, .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      font-size: 0.78rem;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: var(--accent);
+    }
+
+    p, li {
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      padding: 22px;
+    }
+
+    .chip {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 4px 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      background: #171c2b;
+      color: #edf1ff;
+      font-family: "Courier New", monospace;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Topico 04 - Quadro de raciocinio</div>
+      <h1>Three Sum</h1>
+      <p>Pagina autocontida para praticar um problema em que arrays exigem mais do que uma varredura: ordenar, fixar um indice e usar two pointers com disciplina de duplicatas. Como a aula original nao traz captions, o texto abaixo e uma sintese de estudo derivada do topico.</p>
+      <p><strong>Prompt:</strong> Retorne todas as triplas unicas cuja soma seja zero.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="chip">Hints</div>
+        <ul>
+          <li>Sem ordenar, voce nao sabe para que lado mover os ponteiros.</li>
+          <li>Fixe um elemento e transforme o resto em um problema de two pointers.</li>
+          <li>Duplicatas precisam ser tratadas tanto no indice fixo quanto depois de achar uma resposta.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <div class="chip">Caminho ingenuo</div>
+        <p>Enumerar todas as triplas funciona, mas custa `O(n^3)` e ainda deixa a deduplicacao mais trabalhosa.</p>
+      </article>
+
+      <article class="card">
+        <div class="chip">Caminho otimizado</div>
+        <p>Ordene o array. Depois, para cada indice fixo, use `left` e `right` para aproximar a soma de zero de forma monotona.</p>
+      </article>
+
+      <article class="card">
+        <div class="chip">Complexidade</div>
+        <p><strong>Tempo:</strong> O(n^2)</p>
+        <p><strong>Espaco:</strong> O(1) auxiliar</p>
+        <p>Ordenacao custa `O(n log n)`, mas o termo dominante passa a ser o loop externo com passagem linear dos ponteiros.</p>
+      </article>
+    </section>
+
+    <section class="card" style="margin-top: 20px;">
+      <h2>Solucao final</h2>
+      <pre>def threeSum(nums):
+    nums.sort()
+    result = []
+    n = len(nums)
+
+    for i in range(n - 2):
+        if i > 0 and nums[i] == nums[i - 1]:
+            continue
+
+        left = i + 1
+        right = n - 1
+
+        while left < right:
+            total = nums[i] + nums[left] + nums[right]
+
+            if total < 0:
+                left += 1
+            elif total > 0:
+                right -= 1
+            else:
+                result.append([nums[i], nums[left], nums[right]])
+                left += 1
+                right -= 1
+
+                while left < right and nums[left] == nums[left - 1]:
+                    left += 1
+
+                while left < right and nums[right] == nums[right + 1]:
+                    right -= 1
+
+    return result</pre>
+    </section>
+  </main>
+</body>
+</html>

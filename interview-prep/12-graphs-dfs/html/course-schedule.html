@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Schedule - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #efe5d6;
+      --ink: #201912;
+      --muted: #65584d;
+      --line: rgba(32, 25, 18, 0.14);
+      --accent: #7a4d2d;
+      --accent-soft: rgba(122, 77, 45, 0.11);
+      --card: rgba(255, 251, 245, 0.92);
+      --shadow: 0 24px 58px rgba(40, 31, 24, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 85% 12%, rgba(122, 77, 45, 0.13), transparent 24%),
+        repeating-linear-gradient(90deg, transparent 0 72px, rgba(32, 25, 18, 0.035) 72px 73px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 36px 18px 72px;
+    }
+
+    .hero, .grid { display: grid; gap: 22px; }
+    .hero { grid-template-columns: 1.08fr 0.92fr; margin-bottom: 24px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      line-height: 0.95;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 1.12rem; color: var(--accent); }
+    p, li { line-height: 1.72; color: var(--muted); }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .chain {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .node {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+      font-weight: bold;
+    }
+
+    .metrics { display: grid; gap: 12px; }
+    .metric {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #18130f;
+      color: #f8f0e6;
+      border-radius: 10px;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Dependency Ledger</div>
+        <h1>Course Schedule</h1>
+        <p>A fala correta aqui e menos sobre ordenar cursos e mais sobre provar se o grafo dirigido de dependencias tem ou nao um ciclo.</p>
+        <div class="chain" aria-hidden="true">
+          <div class="node">0</div>
+          <div class="node">1</div>
+          <div class="node">2</div>
+          <div class="node">3</div>
+          <div class="node">1 again?</div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> grafo dirigido de prerequisitos</div>
+        <div class="metric"><strong>Tempo:</strong> O(V + E)</div>
+        <div class="metric"><strong>Espaco:</strong> O(V + E)</div>
+        <div class="metric"><strong>Chave:</strong> estado 0, 1 e 2</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dadas dependencias entre cursos, diga se existe uma forma de concluir todos eles sem quebrar prerequisitos.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Pergunte primeiro se o grafo e aciclico.</li>
+          <li>`visited` sozinho nao basta em grafo dirigido.</li>
+          <li>Reencontrar um no ainda aberto na pilha recursiva denuncia o ciclo.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Simular varias agendas de cursos e tentar ver se alguma funciona explode em combinacoes e ignora a estrutura certa do problema.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Use DFS com tres estados. Se um vizinho reaparecer em estado visitando, existe back edge e portanto ciclo.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O entrevistador quer ouvir que DAG implica ordenacao topologica possivel. A DFS serve para responder exatamente a parte do ciclo.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>def canFinish(numCourses: int, prerequisites: list[list[int]]) -&gt; bool:
+    graph = [[] for _ in range(numCourses)]
+
+    for course, prereq in prerequisites:
+        graph[prereq].append(course)
+
+    state = [0] * numCourses
+
+    def dfs(course: int) -&gt; bool:
+        if state[course] == 1:
+            return False
+        if state[course] == 2:
+            return True
+
+        state[course] = 1
+
+        for neighbor in graph[course]:
+            if not dfs(neighbor):
+                return False
+
+        state[course] = 2
+        return True
+
+    for course in range(numCourses):
+        if state[course] == 0 and not dfs(course):
+            return False
+
+    return True</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

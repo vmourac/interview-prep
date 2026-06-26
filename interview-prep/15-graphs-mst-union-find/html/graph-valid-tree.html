@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Valid Tree - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #ece7dc;
+      --ink: #1c2024;
+      --muted: #4f5a64;
+      --line: rgba(28, 32, 36, 0.15);
+      --accent: #204b5f;
+      --accent-soft: rgba(32, 75, 95, 0.12);
+      --card: rgba(251, 249, 244, 0.94);
+      --shadow: 0 26px 54px rgba(30, 38, 44, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(32, 75, 95, 0.12), transparent 28%),
+        repeating-linear-gradient(0deg, transparent 0 32px, rgba(28, 32, 36, 0.035) 32px 33px),
+        repeating-linear-gradient(90deg, transparent 0 76px, rgba(28, 32, 36, 0.035) 76px 77px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 18px 72px;
+    }
+
+    .hero, .grid {
+      display: grid;
+      gap: 22px;
+    }
+
+    .hero {
+      grid-template-columns: 1.08fr 0.92fr;
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.3rem, 4vw, 4.2rem);
+      line-height: 0.94;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 1.12rem; color: var(--accent); }
+    p, li { line-height: 1.72; color: var(--muted); }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .draft {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .node {
+      width: 54px;
+      height: 54px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+      display: grid;
+      place-items: center;
+      font-weight: bold;
+    }
+
+    .metrics { display: grid; gap: 12px; }
+    .metric {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #151a1e;
+      color: #eef3f6;
+      border-radius: 10px;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Structural Check</div>
+        <h1>Graph Valid Tree</h1>
+        <p>O discurso forte aqui e estrutural: uma arvore precisa ter exatamente `n - 1` arestas e nao pode conter ciclo.</p>
+        <div class="draft" aria-hidden="true">
+          <div class="node">0</div>
+          <div class="node">1</div>
+          <div class="node">2</div>
+          <div class="node">3</div>
+          <div class="node">4</div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> conectividade mais ausencia de ciclo</div>
+        <div class="metric"><strong>Tempo:</strong> O(E * alpha(V))</div>
+        <div class="metric"><strong>Espaco:</strong> O(V)</div>
+        <div class="metric"><strong>Ferramenta:</strong> Union-Find</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dado `n` e uma lista de arestas nao dirigidas, decida se o grafo forma uma arvore valida.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Uma arvore com `n` vertices precisa de `n - 1` arestas.</li>
+          <li>Se uma uniao falha, apareceu ciclo.</li>
+          <li>Nao trate conectividade e ciclo como ideias separadas no discurso final.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Rodar DFS repetida para revalidar conectividade ou ciclo a cada aresta funciona, mas repete exploracao do grafo varias vezes.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Primeiro valide o numero de arestas. Depois use Union-Find para rejeitar qualquer aresta que conecte vertices ja na mesma componente.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>Uma fala madura e: se tenho `n - 1` arestas e nenhum ciclo, o grafo necessariamente fica conexo e portanto e uma arvore.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>def validTree(n: int, edges: list[list[int]]) -&gt; bool:
+    if len(edges) != n - 1:
+        return False
+
+    parent = list(range(n))
+    rank = [0] * n
+
+    def find(node: int) -&gt; int:
+        if parent[node] != node:
+            parent[node] = find(parent[node])
+        return parent[node]
+
+    def union(a: int, b: int) -&gt; bool:
+        root_a = find(a)
+        root_b = find(b)
+
+        if root_a == root_b:
+            return False
+
+        if rank[root_a] &lt; rank[root_b]:
+            parent[root_a] = root_b
+        elif rank[root_a] &gt; rank[root_b]:
+            parent[root_b] = root_a
+        else:
+            parent[root_b] = root_a
+            rank[root_a] += 1
+
+        return True
+
+    for a, b in edges:
+        if not union(a, b):
+            return False
+
+    return True</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

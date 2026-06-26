@@ -1,0 +1,1748 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cockpit interativo para entrevista de system design sobre autocomplete.">
+  <title>Autocomplete — Cockpit de Entrevista</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #eef2e6;
+      --muted: #aab4aa;
+      --dim: #78837d;
+      --paper: #0d1110;
+      --panel: #131917;
+      --panel-2: #18211e;
+      --line: #34413b;
+      --line-strong: #58675f;
+      --amber: #ffbd59;
+      --amber-soft: #3a2b15;
+      --cyan: #62d8d0;
+      --cyan-soft: #12312f;
+      --red: #ff746c;
+      --red-soft: #391918;
+      --green: #9ed67a;
+      --shadow: 0 22px 70px rgba(0, 0, 0, .32);
+      --serif: Georgia, "Times New Roman", serif;
+      --mono: "IBM Plex Mono", "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+      --radius: 4px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(98, 216, 208, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(98, 216, 208, .035) 1px, transparent 1px),
+        radial-gradient(circle at 12% -10%, rgba(255, 189, 89, .13), transparent 34rem),
+        radial-gradient(circle at 90% 8%, rgba(98, 216, 208, .09), transparent 30rem),
+        var(--paper);
+      background-size: 32px 32px, 32px 32px, auto, auto, auto;
+      font-family: var(--serif);
+      line-height: 1.58;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .18;
+      background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(255,255,255,.025) 4px
+      );
+      mix-blend-mode: screen;
+    }
+
+    a { color: var(--cyan); text-underline-offset: .22em; }
+    a:hover { color: var(--amber); }
+
+    button, input { font: inherit; }
+
+    button {
+      color: var(--ink);
+      background: var(--panel-2);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    button:hover { border-color: var(--amber); }
+
+    :focus-visible {
+      outline: 3px solid var(--amber);
+      outline-offset: 3px;
+    }
+
+    .skip-link {
+      position: fixed;
+      z-index: 100;
+      top: .75rem;
+      left: .75rem;
+      padding: .65rem .9rem;
+      transform: translateY(-160%);
+      background: var(--amber);
+      color: #111;
+      font-family: var(--mono);
+      font-weight: 800;
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .shell {
+      width: min(1500px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 1rem 0 4rem;
+    }
+
+    .masthead {
+      position: relative;
+      overflow: hidden;
+      min-height: 330px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(270px, .65fr);
+      gap: 2rem;
+      align-items: end;
+      padding: clamp(1.4rem, 4vw, 3.2rem);
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(255,189,89,.09), transparent 38%),
+        linear-gradient(315deg, rgba(98,216,208,.08), transparent 45%),
+        var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .masthead::after {
+      content: "TYPE / RANK / SERVE";
+      position: absolute;
+      right: -1rem;
+      top: 2.2rem;
+      color: rgba(238,242,230,.035);
+      font: 900 clamp(3rem, 8vw, 8rem)/.8 var(--mono);
+      letter-spacing: -.08em;
+      transform: rotate(-4deg);
+      white-space: nowrap;
+    }
+
+    .eyebrow, .label, .kicker, .metric dt, .stage-count,
+    .tag, .status-line, .legend, .mini-title {
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    .eyebrow {
+      margin: 0 0 .9rem;
+      color: var(--amber);
+      font-size: .78rem;
+      font-weight: 800;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 850px;
+      margin-bottom: 1rem;
+      font-size: clamp(3.6rem, 10vw, 9rem);
+      line-height: .82;
+      letter-spacing: -.075em;
+      font-weight: 500;
+    }
+
+    h1 span {
+      display: block;
+      color: var(--cyan);
+      font-style: italic;
+      font-size: .48em;
+      letter-spacing: -.04em;
+    }
+
+    .lede {
+      max-width: 720px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.7vw, 1.25rem);
+    }
+
+    .source-key {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: .65rem;
+      padding: 1rem;
+      border-left: 2px solid var(--amber);
+      background: rgba(13,17,16,.78);
+      font-family: var(--mono);
+      font-size: .8rem;
+    }
+
+    .source-key p { margin: 0; }
+    .source-key strong { color: var(--amber); }
+
+    .top-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .65rem;
+      margin-top: 1.2rem;
+    }
+
+    .top-links a {
+      padding: .55rem .75rem;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      background: rgba(13,17,16,.65);
+      font-family: var(--mono);
+      font-size: .78rem;
+      text-decoration: none;
+    }
+
+    .stage-nav {
+      position: sticky;
+      z-index: 20;
+      top: 0;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 1px;
+      margin: 1rem 0;
+      border: 1px solid var(--line);
+      background: var(--line);
+      box-shadow: 0 12px 35px rgba(0,0,0,.28);
+    }
+
+    .stage-tab {
+      min-height: 64px;
+      padding: .65rem .5rem;
+      border: 0;
+      border-radius: 0;
+      background: #101513;
+      font-family: var(--mono);
+      font-size: clamp(.64rem, 1.3vw, .83rem);
+      line-height: 1.25;
+    }
+
+    .stage-tab .stage-count {
+      display: block;
+      margin-bottom: .2rem;
+      color: var(--dim);
+      font-size: .62rem;
+    }
+
+    .stage-tab[aria-selected="true"] {
+      color: #0b0e0d;
+      background: var(--amber);
+      font-weight: 900;
+    }
+
+    .stage-tab[aria-selected="true"] .stage-count { color: #43300f; }
+
+    .status-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      color: var(--dim);
+      font-size: .7rem;
+    }
+
+    .stage-panel {
+      margin: 1rem 0 2rem;
+      padding: clamp(1rem, 3vw, 2rem);
+      border: 1px solid var(--line);
+      background: rgba(19,25,23,.94);
+      box-shadow: var(--shadow);
+    }
+
+    .js .stage-panel[hidden] { display: none; }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: start;
+      padding-bottom: 1rem;
+      margin-bottom: 1.3rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-head h2 {
+      margin-bottom: .25rem;
+      font-size: clamp(2rem, 5vw, 4.7rem);
+      line-height: .95;
+      letter-spacing: -.05em;
+      font-weight: 500;
+    }
+
+    .section-head p {
+      max-width: 760px;
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .section-number {
+      color: var(--line-strong);
+      font: 900 clamp(3rem, 8vw, 7rem)/.8 var(--mono);
+    }
+
+    .grid-2, .grid-3, .grid-4 {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      position: relative;
+      min-width: 0;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      top: -4px;
+      left: -4px;
+      background: var(--cyan);
+    }
+
+    .card h3 {
+      margin-bottom: .55rem;
+      font-size: 1.22rem;
+      line-height: 1.15;
+    }
+
+    .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+
+    .kicker {
+      display: inline-block;
+      margin-bottom: .6rem;
+      color: var(--cyan);
+      font-size: .68rem;
+      font-weight: 800;
+    }
+
+    .local { border-top: 3px solid var(--amber); }
+    .extra { border-top: 3px solid var(--cyan); }
+    .hypothesis { border-top: 3px solid var(--red); }
+
+    .tag {
+      display: inline-flex;
+      padding: .18rem .4rem;
+      margin-right: .35rem;
+      border: 1px solid currentColor;
+      font-size: .6rem;
+      font-weight: 800;
+    }
+
+    .tag.local-tag { color: var(--amber); }
+    .tag.extra-tag { color: var(--cyan); }
+    .tag.hyp-tag { color: var(--red); }
+
+    .questions {
+      margin: 0;
+      padding-left: 1.25rem;
+      columns: 2;
+      column-gap: 2.5rem;
+    }
+
+    .questions li {
+      break-inside: avoid;
+      margin-bottom: .7rem;
+      padding-left: .3rem;
+    }
+
+    .scope-statement {
+      margin: 1.25rem 0 0;
+      padding: 1.1rem 1.2rem;
+      border-left: 4px solid var(--amber);
+      background: var(--amber-soft);
+      font-size: 1.15rem;
+    }
+
+    .metric {
+      margin: 0;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      background: #0f1412;
+    }
+
+    .metric dt {
+      color: var(--muted);
+      font-size: .66rem;
+    }
+
+    .metric dd {
+      margin: .35rem 0 0;
+      color: var(--amber);
+      font: 700 clamp(1.4rem, 3vw, 2.6rem)/1 var(--mono);
+      letter-spacing: -.06em;
+    }
+
+    .equation {
+      min-width: 0;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-wrap: anywhere;
+      padding: 1rem;
+      border: 1px dashed var(--line-strong);
+      background: #0a0e0d;
+      color: var(--cyan);
+      font: .9rem/1.7 var(--mono);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .impact {
+      padding: .8rem 1rem;
+      border-left: 3px solid var(--red);
+      background: var(--red-soft);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: .93rem;
+    }
+
+    th, td {
+      padding: .75rem;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--amber);
+      background: #0f1412;
+      font-family: var(--mono);
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    code, pre {
+      font-family: var(--mono);
+    }
+
+    code {
+      color: var(--cyan);
+      overflow-wrap: anywhere;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      background: #090d0c;
+      color: #d9e7df;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .api-pair {
+      display: grid;
+      grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+      gap: 1rem;
+    }
+
+    .compare-controls, .diagram-controls, .view-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .55rem;
+      margin: 1rem 0;
+    }
+
+    .control-button {
+      padding: .55rem .75rem;
+      font-family: var(--mono);
+      font-size: .74rem;
+      font-weight: 800;
+    }
+
+    .control-button[aria-pressed="true"] {
+      color: #09100d;
+      background: var(--cyan);
+      border-color: var(--cyan);
+    }
+
+    .structure-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .8rem;
+    }
+
+    .structure-card {
+      padding: 1rem;
+      border: 1px solid var(--line);
+      background: #101513;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .structure-card[data-active="true"] {
+      transform: translateY(-5px);
+      border-color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .structure-card h3 {
+      display: flex;
+      justify-content: space-between;
+      gap: .6rem;
+      align-items: baseline;
+    }
+
+    .grade {
+      color: var(--cyan);
+      font: 900 1.5rem/1 var(--mono);
+    }
+
+    .bar {
+      height: 6px;
+      margin: .35rem 0 .7rem;
+      background: #26312c;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      background: var(--cyan);
+    }
+
+    .comparison-detail {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-left: 4px solid var(--cyan);
+      background: var(--cyan-soft);
+    }
+
+    .diagram-frame {
+      position: relative;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-inline: contain;
+      scrollbar-color: var(--amber) #0b100e;
+      scrollbar-gutter: stable;
+      -webkit-overflow-scrolling: touch;
+      padding: .6rem;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(rgba(98,216,208,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(98,216,208,.04) 1px, transparent 1px),
+        #0b100e;
+      background-size: 24px 24px;
+    }
+
+    .diagram-frame svg {
+      display: block;
+      width: 100%;
+      min-width: 900px;
+      height: auto;
+    }
+
+    .diagram-scroll-hint {
+      margin: .4rem 0 .65rem;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .72rem;
+    }
+
+    .diagram-scroll-hint::before {
+      content: "↔";
+      margin-right: .45rem;
+      color: var(--amber);
+      font-weight: 900;
+    }
+
+    .diagram-node rect {
+      fill: #17201c;
+      stroke: var(--line-strong);
+      stroke-width: 2;
+      rx: 3;
+    }
+
+    .diagram-node text {
+      fill: var(--ink);
+      font: 700 13px var(--mono);
+      text-anchor: middle;
+    }
+
+    .diagram-node .sub {
+      fill: var(--muted);
+      font-size: 10px;
+      font-weight: 400;
+    }
+
+    .edge {
+      fill: none;
+      stroke: #536159;
+      stroke-width: 3;
+      marker-end: url(#arrow);
+      opacity: .45;
+      transition: opacity .2s ease, stroke .2s ease, stroke-width .2s ease;
+    }
+
+    .edge.dashed { stroke-dasharray: 8 7; }
+
+    .edge[data-flow~="read"] {
+      stroke: var(--cyan);
+      marker-end: url(#arrow-read);
+      opacity: .72;
+    }
+
+    .edge[data-flow~="rebuild"] {
+      stroke: var(--amber);
+      stroke-dasharray: 8 7;
+      marker-end: url(#arrow-async);
+      opacity: .78;
+    }
+
+    .edge[data-flow="failure"] {
+      stroke: var(--red);
+      stroke-dasharray: 2 7;
+      marker-end: url(#arrow-failure);
+      opacity: .72;
+    }
+
+    .diagram-node, .edge { transition: opacity .2s ease, filter .2s ease; }
+
+    .diagram-frame[data-highlight="read"] [data-flow]:not([data-flow~="read"]),
+    .diagram-frame[data-highlight="rebuild"] [data-flow]:not([data-flow~="rebuild"]),
+    .diagram-frame[data-highlight="failure"] [data-flow]:not([data-flow~="failure"]) {
+      opacity: .14;
+    }
+
+    .diagram-frame[data-highlight="read"] [data-flow~="read"] {
+      opacity: 1;
+      filter: drop-shadow(0 0 7px rgba(98,216,208,.48));
+    }
+
+    .diagram-frame[data-highlight="read"] .edge[data-flow~="read"] {
+      stroke: var(--cyan);
+      stroke-width: 5;
+      marker-end: url(#arrow-read);
+    }
+
+    .diagram-frame[data-highlight="rebuild"] [data-flow~="rebuild"] {
+      opacity: 1;
+      filter: drop-shadow(0 0 7px rgba(255,189,89,.5));
+    }
+
+    .diagram-frame[data-highlight="rebuild"] .edge[data-flow~="rebuild"] {
+      stroke: var(--amber);
+      stroke-width: 5;
+      stroke-dasharray: 8 7;
+      marker-end: url(#arrow-async);
+    }
+
+    .diagram-frame[data-highlight="failure"] [data-flow~="failure"] {
+      opacity: 1;
+      filter: drop-shadow(0 0 8px rgba(255,116,108,.55));
+    }
+
+    .diagram-frame[data-highlight="failure"] .edge[data-flow~="failure"] {
+      stroke: var(--red);
+      stroke-width: 5;
+      stroke-dasharray: 2 7;
+      marker-end: url(#arrow-failure);
+    }
+
+    .diagram-frame[data-view="minimal"] [data-tier="scaled"] { display: none; }
+    .diagram-frame[data-view="scaled"] [data-tier="minimal"] { display: none; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .9rem;
+      margin-top: .8rem;
+      color: var(--muted);
+      font-size: .62rem;
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 22px;
+      height: 0;
+      margin-right: .35rem;
+      vertical-align: middle;
+      border-top: 3px solid var(--line-strong);
+    }
+
+    .legend .read::before { border-color: var(--cyan); }
+    .legend .async::before {
+      border-color: var(--amber);
+      border-top-style: dashed;
+    }
+    .legend .failure::before {
+      border-color: var(--red);
+      border-top-style: dotted;
+    }
+
+    .flow-steps {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: .65rem;
+      margin-top: 1rem;
+      counter-reset: flow;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 120px;
+      padding: 2.2rem .8rem .8rem;
+      border-top: 3px solid var(--cyan);
+      background: #101513;
+      counter-increment: flow;
+    }
+
+    .flow-step::before {
+      content: counter(flow, decimal-leading-zero);
+      position: absolute;
+      top: .5rem;
+      left: .8rem;
+      color: var(--dim);
+      font: 800 .65rem var(--mono);
+    }
+
+    .flow-step strong { display: block; margin-bottom: .35rem; }
+    .flow-step p { margin: 0; color: var(--muted); font-size: .87rem; }
+
+    .tradeoff {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: .7rem;
+      align-items: center;
+      padding: .8rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tradeoff:last-child { border-bottom: 0; }
+
+    .tradeoff .versus {
+      color: var(--amber);
+      font: 900 .7rem var(--mono);
+    }
+
+    .tradeoff strong { color: var(--cyan); }
+
+    .checkpoint-board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .65rem;
+    }
+
+    .check-button {
+      display: grid;
+      grid-template-columns: 25px 1fr;
+      gap: .7rem;
+      align-items: start;
+      padding: .8rem;
+      text-align: left;
+      font-size: .9rem;
+    }
+
+    .check-button::before {
+      content: "○";
+      color: var(--muted);
+      font: 900 1.15rem/1 var(--mono);
+    }
+
+    .check-button[aria-pressed="true"] {
+      background: var(--cyan-soft);
+      border-color: var(--cyan);
+    }
+
+    .check-button[aria-pressed="true"]::before {
+      content: "●";
+      color: var(--cyan);
+    }
+
+    .progress-wrap {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: .8rem;
+      align-items: center;
+      margin: 1rem 0;
+    }
+
+    .progress-track {
+      height: 9px;
+      background: #27312d;
+    }
+
+    .progress-value {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      transition: width .2s ease;
+    }
+
+    .progress-text {
+      color: var(--cyan);
+      font: 800 .76rem var(--mono);
+    }
+
+    .qa {
+      margin-bottom: .7rem;
+      border: 1px solid var(--line);
+      background: #101513;
+    }
+
+    .question-button {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: .9rem 1rem;
+      border: 0;
+      text-align: left;
+      font-weight: 700;
+      background: transparent;
+    }
+
+    .question-button::after {
+      content: "+";
+      color: var(--amber);
+      font: 900 1.2rem/1 var(--mono);
+    }
+
+    .question-button[aria-expanded="true"]::after { content: "−"; }
+
+    .answer {
+      padding: 0 1rem 1rem;
+      color: var(--muted);
+    }
+
+    .answer p:last-child { margin-bottom: 0; }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 0;
+      margin: 1rem 0;
+      border: 1px solid var(--line);
+    }
+
+    .timeline article {
+      min-height: 160px;
+      padding: .8rem;
+      border-right: 1px solid var(--line);
+      background: #101513;
+    }
+
+    .timeline article:last-child { border-right: 0; }
+    .timeline strong { display: block; color: var(--amber); font-family: var(--mono); }
+    .timeline span { color: var(--muted); font-size: .84rem; }
+
+    .failure-table td:first-child { color: var(--red); font-weight: 700; }
+
+    .closing-callout {
+      padding: 1.2rem;
+      border: 1px solid var(--amber);
+      background: linear-gradient(120deg, var(--amber-soft), transparent);
+      font-size: 1.08rem;
+    }
+
+    .no-js-note {
+      margin: 1rem 0;
+      padding: 1rem;
+      border: 2px solid var(--amber);
+      color: var(--ink);
+      background: var(--amber-soft);
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 0;
+      color: var(--dim);
+      font-family: var(--mono);
+      font-size: .7rem;
+    }
+
+    @media (max-width: 1050px) {
+      .masthead, .api-pair { grid-template-columns: 1fr; }
+      .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-3, .structure-grid { grid-template-columns: 1fr; }
+      .flow-steps, .timeline { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .timeline article { border-bottom: 1px solid var(--line); }
+    }
+
+    @media (max-width: 720px) {
+      .shell { width: min(100% - 1rem, 1500px); }
+      .masthead { min-height: 0; padding: 1.2rem; }
+      h1 { font-size: clamp(3rem, 17vw, 5rem); }
+      .stage-nav {
+        position: static;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .grid-2, .grid-4, .checkpoint-board,
+      .flow-steps, .timeline { grid-template-columns: minmax(0, 1fr); }
+      .questions { columns: 1; }
+      .section-head { grid-template-columns: 1fr; }
+      .section-number { display: none; }
+      table { table-layout: fixed; }
+      th, td {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+      .tradeoff { grid-template-columns: 1fr; }
+      .tradeoff .versus { padding: .25rem 0; }
+      .timeline article { border-right: 0; }
+      footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+    @media print {
+      :root { color-scheme: light; }
+      body { color: #111; background: #fff; }
+      body::before, .stage-nav, .diagram-controls, .view-controls,
+      .compare-controls, .status-line { display: none !important; }
+      .stage-panel, .card, .metric, .qa, .timeline article {
+        color: #111;
+        background: #fff;
+        box-shadow: none;
+        break-inside: avoid;
+      }
+      .js .stage-panel[hidden], .js .answer[hidden] { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <div class="shell">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">System design · cockpit 05 · leitura dominante</p>
+        <h1>Auto<span>complete</span></h1>
+        <p class="lede">Um roteiro técnico para transformar teclas em top-k: da negociação de escopo à trie distribuída, do rebuild diário ao rollback atômico.</p>
+        <div class="top-links" aria-label="Materiais complementares">
+          <a href="README.md">Guia principal</a>
+          <a href="deep-dives.md">Deep dives</a>
+        </div>
+      </div>
+      <aside class="source-key" aria-label="Legenda de origem do conteúdo">
+        <p><strong>[Aula local]</strong> sustentado pela aula de autocomplete.</p>
+        <p><strong>[Complemento]</strong> operação e confiabilidade adicionadas.</p>
+        <p><strong>[Hipótese]</strong> número pedagógico, não dado real.</p>
+        <p>Meta da sessão: explicar decisões, falhas e trade-offs em 45 minutos.</p>
+      </aside>
+    </header>
+
+    <noscript>
+      <div class="no-js-note">
+        JavaScript está desabilitado. Todo o conteúdo essencial permanece disponível abaixo, em sequência. Os filtros de diagrama, checkpoints e respostas recolhíveis ficam apenas sem interação.
+      </div>
+    </noscript>
+
+    <nav class="stage-nav" aria-label="Etapas do cockpit" role="tablist">
+      <button class="stage-tab" type="button" role="tab" id="tab-escopo" aria-controls="panel-escopo" aria-selected="true" tabindex="0" data-stage="escopo">
+        <span class="stage-count">01 / 06</span>Escopo
+      </button>
+      <button class="stage-tab" type="button" role="tab" id="tab-estimativas" aria-controls="panel-estimativas" aria-selected="false" tabindex="-1" data-stage="estimativas">
+        <span class="stage-count">02 / 06</span>Estimativas
+      </button>
+      <button class="stage-tab" type="button" role="tab" id="tab-api" aria-controls="panel-api" aria-selected="false" tabindex="-1" data-stage="api">
+        <span class="stage-count">03 / 06</span>API e dados
+      </button>
+      <button class="stage-tab" type="button" role="tab" id="tab-arquitetura" aria-controls="panel-arquitetura" aria-selected="false" tabindex="-1" data-stage="arquitetura">
+        <span class="stage-count">04 / 06</span>Arquitetura
+      </button>
+      <button class="stage-tab" type="button" role="tab" id="tab-deep" aria-controls="panel-deep" aria-selected="false" tabindex="-1" data-stage="deep">
+        <span class="stage-count">05 / 06</span>Deep dives
+      </button>
+      <button class="stage-tab" type="button" role="tab" id="tab-fechamento" aria-controls="panel-fechamento" aria-selected="false" tabindex="-1" data-stage="fechamento">
+        <span class="stage-count">06 / 06</span>Fechamento
+      </button>
+    </nav>
+
+    <div class="status-line" aria-live="polite">
+      <span id="stage-status">Etapa ativa: Escopo</span>
+      <span>Use ← → para trocar de etapa</span>
+    </div>
+
+    <main id="conteudo">
+      <section class="stage-panel" id="panel-escopo" role="tabpanel" aria-labelledby="tab-escopo" data-stage-panel="escopo">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Contrato antes das caixas</p>
+            <h2>Defina o produto que cabe na conversa.</h2>
+            <p>Autocomplete local e sugestões globais parecem iguais na tela, mas pedem arquiteturas diferentes. Esta sessão adota consultas globais, multi-word, top 10 e frequência global.</p>
+          </div>
+          <div class="section-number" aria-hidden="true">01</div>
+        </div>
+
+        <div class="grid-3">
+          <article class="card local">
+            <span class="kicker">Aula local</span>
+            <h3>Produto escolhido</h3>
+            <p>Completar consultas globais enquanto o usuário digita, com palavras ou frases, ranking por frequência e atualização diária.</p>
+          </article>
+          <article class="card extra">
+            <span class="kicker">Complemento</span>
+            <h3>Qualidade operacional</h3>
+            <p>Locale, moderação, versão do índice, rollback, proteção contra abuso e observabilidade entram no desenho escalado.</p>
+          </article>
+          <article class="card hypothesis">
+            <span class="kicker">Fora do escopo</span>
+            <h3>Proteja o tempo</h3>
+            <p>Sem personalização, correção ortográfica, embeddings, anúncios ou execução da busca no primeiro desenho.</p>
+          </article>
+        </div>
+
+        <h3>Perguntas de clarificação</h3>
+        <ol class="questions">
+          <li>É palavra local ou consulta global?</li>
+          <li>Retornamos top 3, top 5 ou top 10?</li>
+          <li>Ranking global, regional ou personalizado?</li>
+          <li>Qual o limite de frescor aceitável?</li>
+          <li>O cliente aplica debounce?</li>
+          <li>Há sugestões para prefixo vazio?</li>
+          <li>Qual meta de latência p95/p99?</li>
+          <li>Precisamos filtrar conteúdo sensível?</li>
+          <li>O log de busca pode perder eventos?</li>
+          <li>Rebuild deve ocorrer sem downtime?</li>
+        </ol>
+
+        <blockquote class="scope-statement">
+          “Vou desenhar top 10 de consultas globais, segmentadas por locale, ordenadas por frequência e recência agregadas, atualizadas diariamente e sem personalização. Priorizarei p95 baixo e disponibilidade, aceitando consistência eventual.”
+        </blockquote>
+
+        <h3>Requisitos que dirigem a arquitetura</h3>
+        <div class="grid-2">
+          <article class="card">
+            <span class="tag local-tag">Aula local</span>
+            <h3>Funcionais</h3>
+            <ul>
+              <li>sugerir durante a digitação;</li>
+              <li>aceitar palavras e múltiplas palavras;</li>
+              <li>retornar top-k por frequência global;</li>
+              <li>atualizar tendências diariamente;</li>
+              <li>registrar busca final para feedback.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <span class="tag local-tag">Aula local + complemento</span>
+            <h3>Não funcionais</h3>
+            <p class="mini-title">Aula local</p>
+            <ul>
+              <li>baixa latência e alta disponibilidade;</li>
+              <li>consistência eventual;</li>
+            </ul>
+            <p class="mini-title">Complemento</p>
+            <ul>
+              <li>rebuild reproduzível e reversível;</li>
+              <li>privacidade e antiabuso;</li>
+              <li>degradação sem bloquear a busca principal.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="stage-panel" id="panel-estimativas" role="tabpanel" aria-labelledby="tab-estimativas" data-stage-panel="estimativas">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Números com consequência</p>
+            <h2>Calcule só o que muda uma decisão.</h2>
+            <p>A aula local usa aproximadamente 200 mil palavras para o caso pequeno e a ordem de um bilhão de queries únicas por dia para o caso global. As contas abaixo são hipóteses pedagógicas.</p>
+          </div>
+          <div class="section-number" aria-hidden="true">02</div>
+        </div>
+
+        <div class="grid-4">
+          <dl class="metric">
+            <dt>Buscas concluídas/dia</dt>
+            <dd>500 M</dd>
+          </dl>
+          <dl class="metric">
+            <dt>Estados após debounce</dt>
+            <dd>4 / busca</dd>
+          </dl>
+          <dl class="metric">
+            <dt>QPS médio de sugestões</dt>
+            <dd>≈ 23 k</dd>
+          </dl>
+          <dl class="metric">
+            <dt>Pico pedagógico 5×</dt>
+            <dd>≈ 116 k</dd>
+          </dl>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3>Amplificação por tecla</h3>
+            <div class="equation" role="img" aria-label="Cálculo de requisições por dia">500 M buscas × 8 caracteres × 0,5 após debounce
+= 2 bilhões de requests/dia
+
+2 B ÷ 86.400 ≈ 23 mil QPS médios
+pico 5× ≈ 116 mil QPS</div>
+            <p class="impact"><strong>Decisão:</strong> debounce, cancelamento, CDN, cache e workers stateless não são otimizações tardias; controlam a frota desde o início.</p>
+          </div>
+          <div>
+            <h3>Memória de top-k</h3>
+            <div class="equation" role="img" aria-label="Cálculo simplificado de memória">1 B termos × 20 prefixos × top 10 × 4 bytes/ID
+= 800 GB apenas para IDs
+
+fora da conta:
+nós + scores + dicionário + alinhamento + réplicas</div>
+            <p class="impact"><strong>Decisão:</strong> use IDs, poda, compressão, shards lexicais e snapshots; não repita strings em cada ancestral.</p>
+          </div>
+        </div>
+
+        <h3>Back-of-the-envelope sem ritual</h3>
+        <table>
+          <thead>
+            <tr><th>Pergunta</th><th>Conta útil</th><th>Consequência</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Quantos reads?</td><td>buscas × teclas após debounce</td><td>cache e escala horizontal</td></tr>
+            <tr><td>Quanto cabe em uma máquina?</td><td>nós + top-k + dicionário + réplica</td><td>compressão e particionamento</td></tr>
+            <tr><td>Quanto trafega?</td><td>payload × QPS de pico</td><td>resposta compacta e edge</td></tr>
+            <tr><td>Quanto entra no pipeline?</td><td>buscas submetidas, não teclas</td><td>fila e batch distribuído</td></tr>
+            <tr><td>Qual atraso é tolerável?</td><td>janela + build + rollout</td><td>snapshot diário ou delta</td></tr>
+          </tbody>
+        </table>
+
+        <div class="card hypothesis">
+          <span class="kicker">Hipótese, não fato</span>
+          <p>500 milhões/dia, 8 teclas, redução de 50%, pico 5× e SLOs deste cockpit são números para raciocínio. Na entrevista, confirme-os ou adapte-os antes de derivar capacidade.</p>
+        </div>
+      </section>
+
+      <section class="stage-panel" id="panel-api" role="tabpanel" aria-labelledby="tab-api" data-stage-panel="api">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Interface estreita, dados versionados</p>
+            <h2>Faça o serving simples e o build explícito.</h2>
+            <p>O request deve ser barato e cacheável. O índice é um artefato derivado, imutável e identificado por versão.</p>
+          </div>
+          <div class="section-number" aria-hidden="true">03</div>
+        </div>
+
+        <div class="api-pair">
+          <article class="card">
+            <span class="kicker">Read API</span>
+            <h3>GET /v1/suggestions</h3>
+            <pre><code>GET /v1/suggestions
+  ?prefix=uber%20e
+  &amp;locale=pt-BR
+  &amp;limit=10</code></pre>
+            <ul>
+              <li><code>prefix</code> obrigatório, salvo zero-term.</li>
+              <li><code>locale</code> seleciona corpus e política.</li>
+              <li><code>limit</code> tem teto de proteção.</li>
+              <li>URL normalizada permite CDN.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <span class="kicker">Response</span>
+            <h3>Somente o que a interface usa</h3>
+            <pre><code>{
+  "prefix": "uber e",
+  "locale": "pt-BR",
+  "suggestions": [
+    {"text": "uber eats", "rank": 1},
+    {"text": "uber eats mercado", "rank": 2}
+  ],
+  "indexVersion": "2026-06-22T02:00:00Z",
+  "ttlSeconds": 120
+}</code></pre>
+            <p>Não exponha frequência bruta. A versão ajuda a depurar rollout, cache e inconsistência.</p>
+          </article>
+        </div>
+
+        <div class="grid-2">
+          <article class="card">
+            <span class="kicker">Feedback assíncrono</span>
+            <h3>POST /v1/query-events</h3>
+            <pre><code>Idempotency-Key: 018f...
+
+{
+  "query": "uber eats mercado",
+  "locale": "pt-BR",
+  "submittedAt": "2026-06-22T12:34:56Z"
+}</code></pre>
+            <p>O cliente não espera o pipeline terminar. O logger valida, redige quando necessário e publica na fila.</p>
+          </article>
+          <article class="card">
+            <span class="kicker">Normalização</span>
+            <h3>Mesma chave no build e no read</h3>
+            <ul>
+              <li>Unicode e política de caixa;</li>
+              <li>espaços e caracteres de controle;</li>
+              <li>limite de comprimento;</li>
+              <li>acentos conforme locale;</li>
+              <li>filtros de segurança e PII.</li>
+            </ul>
+          </article>
+        </div>
+
+        <h3>Modelo lógico</h3>
+        <table>
+          <thead>
+            <tr><th>Entidade</th><th>Campos centrais</th><th>Papel</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>TrieNode</td><td>children, topIds, rank, terminal</td><td>lookup por prefixo</td></tr>
+            <tr><td>TermDictionary</td><td>termId → string</td><td>evita strings repetidas</td></tr>
+            <tr><td>QueryEvent</td><td>eventId, query, locale, timestamp</td><td>feedback durável</td></tr>
+            <tr><td>IndexManifest</td><td>version, ranges, checksums, schema</td><td>publicação coerente</td></tr>
+            <tr><td>RoutingMap</td><td>version, range, replicas</td><td>localiza shard lexical</td></tr>
+          </tbody>
+        </table>
+
+        <div class="grid-3">
+          <article class="card local">
+            <span class="kicker">Aula local</span>
+            <h3>IDs compactos</h3>
+            <p>Listas top-k guardam IDs; o decode ocorre apenas antes da resposta.</p>
+          </article>
+          <article class="card extra">
+            <span class="kicker">Complemento</span>
+            <h3>Manifesto imutável</h3>
+            <p>Shards, dicionário e checksums pertencem à mesma versão.</p>
+          </article>
+          <article class="card extra">
+            <span class="kicker">Complemento</span>
+            <h3>Dados derivados</h3>
+            <p>O índice pode ser reconstruído de logs e agregados particionados.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="stage-panel" id="panel-arquitetura" role="tabpanel" aria-labelledby="tab-arquitetura" data-stage-panel="arquitetura">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Do mínimo ao global</p>
+            <h2>Separe o read path do rebuild.</h2>
+            <p>Use os controles para alternar arquitetura mínima/escalada e destacar leitura, rebuild ou degradação. O diagrama permanece legível sem JavaScript.</p>
+          </div>
+          <div class="section-number" aria-hidden="true">04</div>
+        </div>
+
+        <div class="view-controls" aria-label="Visão da arquitetura">
+          <button class="control-button view-button" type="button" aria-pressed="false" data-view-choice="minimal">Visão mínima</button>
+          <button class="control-button view-button" type="button" aria-pressed="true" data-view-choice="scaled">Visão escalada</button>
+        </div>
+        <div class="diagram-controls" aria-label="Destaque de fluxo">
+          <button class="control-button flow-button" type="button" aria-pressed="false" data-flow-choice="read">Destacar read path</button>
+          <button class="control-button flow-button" type="button" aria-pressed="false" data-flow-choice="rebuild">Destacar rebuild</button>
+          <button class="control-button flow-button" type="button" aria-pressed="false" data-flow-choice="failure">Destacar falha</button>
+          <button class="control-button flow-button" type="button" aria-pressed="true" data-flow-choice="all">Mostrar tudo</button>
+        </div>
+
+        <p class="diagram-scroll-hint" id="diagram-scroll-hint">Em telas estreitas, deslize horizontalmente ou foque o diagrama e use Shift + roda do mouse.</p>
+        <div class="diagram-frame" data-diagram data-view="scaled" data-highlight="all" id="architecture-diagram"
+             role="region" tabindex="0" aria-label="Diagrama de arquitetura com rolagem horizontal"
+             aria-describedby="diagram-scroll-hint">
+          <svg viewBox="0 0 1280 680" role="img" aria-labelledby="diagram-title diagram-desc">
+            <title id="diagram-title">Arquitetura de autocomplete</title>
+            <desc id="diagram-desc">Fluxo de leitura do cliente até a trie e pipeline assíncrono de logging, agregação, rebuild, validação e publicação.</desc>
+            <defs>
+              <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 z" fill="#536159"></path>
+              </marker>
+              <marker id="arrow-read" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 z" fill="#62d8d0"></path>
+              </marker>
+              <marker id="arrow-async" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 z" fill="#ffbd59"></path>
+              </marker>
+              <marker id="arrow-failure" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 z" fill="#ff746c"></path>
+              </marker>
+            </defs>
+
+            <path class="edge" data-flow="read" data-tier="scaled" d="M150 135 L245 135"></path>
+            <path class="edge" data-flow="read" data-tier="scaled" d="M385 135 L475 135"></path>
+            <path class="edge" data-flow="read failure" data-tier="scaled" d="M615 135 L705 135"></path>
+            <path class="edge" data-flow="read" data-tier="scaled" d="M845 135 L935 135"></path>
+            <path class="edge" data-flow="read failure" data-tier="scaled" d="M1075 135 L1160 135"></path>
+            <path class="edge" data-flow="read" data-tier="minimal" d="M150 135 L475 135"></path>
+            <path class="edge" data-flow="read failure" data-tier="minimal" d="M615 135 L1160 135"></path>
+            <path class="edge dashed" data-flow="failure" data-tier="scaled" d="M775 180 C775 225 1005 215 1005 180"></path>
+
+            <path class="edge dashed" data-flow="rebuild" d="M90 180 L90 420 L220 420"></path>
+            <path class="edge dashed" data-flow="rebuild failure" data-tier="scaled" d="M360 420 L445 420"></path>
+            <path class="edge dashed" data-flow="rebuild" data-tier="scaled" d="M585 420 L670 420"></path>
+            <path class="edge dashed" data-flow="rebuild" data-tier="scaled" d="M810 420 L895 420"></path>
+            <path class="edge dashed" data-flow="rebuild failure" data-tier="scaled" d="M1035 420 L1120 420"></path>
+            <path class="edge dashed" data-flow="rebuild" data-tier="minimal" d="M360 420 L1120 420"></path>
+            <path class="edge dashed" data-flow="rebuild" d="M1190 375 L1190 215"></path>
+
+            <g class="diagram-node" data-flow="read rebuild" transform="translate(20 90)">
+              <rect width="130" height="90"></rect>
+              <text x="65" y="38">Cliente</text>
+              <text class="sub" x="65" y="60">debounce + abort</text>
+            </g>
+            <g class="diagram-node" data-flow="read" data-tier="scaled" transform="translate(245 90)">
+              <rect width="140" height="90"></rect>
+              <text x="70" y="38">CDN / Edge</text>
+              <text class="sub" x="70" y="60">hot prefixes</text>
+            </g>
+            <g class="diagram-node" data-flow="read" transform="translate(475 90)">
+              <rect width="140" height="90"></rect>
+              <text x="70" y="38">Suggestion</text>
+              <text class="sub" x="70" y="60">workers stateless</text>
+            </g>
+            <g class="diagram-node" data-flow="read failure" data-tier="scaled" transform="translate(705 90)">
+              <rect width="140" height="90"></rect>
+              <text x="70" y="38">Hot Trie</text>
+              <text class="sub" x="70" y="60">cache / Redis</text>
+            </g>
+            <g class="diagram-node" data-flow="read" data-tier="scaled" transform="translate(935 90)">
+              <rect width="140" height="90"></rect>
+              <text x="70" y="38">Router</text>
+              <text class="sub" x="70" y="60">range versionado</text>
+            </g>
+            <g class="diagram-node" data-flow="read rebuild failure" transform="translate(1160 90)">
+              <rect width="100" height="90"></rect>
+              <text x="50" y="35">Trie</text>
+              <text class="sub" x="50" y="57">shard ativo</text>
+            </g>
+
+            <g class="diagram-node" data-flow="rebuild" transform="translate(220 375)">
+              <rect width="140" height="90"></rect>
+              <text x="70" y="38">Query Logger</text>
+              <text class="sub" x="70" y="60">valida evento</text>
+            </g>
+            <g class="diagram-node" data-flow="rebuild failure" data-tier="scaled" transform="translate(445 375)">
+              <rect width="140" height="90"></rect>
+              <text x="70" y="38">Kafka</text>
+              <text class="sub" x="70" y="60">buffer durável</text>
+            </g>
+            <g class="diagram-node" data-flow="rebuild" data-tier="scaled" transform="translate(670 375)">
+              <rect width="140" height="90"></rect>
+              <text x="70" y="38">Lake / HDFS</text>
+              <text class="sub" x="70" y="60">eventos particionados</text>
+            </g>
+            <g class="diagram-node" data-flow="rebuild" data-tier="scaled" transform="translate(895 375)">
+              <rect width="140" height="90"></rect>
+              <text x="70" y="32">Agregação</text>
+              <text class="sub" x="70" y="52">score + top-k</text>
+              <text class="sub" x="70" y="68">Spark / batch</text>
+            </g>
+            <g class="diagram-node" data-flow="rebuild failure" transform="translate(1120 375)">
+              <rect width="140" height="90"></rect>
+              <text x="70" y="32">Builder</text>
+              <text class="sub" x="70" y="52">valida + canário</text>
+              <text class="sub" x="70" y="68">swap atômico</text>
+            </g>
+
+            <text x="20" y="45" fill="#ffbd59" font-family="monospace" font-size="14" font-weight="700">READ PATH — síncrono, orçamento de milissegundos</text>
+            <text x="20" y="335" fill="#ffbd59" font-family="monospace" font-size="14" font-weight="700">REBUILD — assíncrono, pesado, reprocessável</text>
+            <text x="20" y="580" fill="#aab4aa" font-family="monospace" font-size="12">Falha no pipeline: continue servindo o snapshot anterior.</text>
+            <text x="20" y="605" fill="#aab4aa" font-family="monospace" font-size="12">Falha no hot cache: degrade para o shard ativo com proteção contra stampede.</text>
+          </svg>
+        </div>
+        <div class="legend" aria-label="Legenda do diagrama">
+          <span class="read">leitura</span>
+          <span class="async">assíncrono</span>
+          <span class="failure">falha / fallback</span>
+        </div>
+
+        <h3>Read path em seis passos</h3>
+        <div class="flow-steps">
+          <article class="flow-step"><strong>Debounce</strong><p>Espera 150–200 ms e cancela o estado anterior.</p></article>
+          <article class="flow-step"><strong>Edge</strong><p>Prefixos populares e curtos podem terminar aqui.</p></article>
+          <article class="flow-step"><strong>Worker</strong><p>Valida locale, limite e roteia sem estado de usuário.</p></article>
+          <article class="flow-step"><strong>Hot trie</strong><p>Respostas quentes evitam acesso ao shard completo.</p></article>
+          <article class="flow-step"><strong>Lookup</strong><p>Percorre o prefixo e lê IDs top-k do nó.</p></article>
+          <article class="flow-step"><strong>Decode</strong><p>Mapeia IDs, filtra e retorna a versão do índice.</p></article>
+        </div>
+
+        <h3>Pipeline de rebuild</h3>
+        <div class="flow-steps">
+          <article class="flow-step"><strong>Log</strong><p>Registra somente a busca final submetida.</p></article>
+          <article class="flow-step"><strong>Fila</strong><p>Absorve picos e desacopla o cliente.</p></article>
+          <article class="flow-step"><strong>Armazenar</strong><p>Eventos imutáveis por data e locale.</p></article>
+          <article class="flow-step"><strong>Agregar</strong><p>Frequência, recência e antiabuso.</p></article>
+          <article class="flow-step"><strong>Construir</strong><p>Trie compacta, IDs, top-k e checksums.</p></article>
+          <article class="flow-step"><strong>Publicar</strong><p>Canário, manifesto atômico e rollback.</p></article>
+        </div>
+      </section>
+
+      <section class="stage-panel" id="panel-deep" role="tabpanel" aria-labelledby="tab-deep" data-stage-panel="deep">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Escolha um eixo e vá fundo</p>
+            <h2>Estruturas, bytes, hotspots e frescor.</h2>
+            <p>Compare as estruturas e use os cartões seguintes como mapa de aprofundamento. A entrevista melhora quando a decisão inclui falha, recuperação e métrica.</p>
+          </div>
+          <div class="section-number" aria-hidden="true">05</div>
+        </div>
+
+        <h3>Comparação interativa de estruturas</h3>
+        <div class="compare-controls" aria-label="Selecionar estrutura">
+          <button class="control-button structure-button" type="button" aria-pressed="false" data-structure="list">Lista ordenada</button>
+          <button class="control-button structure-button" type="button" aria-pressed="false" data-structure="map">Mapa de prefixos</button>
+          <button class="control-button structure-button" type="button" aria-pressed="true" data-structure="trie">Trie top-k</button>
+        </div>
+
+        <div class="structure-grid">
+          <article class="structure-card" data-structure-card="list" data-active="false">
+            <h3>Lista + heap <span class="grade">A</span></h3>
+            <p class="mini-title">Simplicidade</p>
+            <div class="bar"><span style="width: 92%"></span></div>
+            <p class="mini-title">Escala global</p>
+            <div class="bar"><span style="width: 28%"></span></div>
+            <p>Busca binária encontra o range; a varredura ainda depende dos candidatos.</p>
+          </article>
+          <article class="structure-card" data-structure-card="map" data-active="false">
+            <h3>Mapa <span class="grade">B</span></h3>
+            <p class="mini-title">Lookup</p>
+            <div class="bar"><span style="width: 95%"></span></div>
+            <p class="mini-title">Eficiência de memória</p>
+            <div class="bar"><span style="width: 34%"></span></div>
+            <p>Resposta direta, mas chaves e listas se repetem para cada prefixo.</p>
+          </article>
+          <article class="structure-card" data-structure-card="trie" data-active="true">
+            <h3>Trie top-k <span class="grade">S</span></h3>
+            <p class="mini-title">Lookup</p>
+            <div class="bar"><span style="width: 94%"></span></div>
+            <p class="mini-title">Escala com compressão</p>
+            <div class="bar"><span style="width: 88%"></span></div>
+            <p>Compartilha caminhos e serve top-k em O(tamanho do prefixo).</p>
+          </article>
+        </div>
+        <div class="comparison-detail" id="comparison-detail" aria-live="polite">
+          <strong>Trie top-k:</strong> escolha para o serving global. O ganho depende de representação compacta, IDs, poda e particionamento; uma trie ingênua pode desperdiçar memória.
+        </div>
+
+        <div class="grid-3" style="margin-top: 1rem">
+          <article class="card">
+            <span class="kicker">Top-k</span>
+            <h3>Pré-compute, não ordene no request</h3>
+            <p>Builder propaga candidatos dos filhos, mantém heap limitado e desempate estável. Guarde <code>k + margem</code> se filtros podem remover itens.</p>
+          </article>
+          <article class="card">
+            <span class="kicker">Compressão</span>
+            <h3>Meça bytes por nó</h3>
+            <p>IDs locais, offsets compactos, path compression, scores quantizados e arrays contíguos combatem strings e ponteiros repetidos.</p>
+          </article>
+          <article class="card">
+            <span class="kicker">Cache</span>
+            <h3>Evite stampede</h3>
+            <p>Cliente, CDN, LRU do worker e hot trie usam chaves versionadas, jitter, stale-while-revalidate e request coalescing.</p>
+          </article>
+          <article class="card">
+            <span class="kicker">Range lexical</span>
+            <h3>Localidade com skew</h3>
+            <p>Ranges preservam famílias de prefixos, mas letras e tendências não são uniformes. Monitore e faça split ou réplica.</p>
+          </article>
+          <article class="card">
+            <span class="kicker">Publicação</span>
+            <h3>Nunca atualize in-place</h3>
+            <p>Artefato imutável, checksum, golden queries, canário e troca de manifesto. Mantenha N-1 para rollback.</p>
+          </article>
+          <article class="card">
+            <span class="kicker">Frescor</span>
+            <h3>Snapshot antes do delta</h3>
+            <p>Diário é previsível. Delta intradiário só entra com requisito explícito, limite de impacto e antiabuso.</p>
+          </article>
+        </div>
+
+        <h3>Trade-offs que o entrevistador pode redirecionar</h3>
+        <div class="card">
+          <div class="tradeoff">
+            <div><strong>HTTP</strong><br>stateless, cacheável, simples</div>
+            <div class="versus">VERSUS</div>
+            <div><strong>WebSocket</strong><br>cursor incremental, menos headers, conexões stateful</div>
+          </div>
+          <div class="tradeoff">
+            <div><strong>Rebuild diário</strong><br>auditável e isolado</div>
+            <div class="versus">VERSUS</div>
+            <div><strong>Atualização online</strong><br>frescor alto, concorrência e invalidação</div>
+          </div>
+          <div class="tradeoff">
+            <div><strong>Replicar range</strong><br>resolve QPS de leitura</div>
+            <div class="versus">VERSUS</div>
+            <div><strong>Dividir range</strong><br>resolve memória e capacidade por shard</div>
+          </div>
+          <div class="tradeoff">
+            <div><strong>Disponibilidade</strong><br>serve snapshot stale</div>
+            <div class="versus">VERSUS</div>
+            <div><strong>Frescor</strong><br>espera versão ou delta mais novo</div>
+          </div>
+        </div>
+
+        <h3>Falha e recuperação</h3>
+        <table class="failure-table">
+          <thead>
+            <tr><th>Falha</th><th>Degradação</th><th>Recuperação / sinal</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>CDN indisponível</td><td>origem recebe mais QPS</td><td>cache local, rate limit, autoscaling; observar hit ratio</td></tr>
+            <tr><td>Hot trie indisponível</td><td>lookup no snapshot</td><td>circuit breaker; observar p99 e misses</td></tr>
+            <tr><td>Shard quente</td><td>cauda de latência</td><td>réplica, split e edge; observar QPS/range</td></tr>
+            <tr><td>Pipeline atrasado</td><td>índice envelhece</td><td>servir N, reprocessar; observar age e lag</td></tr>
+            <tr><td>Versão ruim</td><td>qualidade ou cobertura cai</td><td>rollback do manifesto; golden queries e canário</td></tr>
+            <tr><td>Trend poisoning</td><td>termo manipulado sobe</td><td>peso por origem, detecção e denylist emergencial</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="stage-panel" id="panel-fechamento" role="tabpanel" aria-labelledby="tab-fechamento" data-stage-panel="fechamento">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Síntese e prova de cobertura</p>
+            <h2>Feche sem deixar requisitos órfãos.</h2>
+            <p>Marque os checkpoints, revise o roteiro e treine respostas curtas para perguntas prováveis. O progresso fica apenas nesta página e não envia dados.</p>
+          </div>
+          <div class="section-number" aria-hidden="true">06</div>
+        </div>
+
+        <h3>Roteiro de 45 minutos</h3>
+        <div class="timeline">
+          <article><strong>0–5</strong><span>escopo, top-k, locale, frescor, personalização fora</span></article>
+          <article><strong>5–10</strong><span>requisitos e amplificação por tecla</span></article>
+          <article><strong>10–15</strong><span>API, eventos, entidades e normalização</span></article>
+          <article><strong>15–25</strong><span>arquitetura mínima e validação funcional</span></article>
+          <article><strong>25–38</strong><span>escala, trie, cache, shards e rebuild</span></article>
+          <article><strong>38–45</strong><span>deep dive, falhas, segurança e resumo</span></article>
+        </div>
+
+        <h3>Checkpoints</h3>
+        <div class="progress-wrap">
+          <div class="progress-track" aria-hidden="true"><div class="progress-value" id="progress-value"></div></div>
+          <span class="progress-text" id="progress-text" aria-live="polite">0 de 12 cobertos</span>
+        </div>
+        <div class="checkpoint-board" id="checkpoint-board">
+          <button class="check-button" type="button" aria-pressed="false">Escopo global versus local definido</button>
+          <button class="check-button" type="button" aria-pressed="false">Top-k, locale e frescor negociados</button>
+          <button class="check-button" type="button" aria-pressed="false">QPS por tecla estimado</button>
+          <button class="check-button" type="button" aria-pressed="false">API e modelo versionado explicados</button>
+          <button class="check-button" type="button" aria-pressed="false">Lista, mapa e trie comparados</button>
+          <button class="check-button" type="button" aria-pressed="false">Read path dentro do orçamento</button>
+          <button class="check-button" type="button" aria-pressed="false">Pipeline offline reprocessável</button>
+          <button class="check-button" type="button" aria-pressed="false">Cache e CDN têm fallback</button>
+          <button class="check-button" type="button" aria-pressed="false">Ranges consideram skew e hotspot</button>
+          <button class="check-button" type="button" aria-pressed="false">Publicação é atômica e reversível</button>
+          <button class="check-button" type="button" aria-pressed="false">Segurança e privacidade cobertas</button>
+          <button class="check-button" type="button" aria-pressed="false">Falhas e métricas foram revisadas</button>
+        </div>
+
+        <h3>Perguntas do entrevistador — revele a resposta</h3>
+        <div class="qa">
+          <button class="question-button" type="button" aria-expanded="true" aria-controls="answer-1">Por que não consultar o banco e ordenar em tempo real?</button>
+          <div class="answer" id="answer-1">
+            <p>Porque cada tecla repetiria filtro e ordenação sobre alta cardinalidade. A trie pré-computa top-k por prefixo e reduz o request a percurso, decode e filtros.</p>
+          </div>
+        </div>
+        <div class="qa">
+          <button class="question-button" type="button" aria-expanded="true" aria-controls="answer-2">Trie sempre usa menos memória?</button>
+          <div class="answer" id="answer-2">
+            <p>Não. Uma trie ingênua com arrays cheios e ponteiros largos pode ser pior. O ganho vem de prefixos compartilhados mais representação compacta, IDs, path compression e poda.</p>
+          </div>
+        </div>
+        <div class="qa">
+          <button class="question-button" type="button" aria-expanded="true" aria-controls="answer-3">Como tratar um prefixo que concentra metade do tráfego?</button>
+          <div class="answer" id="answer-3">
+            <p>Prefixos rasos podem ser replicados no edge e hot cache. Para subárvores, replique ou divida ranges usando histogramas e um mapa de roteamento versionado.</p>
+          </div>
+        </div>
+        <div class="qa">
+          <button class="question-button" type="button" aria-expanded="true" aria-controls="answer-4">Como publicar sem downtime?</button>
+          <div class="answer" id="answer-4">
+            <p>Grave a nova versão em namespace imutável, valide, carregue em canário e troque atomicamente o manifesto. Requests em voo terminam na versão antiga; N-1 permite rollback.</p>
+          </div>
+        </div>
+        <div class="qa">
+          <button class="question-button" type="button" aria-expanded="true" aria-controls="answer-5">Como suportar tendências em minutos?</button>
+          <div class="answer" id="answer-5">
+            <p>Adicione um delta intradiário limitado sobre o snapshot, preferencialmente pré-combinado para prefixos quentes. Inclua expiração, antiabuso e fallback para o snapshot.</p>
+          </div>
+        </div>
+        <div class="qa">
+          <button class="question-button" type="button" aria-expanded="true" aria-controls="answer-6">WebSocket é obrigatório?</button>
+          <div class="answer" id="answer-6">
+            <p>Não. HTTP moderno com conexão reutilizada, debounce e CDN preserva simplicidade e statelessness. WebSocket entra quando métricas justificarem cursor incremental e menor overhead.</p>
+          </div>
+        </div>
+
+        <div class="closing-callout">
+          <strong>Fechamento em 20 segundos:</strong> “O read path usa debounce, edge e trie top-k compacta; o write path registra buscas e reconstrói snapshots offline. Ranges lexicais preservam localidade, com réplicas e splits para hotspots. A publicação é versionada e atômica; sob falha, sirvo a versão anterior. Aceito consistência eventual porque latência e disponibilidade valem mais para a experiência.”
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Autocomplete · guia de preparação · conteúdo local + complementos sinalizados</span>
+      <span>Sem dependências externas · teclado · ARIA · reduced motion</span>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      document.documentElement.classList.add("js");
+
+      var tabs = Array.prototype.slice.call(document.querySelectorAll("[data-stage]"));
+      var panels = Array.prototype.slice.call(document.querySelectorAll("[data-stage-panel]"));
+      var stageStatus = document.getElementById("stage-status");
+      var stageNames = {
+        escopo: "Escopo",
+        estimativas: "Estimativas",
+        api: "API e dados",
+        arquitetura: "Arquitetura",
+        deep: "Deep dives",
+        fechamento: "Fechamento"
+      };
+
+      function activateStage(stage, moveFocus) {
+        tabs.forEach(function (tab) {
+          var active = tab.getAttribute("data-stage") === stage;
+          tab.setAttribute("aria-selected", String(active));
+          tab.setAttribute("tabindex", active ? "0" : "-1");
+          if (active && moveFocus) {
+            tab.focus();
+          }
+        });
+
+        panels.forEach(function (panel) {
+          var active = panel.getAttribute("data-stage-panel") === stage;
+          panel.hidden = !active;
+        });
+
+        stageStatus.textContent = "Etapa ativa: " + stageNames[stage];
+      }
+
+      tabs.forEach(function (tab, index) {
+        tab.addEventListener("click", function () {
+          activateStage(tab.getAttribute("data-stage"), false);
+        });
+
+        tab.addEventListener("keydown", function (event) {
+          var next = index;
+          if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+          if (event.key === "ArrowLeft") next = (index - 1 + tabs.length) % tabs.length;
+          if (event.key === "Home") next = 0;
+          if (event.key === "End") next = tabs.length - 1;
+          if (next !== index) {
+            event.preventDefault();
+            activateStage(tabs[next].getAttribute("data-stage"), true);
+          }
+        });
+      });
+
+      activateStage("escopo", false);
+
+      var diagram = document.getElementById("architecture-diagram");
+      var flowButtons = Array.prototype.slice.call(document.querySelectorAll(".flow-button"));
+      var viewButtons = Array.prototype.slice.call(document.querySelectorAll(".view-button"));
+
+      flowButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-flow-choice");
+          diagram.setAttribute("data-highlight", choice);
+          flowButtons.forEach(function (candidate) {
+            candidate.setAttribute("aria-pressed", String(candidate === button));
+          });
+        });
+      });
+
+      viewButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-view-choice");
+          diagram.setAttribute("data-view", choice);
+          viewButtons.forEach(function (candidate) {
+            candidate.setAttribute("aria-pressed", String(candidate === button));
+          });
+        });
+      });
+
+      var structureCopy = {
+        list: "<strong>Lista ordenada:</strong> melhor baseline e ótima para dicionário pequeno. Busca binária acha o range, mas top-k ainda varre candidatos com heap limitado.",
+        map: "<strong>Mapa de prefixos:</strong> lookup direto e serving simples. O custo é materializar chaves e repetir top-k para cada prefixo; funciona quando o corpus é limitado.",
+        trie: "<strong>Trie top-k:</strong> escolha para o serving global. O ganho depende de representação compacta, IDs, poda e particionamento; uma trie ingênua pode desperdiçar memória."
+      };
+      var structureButtons = Array.prototype.slice.call(document.querySelectorAll(".structure-button"));
+      var structureCards = Array.prototype.slice.call(document.querySelectorAll("[data-structure-card]"));
+      var comparisonDetail = document.getElementById("comparison-detail");
+
+      function selectStructure(structure) {
+        structureButtons.forEach(function (button) {
+          button.setAttribute("aria-pressed", String(button.getAttribute("data-structure") === structure));
+        });
+        structureCards.forEach(function (card) {
+          card.setAttribute("data-active", String(card.getAttribute("data-structure-card") === structure));
+        });
+        comparisonDetail.innerHTML = structureCopy[structure];
+      }
+
+      structureButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          selectStructure(button.getAttribute("data-structure"));
+        });
+      });
+
+      selectStructure("trie");
+
+      var questionButtons = Array.prototype.slice.call(document.querySelectorAll(".question-button"));
+      questionButtons.forEach(function (button) {
+        var answer = document.getElementById(button.getAttribute("aria-controls"));
+        button.setAttribute("aria-expanded", "false");
+        answer.hidden = true;
+        button.addEventListener("click", function () {
+          var expanded = button.getAttribute("aria-expanded") === "true";
+          button.setAttribute("aria-expanded", String(!expanded));
+          answer.hidden = expanded;
+        });
+      });
+
+      var checkButtons = Array.prototype.slice.call(document.querySelectorAll(".check-button"));
+      var progressValue = document.getElementById("progress-value");
+      var progressText = document.getElementById("progress-text");
+
+      function updateProgress() {
+        var checked = checkButtons.filter(function (button) {
+          return button.getAttribute("aria-pressed") === "true";
+        }).length;
+        var percent = Math.round((checked / checkButtons.length) * 100);
+        progressValue.style.width = percent + "%";
+        progressText.textContent = checked + " de " + checkButtons.length + " cobertos";
+      }
+
+      checkButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          var pressed = button.getAttribute("aria-pressed") === "true";
+          button.setAttribute("aria-pressed", String(!pressed));
+          updateProgress();
+        });
+      });
+
+      updateProgress();
+    }());
+  </script>
+</body>
+</html>

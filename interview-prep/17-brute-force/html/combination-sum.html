@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Combination Sum - Interview Prep</title>
+  <style>
+    :root {
+      --bg: #efe3cf;
+      --ink: #21180f;
+      --muted: #615242;
+      --line: rgba(33, 24, 15, 0.16);
+      --panel: rgba(255, 251, 243, 0.92);
+      --accent: #8d5a1f;
+      --accent-soft: rgba(141, 90, 31, 0.12);
+      --shadow: 0 26px 60px rgba(45, 33, 21, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at 82% 14%, rgba(141, 90, 31, 0.19), transparent 24%),
+        repeating-linear-gradient(90deg, transparent 0 78px, rgba(33, 24, 15, 0.04) 78px 79px),
+        var(--bg);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 18px 72px;
+    }
+
+    .hero, .grid { display: grid; gap: 22px; }
+    .hero { grid-template-columns: 1.08fr 0.92fr; margin-bottom: 24px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      line-height: 0.95;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 1.12rem; color: var(--accent); }
+    p, li { line-height: 1.72; color: var(--muted); }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .sums {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+      font-weight: bold;
+    }
+
+    .metrics { display: grid; gap: 12px; }
+
+    .metric {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #18110b;
+      color: #f8eedf;
+      border-radius: 10px;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Target Ledger</div>
+        <h1>Combination Sum</h1>
+        <p>A resposta madura aqui e mostrar brute force com disciplina: ordem controlada para nao duplicar combinacoes e pruning quando a soma restante ja nao permite continuar.</p>
+        <div class="sums" aria-hidden="true">
+          <div class="chip">2 + 2 + 3</div>
+          <div class="chip">7</div>
+          <div class="chip">remaining = 0</div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> gerar combinacoes com repeticao</div>
+        <div class="metric"><strong>Tempo:</strong> exponencial</div>
+        <div class="metric"><strong>Espaco:</strong> saida + profundidade</div>
+        <div class="metric"><strong>Chave:</strong> ordem e pruning</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dado um conjunto de candidatos positivos distintos e um alvo, retorne todas as combinacoes cuja soma seja exatamente esse alvo.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Reusar numero significa ficar no mesmo indice apos escolher.</li>
+          <li>Evite permutacoes duplicadas impondo ordem nao decrescente.</li>
+          <li>Com array ordenado, `value &gt; remaining` encerra o loop.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Tentar qualquer candidato em qualquer ordem gera varias copias estruturais da mesma combinacao e deixa deduplicacao para depois.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Ordene os candidatos, carregue `remaining` na recursao e so avance a partir do indice atual para evitar permutacoes repetidas.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O ponto forte nao e inventar uma formula fechada, e sim mostrar que pruning e seguro porque todos os numeros sao positivos e o array esta ordenado.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>def combinationSum(candidates: list[int], target: int) -&gt; list[list[int]]:
+    candidates.sort()
+    result = []
+    path = []
+
+    def dfs(start: int, remaining: int) -&gt; None:
+        if remaining == 0:
+            result.append(path[:])
+            return
+
+        for index in range(start, len(candidates)):
+            value = candidates[index]
+
+            if value &gt; remaining:
+                break
+
+            path.append(value)
+            dfs(index, remaining - value)
+            path.pop()
+
+    dfs(0, target)
+    return result</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

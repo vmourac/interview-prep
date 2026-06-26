@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find if Path Exists in Graph - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f4efe5;
+      --ink: #18222b;
+      --muted: #53606b;
+      --line: rgba(24, 34, 43, 0.14);
+      --rail: #245f72;
+      --rail-soft: rgba(36, 95, 114, 0.14);
+      --accent: #c55f3a;
+      --card: rgba(255, 251, 244, 0.9);
+      --shadow: 0 24px 48px rgba(16, 27, 35, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(197, 95, 58, 0.16), transparent 22%),
+        linear-gradient(180deg, rgba(36, 95, 114, 0.08), transparent 24%),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 18px 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .route-band {
+      margin-top: 18px;
+      height: 14px;
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg,
+          var(--rail) 0%,
+          var(--rail) 22%,
+          var(--accent) 22%,
+          var(--accent) 26%,
+          var(--rail) 26%,
+          var(--rail) 48%,
+          var(--accent) 48%,
+          var(--accent) 52%,
+          var(--rail) 52%,
+          var(--rail) 74%,
+          var(--accent) 74%,
+          var(--accent) 78%,
+          var(--rail) 78%,
+          var(--rail) 100%);
+      opacity: 0.92;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 12px;
+      color: var(--rail);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.1rem, 4vw, 3.7rem);
+      line-height: 0.98;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      color: var(--rail);
+      font-size: 1.1rem;
+    }
+
+    p, li {
+      margin-top: 0;
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .stats {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .stat {
+      padding: 14px 16px;
+      background: var(--rail-soft);
+      border: 1px solid var(--line);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      background: #13202a;
+      color: #f6f1e9;
+      line-height: 1.55;
+      font-size: 0.93rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Transit Map Drill</div>
+        <h1>Find if Path Exists in Graph</h1>
+        <p>Este prompt mede se voce enxerga que o problema e apenas de alcance: ou o destino esta no mesmo componente da origem, ou nao esta.</p>
+        <p>Nota de fonte: este material e sintetizado a partir do topico do curso, porque a aula original nao tem captions nem transcript disponiveis.</p>
+        <div class="route-band"></div>
+      </article>
+
+      <aside class="card stats">
+        <div class="stat"><strong>Traversal:</strong> O(V + E)</div>
+        <div class="stat"><strong>Aux Space:</strong> O(V + E)</div>
+        <div class="stat"><strong>Best Tool:</strong> DFS or BFS</div>
+        <div class="stat"><strong>Core Idea:</strong> visit each node at most once</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Receba um grafo nao direcionado, um `source` e um `destination`, e diga se existe algum caminho entre eles.</p>
+      </article>
+
+      <article class="card">
+        <h2>Why Interviewers Ask It</h2>
+        <p>O problema parece simples de proposito. O avaliador quer ver se voce nao complica o que deveria ser uma travessia basica com `visited`.</p>
+      </article>
+
+      <article class="card">
+        <h2>Naive Route</h2>
+        <p>Tentar enumerar caminhos sem memorizar vertices ja explorados. Em grafos com ciclos, isso gera repeticao ou ate loop infinito.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Route</h2>
+        <p>Construa a lista de adjacencia e rode BFS ou DFS a partir da origem. Se o destino surgir, retorne `True`; se a busca terminar, retorne `False`.</p>
+      </article>
+
+      <article class="card">
+        <h2>Reasoning Steps</h2>
+        <ol>
+          <li>Monte o grafo nos dois sentidos.</li>
+          <li>Inicialize fila ou pilha com `source`.</li>
+          <li>Marque `visited` assim que inserir um no na estrutura de busca.</li>
+          <li>Se encontrar `destination`, pare cedo.</li>
+          <li>Se a busca esgotar, nao existe caminho.</li>
+        </ol>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>from collections import defaultdict, deque
+
+
+class Solution:
+    def validPath(
+        self,
+        n: int,
+        edges: list[list[int]],
+        source: int,
+        destination: int,
+    ) -&gt; bool:
+        graph = defaultdict(list)
+
+        for u, v in edges:
+            graph[u].append(v)
+            graph[v].append(u)
+
+        queue = deque([source])
+        visited = {source}
+
+        while queue:
+            node = queue.popleft()
+
+            if node == destination:
+                return True
+
+            for neighbor in graph[node]:
+                if neighbor in visited:
+                    continue
+
+                visited.add(neighbor)
+                queue.append(neighbor)
+
+        return False</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

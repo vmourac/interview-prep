@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pacific Atlantic Water Flow - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #e7ded1;
+      --ink: #1d1915;
+      --muted: #5f574e;
+      --line: rgba(29, 25, 21, 0.14);
+      --accent: #2f577d;
+      --accent-soft: rgba(47, 87, 125, 0.12);
+      --card: rgba(255, 252, 247, 0.92);
+      --shadow: 0 26px 60px rgba(34, 29, 24, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(47, 87, 125, 0.14), transparent 24%),
+        repeating-linear-gradient(0deg, transparent 0 36px, rgba(29, 25, 21, 0.035) 36px 37px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 36px 18px 72px;
+    }
+
+    .hero, .grid { display: grid; gap: 22px; }
+    .hero { grid-template-columns: 1.04fr 0.96fr; margin-bottom: 24px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.15rem, 4vw, 3.9rem);
+      line-height: 0.95;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 1.12rem; color: var(--accent); }
+    p, li { line-height: 1.72; color: var(--muted); }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      max-width: 320px;
+      margin-top: 16px;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+      font-weight: bold;
+    }
+
+    .metrics { display: grid; gap: 12px; }
+    .metric {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #151413;
+      color: #f7f0e7;
+      border-radius: 10px;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Coastal Survey</div>
+        <h1>Pacific Atlantic Water Flow</h1>
+        <p>Este problema separa candidatos medianos dos bons porque a virada real e inverter a pergunta: partir das bordas, nao de cada origem.</p>
+        <div class="board" aria-hidden="true">
+          <div class="cell">1</div>
+          <div class="cell">2</div>
+          <div class="cell">2</div>
+          <div class="cell">3</div>
+          <div class="cell">5</div>
+          <div class="cell">3</div>
+          <div class="cell">2</div>
+          <div class="cell">3</div>
+          <div class="cell">4</div>
+          <div class="cell">4</div>
+          <div class="cell">2</div>
+          <div class="cell">4</div>
+          <div class="cell">5</div>
+          <div class="cell">3</div>
+          <div class="cell">1</div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> DFS multi-source reversa</div>
+        <div class="metric"><strong>Tempo:</strong> O(R * C)</div>
+        <div class="metric"><strong>Espaco:</strong> O(R * C)</div>
+        <div class="metric"><strong>Chave:</strong> intersecao de alcances</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Encontre as celulas que conseguem escoar para o Pacifico e para o Atlantico sob a regra de que a agua so desce ou fica no mesmo nivel.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Rodar busca por origem repete trabalho demais.</li>
+          <li>No sentido reverso, da para andar para alturas maiores ou iguais.</li>
+          <li>Comece simultaneamente das bordas de cada oceano.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Rodar DFS de cada celula para descobrir se algum caminho chega aos dois oceanos gera buscas enormes e redundantes.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Rode uma DFS reversa das bordas do Pacifico e outra das bordas do Atlantico. A resposta final e a intersecao desses dois conjuntos.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O diferencial nao e decorar a solucao, e sim justificar por que inverter o fluxo derruba o custo de repetir busca para todas as origens.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>def pacificAtlantic(heights: list[list[int]]) -&gt; list[list[int]]:
+    if not heights or not heights[0]:
+        return []
+
+    rows = len(heights)
+    cols = len(heights[0])
+    pacific_reachable = set()
+    atlantic_reachable = set()
+
+    def dfs(row: int, col: int, visited: set[tuple[int, int]]) -&gt; None:
+        visited.add((row, col))
+
+        for delta_row, delta_col in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            new_row = row + delta_row
+            new_col = col + delta_col
+
+            if new_row &lt; 0 or new_row &gt;= rows or new_col &lt; 0 or new_col &gt;= cols:
+                continue
+            if (new_row, new_col) in visited:
+                continue
+            if heights[new_row][new_col] &lt; heights[row][col]:
+                continue
+
+            dfs(new_row, new_col, visited)
+
+    for row in range(rows):
+        dfs(row, 0, pacific_reachable)
+        dfs(row, cols - 1, atlantic_reachable)
+
+    for col in range(cols):
+        dfs(0, col, pacific_reachable)
+        dfs(rows - 1, col, atlantic_reachable)
+
+    result = []
+
+    for row in range(rows):
+        for col in range(cols):
+            if (row, col) in pacific_reachable and (row, col) in atlantic_reachable:
+                result.append([row, col])
+
+    return result</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

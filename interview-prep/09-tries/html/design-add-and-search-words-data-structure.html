@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Add and Search Words Data Structure - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f6f0e7;
+      --ink: #1f1a15;
+      --muted: #655a4d;
+      --line: rgba(31, 26, 21, 0.14);
+      --accent: #8a4a21;
+      --accent-soft: rgba(138, 74, 33, 0.14);
+      --card: rgba(255, 251, 245, 0.9);
+      --shadow: 0 24px 52px rgba(44, 34, 24, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 80% 15%, rgba(138, 74, 33, 0.12), transparent 24%),
+        repeating-linear-gradient(180deg, transparent 0 31px, rgba(31, 26, 21, 0.05) 31px 32px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 40px 18px 72px;
+    }
+
+    .hero, .grid {
+      display: grid;
+      gap: 22px;
+    }
+
+    .hero {
+      grid-template-columns: 1.1fr 0.9fr;
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.1rem, 4vw, 3.8rem);
+      line-height: 0.98;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 1.14rem;
+    }
+
+    p, li {
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .stamp {
+      display: inline-block;
+      border: 1px solid var(--accent);
+      padding: 6px 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.76rem;
+      color: var(--accent);
+      margin-top: 12px;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .metrics {
+      display: grid;
+      gap: 12px;
+    }
+
+    .metric {
+      background: var(--accent-soft);
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      background: #181512;
+      color: #f8f0e4;
+      line-height: 1.55;
+      font-size: 0.93rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Wildcard Search</div>
+        <h1>Design Add and Search Words<br>Data Structure</h1>
+        <p>O salto deste problema e perceber que trie sozinha resolve o caminho literal, mas o caractere `.` exige DFS e branching controlado.</p>
+        <div class="stamp">synthesized study guide</div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Add:</strong> O(L)</div>
+        <div class="metric"><strong>Search:</strong> pior caso O(B^L)</div>
+        <div class="metric"><strong>Stored structure:</strong> O(S)</div>
+        <div class="metric"><strong>Call stack:</strong> O(L)</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Implemente `addWord` e `search`, onde `.` representa qualquer letra unica durante a busca.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Sem `.` a busca e um caminho unico.</li>
+          <li>Com `.` voce precisa tentar todos os filhos do no atual.</li>
+          <li>Se um ramo falhar cedo, corte imediatamente.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Guardar todas as palavras e comparar cada consulta contra todas as strings de mesmo tamanho. O wildcard apenas muda a regra de comparacao; ele nao reduz o volume de trabalho.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Use trie para armazenar palavras e uma DFS recursiva para consultas com `.`. Cada wildcard abre varios ramos, mas ramos impossiveis morrem cedo pelo proprio formato da trie.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>Uma resposta forte separa comportamento pratico e pior caso teorico: pruning costuma ajudar muito, mas o pior caso segue exponencial quando a consulta e dominada por `.`.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+
+
+class WordDictionary:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def addWord(self, word: str) -&gt; None:
+        node = self.root
+
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+
+        node.is_end = True
+
+    def search(self, word: str) -&gt; bool:
+        def dfs(index: int, node: TrieNode) -&gt; bool:
+            if index == len(word):
+                return node.is_end
+
+            char = word[index]
+
+            if char == ".":
+                for child in node.children.values():
+                    if dfs(index + 1, child):
+                        return True
+                return False
+
+            if char not in node.children:
+                return False
+
+            return dfs(index + 1, node.children[char])
+
+        return dfs(0, self.root)</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

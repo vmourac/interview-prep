@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Validate Binary Search Tree - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f4eee1;
+      --sheet: #fffaf1;
+      --ink: #2f251d;
+      --muted: #6c5c4f;
+      --accent: #8a4b24;
+      --accent-soft: #eed5c1;
+      --line: #d8c7b5;
+      --shadow: rgba(56, 37, 24, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 14%, rgba(138, 75, 36, 0.12), transparent 20%),
+        linear-gradient(180deg, #ede0ce 0%, #faf6ef 44%, #f0e7da 100%);
+    }
+
+    .page {
+      width: min(1140px, calc(100% - 28px));
+      margin: 26px auto 42px;
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--sheet), var(--paper));
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 40px var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "global bounds matter";
+      position: absolute;
+      right: -30px;
+      top: 30px;
+      transform: rotate(90deg);
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(138, 75, 36, 0.22);
+      font-size: 0.72rem;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      font-size: 0.78rem;
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4.4vw, 4rem);
+      line-height: 0.94;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 1.05rem;
+    }
+
+    p, li {
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    .warning {
+      margin: 18px 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(238, 213, 193, 0.9), rgba(255, 250, 241, 0.95));
+    }
+
+    .warning strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+
+    .diagram {
+      margin-top: 20px;
+      border: 1px dashed var(--line);
+      background: rgba(255, 255, 255, 0.42);
+      padding: 18px;
+    }
+
+    .diagram pre {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      font-size: 0.95rem;
+      line-height: 1.48;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .panel {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.56);
+      border: 1px solid var(--line);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+      padding: 12px;
+      min-height: 76px;
+    }
+
+    pre.code {
+      margin: 0;
+      padding: 16px;
+      border-radius: 12px;
+      background: #2d241d;
+      color: #f6efe5;
+      overflow-x: auto;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 860px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="card hero">
+      <div class="eyebrow">Guia sintetizado de entrevista</div>
+      <h1>Validate Binary<br />Search Tree</h1>
+      <div class="warning">
+        <strong>Armadilha classica</strong>
+        Checar apenas se `left < node < right` para os filhos imediatos nao basta. BST e uma propriedade global herdada de todos os ancestrais.
+      </div>
+      <h2>Hints do entrevistador</h2>
+      <ul>
+        <li>Um no no lado direito da raiz ainda precisa ser maior que a raiz, mesmo em profundidade.</li>
+        <li>Pense em limites minimo e maximo validos para cada no.</li>
+        <li>Outra intuicao correta: inorder de BST valida sai estritamente crescente.</li>
+      </ul>
+      <div class="diagram">
+        <pre>      5
+     / \
+    1   7
+       / \
+      4   9
+
+O no 4 esta no lado direito de 5.
+Mesmo sendo menor que 7, ele viola o limite herdado da raiz.</pre>
+      </div>
+    </section>
+
+    <section class="card stack">
+      <div class="panel">
+        <h2>Caminho ingenuo</h2>
+        <p>Recalcular maximo da esquerda e minimo da direita em cada no. Funciona, mas repete exploracao de subarvores inteiras muitas vezes.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Caminho otimizado</h2>
+        <p>Carregue um intervalo valido para cada no durante a DFS. Cada descida aperta um dos limites herdados.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Complexidade</h2>
+        <div class="metrics">
+          <div class="metric">Tempo ingenuo: O(n^2) no pior caso</div>
+          <div class="metric">Espaco ingenuo: O(h)</div>
+          <div class="metric">Tempo otimizado: O(n)</div>
+          <div class="metric">Espaco otimizado: O(h)</div>
+        </div>
+        <p>O ganho vem de eliminar retrabalho. Cada no passa a ser verificado uma unica vez com contexto suficiente para decidir localmente.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Solucao final</h2>
+        <pre class="code">def is_valid_bst(root):
+    def dfs(node, limite_inferior, limite_superior):
+        if node is None:
+            return True
+
+        if limite_inferior is not None and node.val <= limite_inferior:
+            return False
+        if limite_superior is not None and node.val >= limite_superior:
+            return False
+
+        return dfs(node.left, limite_inferior, node.val) and dfs(
+            node.right, node.val, limite_superior
+        )
+
+    return dfs(root, None, None)</pre>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

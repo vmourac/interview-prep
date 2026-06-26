@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>N-Queens - Interview Prep</title>
+  <style>
+    :root {
+      --bg: #ece1d0;
+      --ink: #1f1812;
+      --muted: #5d5146;
+      --line: rgba(31, 24, 18, 0.18);
+      --panel: rgba(255, 251, 245, 0.92);
+      --accent: #7c4026;
+      --accent-soft: rgba(124, 64, 38, 0.12);
+      --shadow: 0 26px 62px rgba(42, 31, 23, 0.17);
+      --dark-tile: #7a5a43;
+      --light-tile: #f4ebdf;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(124, 64, 38, 0.18), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.16), transparent 28%),
+        var(--bg);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 18px 72px;
+    }
+
+    .hero, .grid { display: grid; gap: 22px; }
+    .hero { grid-template-columns: 1.06fr 0.94fr; margin-bottom: 24px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      line-height: 0.95;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 1.12rem; color: var(--accent); }
+    p, li { line-height: 1.72; color: var(--muted); }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 52px);
+      gap: 0;
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      width: fit-content;
+    }
+
+    .square {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      font-size: 1.4rem;
+    }
+
+    .light { background: var(--light-tile); }
+    .dark { background: var(--dark-tile); color: #fff8ef; }
+
+    .metrics { display: grid; gap: 12px; }
+
+    .metric {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #17120d;
+      color: #f8f0e4;
+      border-radius: 10px;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Constraint Board</div>
+        <h1>N-Queens</h1>
+        <p>Este e o retrato classico de brute force com pruning pesado: nao basta tentar casas, e preciso manter colunas e diagonais ocupadas para matar ramos cedo.</p>
+        <div class="board" aria-hidden="true">
+          <div class="square light">Q</div>
+          <div class="square dark"></div>
+          <div class="square light"></div>
+          <div class="square dark"></div>
+          <div class="square dark"></div>
+          <div class="square light"></div>
+          <div class="square dark">Q</div>
+          <div class="square light"></div>
+          <div class="square light"></div>
+          <div class="square dark"></div>
+          <div class="square light"></div>
+          <div class="square dark">Q</div>
+          <div class="square dark"></div>
+          <div class="square light">Q</div>
+          <div class="square dark"></div>
+          <div class="square light"></div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> constraint search</div>
+        <div class="metric"><strong>Tempo:</strong> aproximadamente O(n!)</div>
+        <div class="metric"><strong>Espaco:</strong> O(n^2) + stack</div>
+        <div class="metric"><strong>Chave:</strong> colunas e diagonais</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Posicione `n` rainhas em um tabuleiro `n x n` sem ataques por linha, coluna ou diagonal, retornando todas as configuracoes validas.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Uma rainha por linha reduz o estado.</li>
+          <li>Cheque conflito em O(1) com conjuntos.</li>
+          <li>Podar cedo importa mais do que validar tarde.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Preencher o tabuleiro inteiro e so depois testar ataques gera um mar de estados inutilmente invalidos.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Busque linha por linha, colocando uma rainha apenas em colunas e diagonais ainda livres. Cada conflito conhecido elimina o ramo no mesmo instante.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O entrevistador quer ouvir que `row - col` e `row + col` codificam diagonais e tornam a validacao incremental em O(1).</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>def solveNQueens(n: int) -&gt; list[list[str]]:
+    result = []
+    board = [["."] * n for _ in range(n)]
+    cols = set()
+    diag1 = set()
+    diag2 = set()
+
+    def dfs(row: int) -&gt; None:
+        if row == n:
+            result.append(["".join(line) for line in board])
+            return
+
+        for col in range(n):
+            if col in cols or (row - col) in diag1 or (row + col) in diag2:
+                continue
+
+            board[row][col] = "Q"
+            cols.add(col)
+            diag1.add(row - col)
+            diag2.add(row + col)
+
+            dfs(row + 1)
+
+            board[row][col] = "."
+            cols.remove(col)
+            diag1.remove(row - col)
+            diag2.remove(row + col)
+
+    dfs(0)
+    return result</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

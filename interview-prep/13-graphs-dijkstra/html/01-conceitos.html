@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graphs Dijkstra - Conceitos</title>
+  <style>
+    :root {
+      --bg: #07131a;
+      --bg-soft: #0d1f29;
+      --panel: rgba(7, 19, 26, 0.82);
+      --panel-strong: rgba(10, 28, 37, 0.92);
+      --line: rgba(106, 240, 255, 0.18);
+      --grid: rgba(106, 240, 255, 0.07);
+      --text: #dffaff;
+      --muted: #8bc7d2;
+      --accent: #6af0ff;
+      --accent-2: #7dffb1;
+      --warn: #ffd36a;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(106, 240, 255, 0.18), transparent 25%),
+        radial-gradient(circle at 80% 10%, rgba(125, 255, 177, 0.12), transparent 18%),
+        linear-gradient(180deg, rgba(7, 19, 26, 0.9), rgba(7, 19, 26, 0.98)),
+        var(--bg);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 34px 34px;
+      opacity: 0.5;
+    }
+
+    .page {
+      position: relative;
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 32px 18px 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 22px;
+      margin-bottom: 22px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -40px auto;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 1px solid rgba(106, 240, 255, 0.12);
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.24em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4vw, 4.3rem);
+      line-height: 0.94;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: 1.08rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    p, li {
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .metrics {
+      display: grid;
+      gap: 12px;
+    }
+
+    .metric {
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+    }
+
+    .radar {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1px solid rgba(106, 240, 255, 0.2);
+      background:
+        radial-gradient(circle, rgba(106, 240, 255, 0.12) 0 10%, transparent 10% 24%, rgba(106, 240, 255, 0.06) 24% 25%, transparent 25% 48%, rgba(106, 240, 255, 0.06) 48% 49%, transparent 49%),
+        linear-gradient(90deg, transparent 49.6%, rgba(106, 240, 255, 0.18) 50%, transparent 50.4%),
+        linear-gradient(transparent 49.6%, rgba(106, 240, 255, 0.18) 50%, transparent 50.4%);
+      display: grid;
+      place-items: center;
+      color: var(--accent-2);
+      font-weight: bold;
+      letter-spacing: 0.18em;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      padding: 9px 12px;
+      background: rgba(106, 240, 255, 0.08);
+      color: var(--text);
+    }
+
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Navigation Console</div>
+        <h1>Dijkstra Concepts</h1>
+        <p>Este resumo foi sintetizado a partir do tema do curso, nao de transcript. O objetivo aqui e treinar a explicacao de shortest path com pesos nao negativos no estilo esperado por entrevistadores.</p>
+        <div class="pill-row" aria-hidden="true">
+          <div class="pill">weighted shortest path</div>
+          <div class="pill">greedy frontier</div>
+          <div class="pill">priority queue</div>
+          <div class="pill">stale entries</div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="radar">LOCK ON</div>
+        <div class="metric"><strong>Use:</strong> pesos nao negativos</div>
+        <div class="metric"><strong>Queue:</strong> min-heap por custo acumulado</div>
+        <div class="metric"><strong>Careful:</strong> stale heap entries</div>
+        <div class="metric"><strong>Tempo:</strong> O((V + E) log V)</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Weighted Paths</h2>
+        <p>BFS resolve bem custos uniformes. Quando os pesos variam, o estado correto deixa de ser profundidade e passa a ser distancia acumulada. Dijkstra troca a fila comum por uma estrutura que sempre entrega o menor custo conhecido.</p>
+      </article>
+
+      <article class="card">
+        <h2>Greedy Frontier</h2>
+        <p>A fronteira guarda candidatos ainda nao consolidados. O passo guloso e retirar da heap o estado mais barato. Com pesos nao negativos, o primeiro pop valido de um no ja fixa sua menor distancia.</p>
+      </article>
+
+      <article class="card">
+        <h2>Priority Queue</h2>
+        <p>A heap ordena pares como <strong>(dist, node)</strong>. Isso evita procurar linearmente o melhor proximo estado a cada iteracao e preserva a eficiencia do algoritmo.</p>
+      </article>
+
+      <article class="card">
+        <h2>Stale Entries</h2>
+        <p>Em Python, o normal e empilhar uma nova versao melhor do mesmo no e descartar a antiga depois. O teste padrao e comparar o custo extraido com a melhor distancia registrada.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Interview Script</h2>
+        <ol>
+          <li>Explique por que BFS nao basta.</li>
+          <li>Defina o que significa custo do estado neste problema.</li>
+          <li>Diga que a heap sempre escolhe a fronteira mais barata.</li>
+          <li>Mostre como relaxar vizinhos.</li>
+          <li>Justifique stale entries e o Big O.</li>
+        </ol>
+      </article>
+
+      <article class="card wide">
+        <h2>Complexity Reading</h2>
+        <p>Com lista de adjacencia, cada aresta participa de relaxamentos ao longo da execucao e cada interacao relevante com a heap custa logaritmo no numero de vertices. Por isso a forma mais usada da analise e O((V + E) log V), com espaco O(V + E).</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

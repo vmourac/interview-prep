@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Delay Time - Interview Prep</title>
+  <style>
+    :root {
+      --bg: #07131a;
+      --panel: rgba(8, 21, 30, 0.86);
+      --panel-2: rgba(8, 26, 36, 0.95);
+      --line: rgba(106, 240, 255, 0.18);
+      --text: #e0fbff;
+      --muted: #91cad3;
+      --accent: #6af0ff;
+      --accent-2: #92ff9f;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 14% 18%, rgba(106, 240, 255, 0.15), transparent 22%),
+        radial-gradient(circle at 82% 12%, rgba(146, 255, 159, 0.12), transparent 16%),
+        linear-gradient(180deg, #07131a, #081c24 60%, #07131a);
+    }
+    .page { max-width: 1180px; margin: 0 auto; padding: 34px 18px 72px; }
+    .hero, .grid { display: grid; gap: 22px; }
+    .hero { grid-template-columns: 1.1fr 0.9fr; margin-bottom: 22px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      backdrop-filter: blur(8px);
+    }
+    .eyebrow { text-transform: uppercase; letter-spacing: 0.24em; font-size: 12px; color: var(--accent); }
+    h1 { margin: 10px 0 14px; font-size: clamp(2.3rem, 4vw, 4rem); line-height: 0.95; }
+    h2 { margin: 0 0 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.05rem; }
+    p, li { color: var(--muted); line-height: 1.7; }
+    ul, ol { margin: 0; padding-left: 20px; }
+    .metrics { display: grid; gap: 12px; }
+    .metric { background: var(--panel-2); border: 1px solid var(--line); padding: 12px 14px; }
+    .wide { grid-column: 1 / -1; }
+    .route {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .route span {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      background: rgba(106, 240, 255, 0.08);
+    }
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #031017;
+      border: 1px solid rgba(106, 240, 255, 0.14);
+      color: #dffaff;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Signal Dispatch</div>
+        <h1>Network Delay Time</h1>
+        <p>O alvo da explicacao e mostrar shortest path classico em grafo dirigido ponderado e depois traduzir a resposta final como o maior tempo entre todas as menores distancias.</p>
+        <div class="route" aria-hidden="true">
+          <span>K</span>
+          <span>2 ms</span>
+          <span>5 ms</span>
+          <span>all reached?</span>
+        </div>
+      </article>
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> menor caminho com pesos nao negativos</div>
+        <div class="metric"><strong>Heap:</strong> (dist, node)</div>
+        <div class="metric"><strong>Tempo:</strong> O((V + E) log V)</div>
+        <div class="metric"><strong>Final read:</strong> maximo das menores distancias</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Um sinal parte de um no inicial e percorre arestas com atrasos diferentes. Descubra quanto tempo o ultimo no leva para receber o sinal, ou diga que alguem nunca recebe.</p>
+      </article>
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Monte lista de adjacencia dirigida.</li>
+          <li>Use Dijkstra a partir do no inicial.</li>
+          <li>Ao final, pegue o maximo entre as menores distancias.</li>
+        </ol>
+      </article>
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Tentar enumerar rotas ou repetir busca sem consolidar a melhor distancia por no faz o problema explodir em caminhos redundantes.</p>
+      </article>
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Use min-heap para sempre expandir o menor atraso acumulado. Cada relaxamento tenta reduzir a melhor distancia conhecida do vizinho.</p>
+      </article>
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O no mais distante entre os alcancaveis define o tempo total de propagacao. Se algum continuar em infinito, a resposta vira -1.</p>
+      </article>
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>import heapq
+
+
+def networkDelayTime(times: list[list[int]], n: int, k: int) -&gt; int:
+    graph = [[] for _ in range(n + 1)]
+
+    for source, target, weight in times:
+        graph[source].append((target, weight))
+
+    inf = float("inf")
+    dist = [inf] * (n + 1)
+    dist[k] = 0
+    heap = [(0, k)]
+
+    while heap:
+        current_dist, node = heapq.heappop(heap)
+
+        if current_dist &gt; dist[node]:
+            continue
+
+        for neighbor, weight in graph[node]:
+            new_dist = current_dist + weight
+            if new_dist &lt; dist[neighbor]:
+                dist[neighbor] = new_dist
+                heapq.heappush(heap, (new_dist, neighbor))
+
+    answer = max(dist[1:])
+    return -1 if answer == inf else answer</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clone Graph - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f6f0e6;
+      --ink: #17222a;
+      --muted: #55616b;
+      --line: rgba(23, 34, 42, 0.14);
+      --rail: #1d6671;
+      --rail-soft: rgba(29, 102, 113, 0.14);
+      --accent: #bd5a3e;
+      --card: rgba(255, 250, 243, 0.9);
+      --shadow: 0 24px 48px rgba(14, 27, 35, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 84% 12%, rgba(189, 90, 62, 0.18), transparent 22%),
+        linear-gradient(180deg, rgba(29, 102, 113, 0.08), transparent 24%),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 18px 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .network {
+      position: relative;
+      height: 120px;
+      margin-top: 18px;
+    }
+
+    .network::before,
+    .network::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-repeat: no-repeat;
+    }
+
+    .network::before {
+      background-image:
+        linear-gradient(var(--rail), var(--rail)),
+        linear-gradient(var(--rail), var(--rail)),
+        linear-gradient(var(--rail), var(--rail));
+      background-size: 150px 4px, 110px 4px, 120px 4px;
+      background-position: 48px 28px, 150px 62px, 70px 92px;
+      transform: rotate(12deg);
+      opacity: 0.8;
+    }
+
+    .network::after {
+      background-image:
+        radial-gradient(circle, var(--accent) 0 11px, transparent 12px),
+        radial-gradient(circle, var(--rail) 0 11px, transparent 12px),
+        radial-gradient(circle, var(--rail) 0 11px, transparent 12px),
+        radial-gradient(circle, var(--accent) 0 11px, transparent 12px);
+      background-size: 24px 24px;
+      background-position: 40px 18px, 190px 46px, 112px 82px, 252px 76px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 12px;
+      color: var(--rail);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4vw, 3.9rem);
+      line-height: 0.96;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      color: var(--rail);
+      font-size: 1.1rem;
+    }
+
+    p, li {
+      margin-top: 0;
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .stats {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .stat {
+      padding: 14px 16px;
+      background: var(--rail-soft);
+      border: 1px solid var(--line);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      background: #13202a;
+      color: #f6f1e9;
+      line-height: 1.55;
+      font-size: 0.93rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Transit Map Drill</div>
+        <h1>Clone Graph</h1>
+        <p>Este prompt mede se voce sabe copiar uma rede com ciclos preservando a identidade estrutural de cada no por meio de um mapa `original -> clone`.</p>
+        <p>Nota de fonte: este material e sintetizado a partir do topico do curso, porque a aula original nao tem captions nem transcript disponiveis.</p>
+        <div class="network"></div>
+      </article>
+
+      <aside class="card stats">
+        <div class="stat"><strong>Traversal:</strong> O(V + E)</div>
+        <div class="stat"><strong>Aux Space:</strong> O(V)</div>
+        <div class="stat"><strong>Output Space:</strong> O(V + E)</div>
+        <div class="stat"><strong>Core Idea:</strong> one clone per original node</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dado um no de entrada em um grafo nao direcionado e conexo, devolva uma copia profunda de toda a estrutura.</p>
+      </article>
+
+      <article class="card">
+        <h2>Why Interviewers Ask It</h2>
+        <p>O objetivo e ver se voce reconhece que ciclos quebram uma copia recursiva ingenua e que o mapa de clones e obrigatorio.</p>
+      </article>
+
+      <article class="card">
+        <h2>Naive Route</h2>
+        <p>Tentar clonar cada vizinho recursivamente sem memoizacao. Isso duplica vertices ou entra em recursao infinita quando o grafo volta para um no ja visto.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Route</h2>
+        <p>Use DFS com um dicionario que associa cada no original ao seu clone. Quando o no reaparece, reutilize a copia ja pronta.</p>
+      </article>
+
+      <article class="card">
+        <h2>Reasoning Steps</h2>
+        <ol>
+          <li>Trate `None` logo no inicio.</li>
+          <li>Ao ver um no novo, crie sua copia e salve no mapa.</li>
+          <li>Clone os vizinhos recursivamente.</li>
+          <li>Se um vizinho ja foi visto, conecte a copia existente.</li>
+          <li>Retorne o clone do no de entrada.</li>
+        </ol>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>class Node:
+    def __init__(self, val=0, neighbors=None):
+        self.val = val
+        self.neighbors = neighbors if neighbors is not None else []
+
+
+class Solution:
+    def cloneGraph(self, node: "Node | None") -&gt; "Node | None":
+        if node is None:
+            return None
+
+        clones = {}
+
+        def dfs(current: "Node") -&gt; "Node":
+            if current in clones:
+                return clones[current]
+
+            copy = Node(current.val)
+            clones[current] = copy
+
+            for neighbor in current.neighbors:
+                copy.neighbors.append(dfs(neighbor))
+
+            return copy
+
+        return dfs(node)</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

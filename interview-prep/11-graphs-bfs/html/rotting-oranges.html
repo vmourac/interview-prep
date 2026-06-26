@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rotting Oranges - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f7f0df;
+      --ink: #2a2116;
+      --muted: #6a5847;
+      --line: rgba(42, 33, 22, 0.14);
+      --rail: #b05a1f;
+      --rail-soft: rgba(176, 90, 31, 0.12);
+      --signal: #5c7c2f;
+      --signal-soft: rgba(92, 124, 47, 0.14);
+      --card: rgba(255, 251, 243, 0.93);
+      --shadow: 0 20px 48px rgba(45, 35, 25, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 16% 12%, rgba(176, 90, 31, 0.15), transparent 20%),
+        repeating-linear-gradient(90deg, transparent 0 74px, rgba(42, 33, 22, 0.045) 74px 75px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 18px 74px;
+    }
+
+    .hero,
+    .grid {
+      display: grid;
+      gap: 22px;
+    }
+
+    .hero {
+      grid-template-columns: 1.08fr 0.92fr;
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      color: var(--rail);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4vw, 3.9rem);
+      line-height: 0.96;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      color: var(--rail);
+      font-size: 1.08rem;
+    }
+
+    p, li {
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    ol, ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    .metrics {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .metric {
+      background: var(--rail-soft);
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      max-width: 320px;
+      margin-top: 16px;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      background: #fff6e8;
+      font-size: 1.2rem;
+      position: relative;
+    }
+
+    .cell.fresh::after,
+    .cell.rotten::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      opacity: 0.32;
+    }
+
+    .cell.fresh::after { background: var(--signal); }
+    .cell.rotten::after { background: var(--rail); }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      background: #1f1914;
+      color: #f9efdf;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 920px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Simultaneous Spread</div>
+        <h1>Rotting Oranges</h1>
+        <p>A imagem correta aqui nao e uma busca a partir de uma unica fonte. Sao varias fontes emitindo propagacao ao mesmo tempo. Cada camada da fila corresponde a um minuto.</p>
+        <div class="board" aria-hidden="true">
+          <div class="cell rotten">2</div>
+          <div class="cell fresh">1</div>
+          <div class="cell fresh">1</div>
+          <div class="cell">0</div>
+          <div class="cell fresh">1</div>
+          <div class="cell fresh">1</div>
+          <div class="cell">0</div>
+          <div class="cell fresh">1</div>
+          <div class="cell">0</div>
+          <div class="cell fresh">1</div>
+          <div class="cell fresh">1</div>
+          <div class="cell fresh">1</div>
+          <div class="cell">0</div>
+          <div class="cell">0</div>
+          <div class="cell fresh">1</div>
+          <div class="cell rotten">2</div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> spread by minutes</div>
+        <div class="metric"><strong>Technique:</strong> multi-source BFS</div>
+        <div class="metric"><strong>Tempo:</strong> O(R * C)</div>
+        <div class="metric"><strong>Espaco:</strong> O(R * C)</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dado um grid com laranjas frescas e podres, calcule quantos minutos sao necessarios para toda laranja fresca adjacente a uma podre tambem apodrecer. Se alguma nunca puder apodrecer, retorne `-1`.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Todas as laranjas podres iniciais devem entrar juntas na fila.</li>
+          <li>O contador de minutos sobe por camada processada, nao por celula.</li>
+          <li>Um contador de frescas simplifica o caso impossivel.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Escanear o grid inteiro a cada minuto funciona, mas repete trabalho demais porque revisita celulas que ja estao estabilizadas.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Inicialize a BFS com todas as celulas podres. Quando uma fresca entra na fila, ela ja fica marcada como podre. Isso preserva a simultaneidade e evita duplicatas.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O erro mais comum e rodar varias BFS separadas. Isso quebra a intuicao do "tempo minimo global" porque as fontes deveriam competir em paralelo, nao em sequencia.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>from collections import deque
+
+
+def orangesRotting(grid: list[list[int]]) -&gt; int:
+    rows = len(grid)
+    cols = len(grid[0]) if grid else 0
+    queue = deque()
+    fresh = 0
+
+    for row in range(rows):
+        for col in range(cols):
+            if grid[row][col] == 2:
+                queue.append((row, col))
+            elif grid[row][col] == 1:
+                fresh += 1
+
+    if fresh == 0:
+        return 0
+
+    minutes = 0
+
+    while queue and fresh &gt; 0:
+        for _ in range(len(queue)):
+            row, col = queue.popleft()
+
+            for delta_row, delta_col in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                new_row = row + delta_row
+                new_col = col + delta_col
+
+                if not (0 &lt;= new_row &lt; rows and 0 &lt;= new_col &lt; cols):
+                    continue
+
+                if grid[new_row][new_col] != 1:
+                    continue
+
+                grid[new_row][new_col] = 2
+                fresh -= 1
+                queue.append((new_row, new_col))
+
+        minutes += 1
+
+    return minutes if fresh == 0 else -1</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

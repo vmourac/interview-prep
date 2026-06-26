@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>16 Recursion and Sorting - Sort an Array</title>
+  <style>
+    :root {
+      --paper: #f4eee3;
+      --ink: #211a16;
+      --muted: #67584c;
+      --accent: #8f4c31;
+      --soft: #edd4c3;
+      --line: #d6c5b7;
+      --panel: rgba(255, 252, 246, 0.92);
+      --shadow: 0 22px 46px rgba(81, 52, 39, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Palatino Linotype", Georgia, serif;
+      background:
+        radial-gradient(circle at top left, rgba(143, 76, 49, 0.12), transparent 24%),
+        linear-gradient(145deg, rgba(237, 212, 195, 0.26), transparent 32%),
+        repeating-linear-gradient(0deg, #f7f2e8 0, #f7f2e8 31px, #eee5d8 31px, #eee5d8 32px);
+    }
+    .page { max-width: 1120px; margin: 0 auto; padding: 42px 20px 70px; }
+    .hero, .panel { background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .hero { padding: 30px; margin-bottom: 20px; }
+    .panel { padding: 22px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+    .eyebrow { text-transform: uppercase; letter-spacing: 0.16em; font-size: 0.77rem; color: var(--accent); margin-bottom: 10px; }
+    .tag { display: inline-block; padding: 4px 10px; background: var(--soft); color: var(--accent); font-size: 0.82rem; margin-bottom: 12px; }
+    h1 { margin: 0 0 10px; font-size: clamp(2rem, 4vw, 3.1rem); }
+    h2 { margin-top: 0; color: var(--accent); font-size: 1.15rem; }
+    p, li { line-height: 1.7; }
+    pre { margin: 0; padding: 18px; background: #1f1a17; color: #fff6ef; overflow: auto; white-space: pre-wrap; }
+    ul { margin: 0; padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Topico 16 - Divide and Conquer</div>
+      <h1>Sort an Array</h1>
+      <p>Problema tipico para separar ordenacoes quadrativas de algoritmos O(n log n). Como a fonte do curso nao tem captions, esta pagina organiza a explicacao em modo entrevista.</p>
+      <p><strong>Prompt:</strong> Dado um array de inteiros, retorne-o em ordem crescente.</p>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <div class="tag">Ponto de comparacao</div>
+        <p>Bubble, selection e insertion sort ajudam como baseline, mas a resposta forte aqui costuma ser merge sort quando o objetivo e previsibilidade em O(n log n).</p>
+      </article>
+
+      <article class="panel">
+        <div class="tag">Intuicao</div>
+        <ul>
+          <li>Divida em metades menores ate casos triviais.</li>
+          <li>Ordene cada metade recursivamente.</li>
+          <li>Mescle em tempo linear no tamanho combinado.</li>
+        </ul>
+      </article>
+
+      <article class="panel">
+        <div class="tag">Complexidade</div>
+        <p><strong>Tempo:</strong> O(n log n)</p>
+        <p><strong>Espaco:</strong> O(n)</p>
+        <p>Ha O(log n) niveis e O(n) de trabalho agregado por nivel.</p>
+      </article>
+    </section>
+
+    <section class="panel" style="margin-top: 20px;">
+      <h2>Implementacao de referencia</h2>
+      <pre>def sortArray(nums):
+    if len(nums) <= 1:
+        return nums
+
+    mid = len(nums) // 2
+    left = sortArray(nums[:mid])
+    right = sortArray(nums[mid:])
+
+    merged = []
+    i = 0
+    j = 0
+
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            merged.append(left[i])
+            i += 1
+        else:
+            merged.append(right[j])
+            j += 1
+
+    merged.extend(left[i:])
+    merged.extend(right[j:])
+    return merged</pre>
+    </section>
+  </main>
+</body>
+</html>

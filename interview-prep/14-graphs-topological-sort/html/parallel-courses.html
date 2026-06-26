@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parallel Courses - Interview Prep</title>
+  <style>
+    :root {
+      --bg: #f2efe8;
+      --panel: rgba(252, 250, 245, 0.96);
+      --ink: #20262a;
+      --muted: #596167;
+      --line: rgba(32, 38, 42, 0.13);
+      --accent: #365a86;
+      --accent-soft: rgba(54, 90, 134, 0.12);
+      --accent-warm: #b9823f;
+      --shadow: 0 28px 68px rgba(32, 38, 42, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Tahoma, Geneva, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 14% 18%, rgba(185, 130, 63, 0.14), transparent 18%),
+        radial-gradient(circle at 84% 12%, rgba(54, 90, 134, 0.16), transparent 23%),
+        repeating-linear-gradient(90deg, transparent 0 78px, rgba(54, 90, 134, 0.05) 78px 79px),
+        var(--bg);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 18px 70px;
+    }
+
+    .hero, .grid { display: grid; gap: 22px; }
+    .hero { grid-template-columns: 1.08fr 0.92fr; margin-bottom: 24px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.3rem, 4.3vw, 4rem);
+      line-height: 0.95;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 1.12rem; color: var(--accent); }
+    p, li { line-height: 1.72; color: var(--muted); }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .metrics { display: grid; gap: 12px; }
+    .metric {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .semester {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.48);
+      padding: 12px;
+      min-height: 110px;
+    }
+
+    .chip {
+      display: inline-block;
+      margin: 6px 6px 0 0;
+      padding: 6px 10px;
+      background: rgba(54, 90, 134, 0.14);
+      border: 1px solid rgba(54, 90, 134, 0.2);
+      font-weight: 700;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #151b20;
+      color: #eef4fb;
+      border-radius: 10px;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 920px) {
+      .hero, .grid, .timeline { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Semester Planner</div>
+        <h1>Parallel Courses</h1>
+        <p>A resposta nao e uma lista de vertices. E o numero de ondas de cursos liberados, ou seja, quantas camadas o topological sort leva para consumir o grafo.</p>
+        <div class="timeline" aria-hidden="true">
+          <div class="semester"><strong>Sem 1</strong><br><span class="chip">1</span><span class="chip">2</span></div>
+          <div class="semester"><strong>Sem 2</strong><br><span class="chip">3</span></div>
+          <div class="semester"><strong>Sem 3</strong><br><span class="chip">4</span><span class="chip">5</span></div>
+          <div class="semester"><strong>Sem 4</strong><br><span class="chip">6</span></div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> topological sort por niveis</div>
+        <div class="metric"><strong>Tempo:</strong> O(V + E)</div>
+        <div class="metric"><strong>Espaco:</strong> O(V + E)</div>
+        <div class="metric"><strong>Insight:</strong> tamanho atual da fila = um semestre</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Calcule o numero minimo de semestres para concluir todos os cursos, ou retorne -1 se um ciclo impedir a conclusao.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Todos os cursos com indegree zero podem ser feitos juntos.</li>
+          <li>Processe a fila em blocos por nivel.</li>
+          <li>Se sobrar curso no final, havia ciclo.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Testar diferentes gradeamentos de semestres por tentativa e erro custa caro e nao e necessario quando as dependencias ja determinam as camadas.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Rode Kahn em BFS por niveis. Cada rodada completa dos nos atualmente liberados corresponde a um semestre.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O pulo do gato e perceber que a fila nao representa uma ordem qualquer, mas exatamente o conjunto de cursos paralelizaveis naquele instante.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>from collections import deque
+
+
+def minimumSemesters(n: int, relations: list[list[int]]) -&gt; int:
+    graph = [[] for _ in range(n + 1)]
+    indegree = [0] * (n + 1)
+
+    for prev_course, next_course in relations:
+        graph[prev_course].append(next_course)
+        indegree[next_course] += 1
+
+    queue = deque(course for course in range(1, n + 1) if indegree[course] == 0)
+    semesters = 0
+    completed = 0
+
+    while queue:
+        semesters += 1
+
+        for _ in range(len(queue)):
+            course = queue.popleft()
+            completed += 1
+
+            for neighbor in graph[course]:
+                indegree[neighbor] -= 1
+                if indegree[neighbor] == 0:
+                    queue.append(neighbor)
+
+    return semesters if completed == n else -1</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
