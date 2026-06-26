@@ -1,4 +1,4 @@
-name: Deploy Interview Prep Pages
+name: Publish Interview Prep Site
 
 on:
   push:
@@ -7,16 +7,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: gh-pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,21 +28,22 @@ jobs:
       - name: Build static site
         run: python3 site/build.py
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
+      - name: Verify publish artifact is sanitized
+        run: |
+          if grep -RInE 'raw/|wiki/|outputs/|BEGIN [A-Z ]*PRIVATE KEY|AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|ghp_[A-Za-z0-9_]+|github_pat_|sk-[A-Za-z0-9]|xox[baprs]-|password[[:space:]]*=|passwd[[:space:]]*=|secret[[:space:]]*=|api[_-]?key[[:space:]]*=' public; then
+            echo "Refusing to publish private marker or secret-looking content."
+            exit 1
+          fi
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: public
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Publish gh-pages branch
+        run: |
+          cd public
+          touch .nojekyll
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b gh-pages
+          git add .
+          git commit -m "deploy: publish interview prep site"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git push --force origin gh-pages
