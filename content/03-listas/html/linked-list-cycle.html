@@ -1,136 +1,461 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>03 Listas - Linked List Cycle</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Laboratório interativo para entender Linked List Cycle passo a passo em JavaScript e TypeScript.">
+  <title>Linked List Cycle — Laboratório Interativo</title>
   <style>
     :root {
-      --bg: #f3efe8;
-      --ink: #1b1714;
-      --muted: #625a53;
-      --accent: #314f7c;
-      --accent-soft: #d9e3f4;
-      --line: #d6ccc1;
-      --panel: rgba(255, 255, 255, 0.82);
-      --shadow: 0 18px 44px rgba(36, 48, 71, 0.13);
+      color-scheme: dark;
+      --bg: #10131a;
+      --panel: #171c26;
+      --panel-2: #202736;
+      --ink: #eef3ff;
+      --muted: #aeb8cb;
+      --line: #3f4b62;
+      --blue: #8dbbff;
+      --violet: #b9a1ff;
+      --gold: #f0c36a;
+      --mint: #88d9bd;
+      --red: #ef806f;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .34);
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --serif: Georgia, Cambria, "Times New Roman", serif;
+      --sans: "Trebuchet MS", "Gill Sans", sans-serif;
     }
 
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
     body {
       margin: 0;
-      font-family: Garamond, Georgia, serif;
+      min-width: 320px;
       color: var(--ink);
       background:
-        radial-gradient(circle at 15% 20%, rgba(49, 79, 124, 0.12), transparent 22%),
-        radial-gradient(circle at 82% 18%, rgba(49, 79, 124, 0.08), transparent 18%),
-        linear-gradient(180deg, #f6f2ec 0%, var(--bg) 100%);
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+        radial-gradient(circle at 84% 8%, rgba(141,187,255,.16), transparent 28rem),
+        radial-gradient(circle at 12% 30%, rgba(185,161,255,.12), transparent 30rem),
+        var(--bg);
+      background-size: 36px 36px, 36px 36px, auto, auto, auto;
+      font-family: var(--sans);
+      line-height: 1.6;
     }
 
-    .wrap {
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 44px 20px 72px;
-    }
-
-    .masthead {
-      padding: 28px;
-      background: var(--panel);
+    button { font: inherit; }
+    button {
       border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      margin-bottom: 20px;
+      padding: .68rem .78rem;
+      color: var(--ink);
+      background: var(--panel);
+      cursor: pointer;
     }
+    button:hover, button[aria-pressed="true"] { border-color: var(--blue); background: #17233a; }
+    button.primary { color: #0f131a; border-color: var(--blue); background: var(--blue); font-weight: 800; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    :focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 
-    .eyebrow {
+    .shell { width: min(1240px, calc(100% - 32px)); margin: 0 auto; }
+    .hero { padding: clamp(2rem, 6vw, 5rem) 0 1.4rem; border-bottom: 1px solid var(--line); }
+    .eyebrow, .chip, .metric span, .control-label, .code-tabs button, .step-counter {
+      font: .73rem var(--mono);
+      letter-spacing: .12em;
       text-transform: uppercase;
-      letter-spacing: 0.18em;
-      color: var(--accent);
-      font-size: 0.78rem;
-      margin-bottom: 8px;
     }
+    .eyebrow { color: var(--blue); }
+    h1 { max-width: 920px; margin: .35rem 0 1rem; font: clamp(3rem, 8vw, 6.4rem)/.9 var(--serif); letter-spacing: -.065em; }
+    .lead { max-width: 840px; color: var(--muted); font-size: 1.1rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.2rem 0; }
+    .chip { border: 1px solid var(--line); padding: .28rem .48rem; color: var(--blue); background: rgba(141,187,255,.08); }
 
-    h1 { margin: 0 0 10px; font-size: clamp(2rem, 4vw, 3.25rem); }
-    h2 { margin-top: 0; color: var(--accent); }
-    p, li { line-height: 1.68; }
-
-    .columns {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 18px;
-    }
-
-    .box {
-      padding: 22px;
-      background: var(--panel);
+    .lab { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); gap: 1rem; padding: 1.2rem 0 2rem; }
+    .panel {
       border: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(255,255,255,.035), transparent), rgba(23,28,38,.96);
       box-shadow: var(--shadow);
     }
-
-    pre {
-      margin: 0;
-      white-space: pre-wrap;
-      padding: 16px;
-      background: #182131;
-      color: #eff3fb;
-      overflow: auto;
-      font-family: "Courier New", monospace;
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding: 1rem;
     }
+    .panel-header h2, .panel h3 { margin: 0; font-family: var(--serif); }
+    .panel-body { padding: 1rem; }
+    .control-row { display: flex; flex-wrap: wrap; gap: .5rem; margin: .8rem 0 0; }
+    .control-label { display: block; color: var(--muted); margin-bottom: .35rem; }
+    .progress { height: .7rem; border: 1px solid var(--line); background: #0a0c12; overflow: hidden; }
+    .progress > div { width: 0%; height: 100%; background: linear-gradient(90deg, var(--blue), var(--violet), var(--gold)); transition: width .2s ease; }
 
-    ul { padding-left: 20px; }
+    #visualizer {
+      min-height: 430px;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 70% 25%, rgba(185,161,255,.1), transparent 16rem),
+        #0b0f17;
+      overflow: auto;
+      padding: 1rem;
+    }
+    svg { display: block; width: 100%; min-width: 680px; height: auto; }
+    .edge { stroke: #66738e; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    .edge.cycle { stroke: var(--violet); stroke-dasharray: 8 7; }
+    .node circle { fill: #172131; stroke: #657493; stroke-width: 3; }
+    .node text { fill: var(--ink); font: 17px var(--mono); text-anchor: middle; dominant-baseline: central; }
+    .node.slow circle { stroke: var(--mint); filter: drop-shadow(0 0 8px rgba(136,217,189,.35)); }
+    .node.fast circle { stroke: var(--gold); filter: drop-shadow(0 0 8px rgba(240,195,106,.35)); }
+    .node.meet circle { stroke: var(--red); stroke-width: 5; }
+    .badge { font: 12px var(--mono); text-anchor: middle; }
+    .slow-badge { fill: var(--mint); }
+    .fast-badge { fill: var(--gold); }
+    .status-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .5rem;
+      margin-top: .8rem;
+    }
+    .status-strip div { border: 1px solid var(--line); padding: .75rem; background: rgba(255,255,255,.03); }
+    .status-strip strong { display: block; font: .78rem var(--mono); color: var(--blue); text-transform: uppercase; }
+    .status-strip span { color: var(--ink); font-size: 1.05rem; }
+
+    #step-explanation { min-height: 10rem; border-left: 4px solid var(--blue); padding: 1rem; background: rgba(141,187,255,.08); }
+    #step-explanation h3 { margin: 0 0 .45rem; font-size: 1.35rem; }
+    #step-explanation p { margin: 0; color: var(--muted); }
+    .warning { margin-top: .8rem; border-left: 4px solid var(--violet); padding: .75rem; color: #ded4ff; background: rgba(185,161,255,.08); }
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: 1rem; }
+    .metric { border: 1px solid var(--line); padding: .85rem; background: rgba(255,255,255,.03); }
+    .metric span { color: var(--muted); }
+    .metric strong { display: block; margin-top: .25rem; font: 1.22rem var(--serif); color: var(--mint); }
+
+    .study-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding: 0 0 2rem; }
+    .study-card { border: 1px solid var(--line); padding: 1rem; background: rgba(23,28,38,.96); box-shadow: var(--shadow); }
+    .study-card h2 { margin: 0 0 .6rem; font-family: var(--serif); }
+    .study-card p, .study-card li { color: var(--muted); }
+    .study-card ul { padding-left: 1.2rem; }
+    .callout { border-left: 4px solid var(--mint); padding-left: .9rem; }
+
+    .code-panel { margin-bottom: 3rem; }
+    .code-tabs { display: flex; flex-wrap: wrap; gap: .4rem; padding: 1rem 1rem 0; }
+    .code-tabs button { padding: .55rem .7rem; }
+    pre { margin: 0; overflow: auto; padding: 1rem; background: #0a0c12; color: #eef3ff; font: .88rem/1.55 var(--mono); }
+    pre[hidden] { display: none; }
+    code { font-family: var(--mono); color: #dce8ff; }
+
+    @media (max-width: 920px) {
+      .lab, .study-grid { grid-template-columns: 1fr; }
+      .status-strip, .metrics { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <section class="masthead">
-      <div class="eyebrow">Topico 03 - Entrevista guiada</div>
+  <header class="hero">
+    <div class="shell">
+      <div class="eyebrow">03 Listas · laboratório slow/fast</div>
       <h1>Linked List Cycle</h1>
-      <p>Pagina local e autocontida para revisar o padrao de slow e fast pointers. O conteudo foi sintetizado do tema do curso, pois as aulas do topico nao fornecem captions para uma compilacao textual direta.</p>
-      <p><strong>Prompt:</strong> Dado o <code>head</code> de uma lista ligada simples, determine se existe ciclo.</p>
+      <p class="lead">Um ciclo não precisa ser “visto” guardando todos os nós. Dois ponteiros com velocidades diferentes transformam a estrutura circular em encontro inevitável.</p>
+      <div class="chips">
+        <span class="chip">padrão: Floyd</span>
+        <span class="chip">slow anda 1</span>
+        <span class="chip">fast anda 2</span>
+        <span class="chip">O(1) espaço</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="lab" aria-label="Laboratório interativo">
+      <article class="panel">
+        <div class="panel-header">
+          <h2>Visualização passo a passo</h2>
+          <span class="step-counter" id="step-counter">passo 1</span>
+        </div>
+        <div class="panel-body">
+          <div class="control-label">Controles da simulação</div>
+          <div class="control-row" aria-label="Controles">
+            <button type="button" data-action="prev">◀ Passo anterior</button>
+            <button type="button" class="primary" data-action="next">Próximo passo ▶</button>
+            <button type="button" data-action="run">Executar</button>
+            <button type="button" data-action="pause">Pausar</button>
+            <button type="button" data-action="reset">Reset</button>
+          </div>
+          <div class="progress" aria-hidden="true"><div id="progress-bar"></div></div>
+          <div id="visualizer" aria-live="polite"></div>
+        </div>
+      </article>
+
+      <aside class="panel">
+        <div class="panel-header"><h2>Raciocínio atual</h2></div>
+        <div class="panel-body">
+          <div id="step-explanation"></div>
+          <div class="warning"><strong>Intuição:</strong> dentro do ciclo, o fast ganha 1 posição relativa por rodada. Em algum momento, a distância modular entre fast e slow vira zero.</div>
+          <div class="metrics">
+            <div class="metric"><span>ingênua</span><strong>O(n) tempo · O(n) espaço</strong></div>
+            <div class="metric"><span>otimizada</span><strong>O(n) tempo · O(1) espaço</strong></div>
+          </div>
+        </div>
+      </aside>
     </section>
 
-    <section class="columns">
-      <article class="box">
-        <h2>Hints</h2>
+    <section class="study-grid" aria-label="Explicações didáticas">
+      <article class="study-card" data-section="naive">
+        <h2>Solução ingênua</h2>
+        <p>Guarde cada referência de nó em um <code>Set</code>. Se encontrar um nó já visto, existe ciclo. Se chegar em <code>null</code>, não existe ciclo.</p>
         <ul>
-          <li>Existe uma solucao com conjunto de visitados, mas o entrevistador costuma querer menos memoria.</li>
-          <li>Dois ponteiros com velocidades diferentes revelam estruturas ciclicas.</li>
-          <li>Se o ponteiro rapido nunca encontra <code>null</code>, pergunte-se onde ele pode encontrar o lento.</li>
+          <li><strong>Tempo:</strong> <code>O(n)</code>, cada nó é consultado no máximo uma vez.</li>
+          <li><strong>Espaço:</strong> <code>O(n)</code>, porque o conjunto pode guardar todos os nós antes de detectar repetição.</li>
         </ul>
       </article>
 
-      <article class="box">
-        <h2>Caminho ingenuo</h2>
-        <p>Guardar todos os nos visitados em um conjunto detecta repeticao rapidamente, mas usa memoria proporcional ao numero de nos percorridos.</p>
+      <article class="study-card" data-section="optimized">
+        <h2>Solução otimizada</h2>
+        <p>Use dois ponteiros. <code>slow</code> anda um nó por rodada; <code>fast</code> anda dois. Se não há ciclo, fast encontra <code>null</code>. Se há ciclo, fast encontra slow.</p>
+        <p class="callout"><strong>Invariante operacional:</strong> só acessamos <code>fast.next.next</code> depois de validar <code>fast !== null</code> e <code>fast.next !== null</code>.</p>
       </article>
 
-      <article class="box">
-        <h2>Caminho otimizado</h2>
-        <p>Floyd usa dois ponteiros. O lento anda um passo, o rapido anda dois. Se houver ciclo, a diferenca de velocidade faz um ponteiro alcancar o outro dentro do laco.</p>
+      <article class="study-card" data-section="complexity">
+        <h2>Big O</h2>
+        <p><strong>Tempo otimizado:</strong> <code>O(n)</code>. Antes do ciclo, fast avança pela parte linear; dentro do ciclo, o encontro ocorre em no máximo o tamanho do ciclo.</p>
+        <p><strong>Espaço otimizado:</strong> <code>O(1)</code>, pois só mantemos duas referências.</p>
       </article>
 
-      <article class="box">
-        <h2>Complexidade</h2>
-        <p><strong>Tempo:</strong> O(n)</p>
-        <p><strong>Espaco:</strong> O(1)</p>
-        <p>A memoria fica constante porque a deteccao depende apenas de dois cursores, nao de registrar historico.</p>
+      <article class="study-card" data-section="interview">
+        <h2>Como falar em entrevista</h2>
+        <ul>
+          <li>Comece pela solução com <code>Set</code> para demonstrar clareza.</li>
+          <li>Depois otimize memória com Floyd.</li>
+          <li>Explique a condição segura do loop antes de mover <code>fast</code> dois passos.</li>
+          <li>Justifique o encontro com velocidade relativa, não com “porque sim”.</li>
+        </ul>
       </article>
     </section>
 
-    <section class="box" style="margin-top: 20px;">
-      <h2>Solucao final</h2>
-      <pre>def hasCycle(head):
-    slow = head
-    fast = head
+    <section class="panel code-panel" aria-label="Soluções em código">
+      <div class="panel-header"><h2>Código de referência</h2></div>
+      <div class="code-tabs" role="tablist" aria-label="Linguagens">
+        <button type="button" data-code-tab="javascript" aria-pressed="true">JavaScript</button>
+        <button type="button" data-code-tab="typescript" aria-pressed="false">TypeScript</button>
+      </div>
+      <pre data-language="javascript"><code>function hasCycle(head) {
+  let slow = head;
+  let fast = head;
 
-    while fast is not None and fast.next is not None:
-        slow = slow.next
-        fast = fast.next.next
+  while (fast !== null && fast.next !== null) {
+    slow = slow.next;
+    fast = fast.next.next;
 
-        if slow is fast:
-            return True
+    if (slow === fast) {
+      return true;
+    }
+  }
 
-    return False</pre>
+  return false;
+}</code></pre>
+      <pre data-language="typescript" hidden><code>type ListNode = {
+  value: number;
+  next: ListNode | null;
+};
+
+function hasCycle(head: ListNode | null): boolean {
+  let slow: ListNode | null = head;
+  let fast: ListNode | null = head;
+
+  while (fast !== null && fast.next !== null) {
+    slow = slow === null ? null : slow.next;
+    fast = fast.next.next;
+
+    if (slow === fast) {
+      return true;
+    }
+  }
+
+  return false;
+}</code></pre>
     </section>
   </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const steps = [
+        {
+          title: "Estado inicial",
+          explanation: "A lista tem uma cauda linear A → B e um ciclo C → D → E → C. slow e fast começam em A.",
+          slow: "A",
+          fast: "A",
+          status: "começar",
+          result: "indefinido",
+          meet: false
+        },
+        {
+          title: "Primeira rodada",
+          explanation: "slow anda um passo: A → B. fast anda dois passos: A → B → C. Eles ainda não se encontraram.",
+          slow: "B",
+          fast: "C",
+          status: "slow +1, fast +2",
+          result: "continuar",
+          meet: false
+        },
+        {
+          title: "Entrando no ciclo",
+          explanation: "slow vai para C. fast vai de C para D e depois E. Agora ambos estão dentro da parte cíclica.",
+          slow: "C",
+          fast: "E",
+          status: "ambos no ciclo",
+          result: "continuar",
+          meet: false
+        },
+        {
+          title: "Fast dá a volta",
+          explanation: "slow vai para D. fast sai de E, volta para C e anda para D. Os dois apontam para o mesmo nó.",
+          slow: "D",
+          fast: "D",
+          status: "encontro",
+          result: "true",
+          meet: true
+        },
+        {
+          title: "Conclusão",
+          explanation: "Como slow === fast, existe ciclo. O algoritmo retorna true sem guardar histórico de nós.",
+          slow: "D",
+          fast: "D",
+          status: "retornar",
+          result: "true",
+          meet: true
+        }
+      ];
+
+      const positions = {
+        A: { x: 90, y: 170 },
+        B: { x: 235, y: 170 },
+        C: { x: 405, y: 170 },
+        D: { x: 575, y: 90 },
+        E: { x: 575, y: 250 }
+      };
+
+      const edges = [
+        ["A", "B", false],
+        ["B", "C", false],
+        ["C", "D", true],
+        ["D", "E", true],
+        ["E", "C", true]
+      ];
+
+      let index = 0;
+      let timer = null;
+
+      const visualizer = document.getElementById("visualizer");
+      const explanation = document.getElementById("step-explanation");
+      const counter = document.getElementById("step-counter");
+      const progress = document.getElementById("progress-bar");
+
+      function line(from, to, cycle) {
+        const a = positions[from];
+        const b = positions[to];
+        if (from === "E" && to === "C") {
+          return `<path class="edge cycle" d="M ${a.x - 30} ${a.y} C ${a.x - 135} ${a.y + 65}, ${b.x - 125} ${b.y + 55}, ${b.x - 38} ${b.y + 12}"></path>`;
+        }
+        return `<line class="edge ${cycle ? "cycle" : ""}" x1="${a.x + 38}" y1="${a.y}" x2="${b.x - 42}" y2="${b.y}"></line>`;
+      }
+
+      function node(label, step) {
+        const p = positions[label];
+        const classes = ["node"];
+        if (step.slow === label) classes.push("slow");
+        if (step.fast === label) classes.push("fast");
+        if (step.meet && step.slow === label && step.fast === label) classes.push("meet");
+        const badges = [];
+        if (step.slow === label) badges.push(`<text class="badge slow-badge" x="${p.x}" y="${p.y - 52}">slow</text>`);
+        if (step.fast === label) badges.push(`<text class="badge fast-badge" x="${p.x}" y="${p.y + 52}">fast</text>`);
+        return `
+          <g class="${classes.join(" ")}">
+            <circle cx="${p.x}" cy="${p.y}" r="36"></circle>
+            <text x="${p.x}" y="${p.y}">${label}</text>
+            ${badges.join("")}
+          </g>
+        `;
+      }
+
+      function render() {
+        const step = steps[index];
+        visualizer.innerHTML = `
+          <svg viewBox="0 0 720 340" role="img" aria-label="Lista ligada com ciclo e ponteiros slow e fast">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M1,1 L9,5 L1,9" fill="none" stroke="#66738e" stroke-width="2"></path>
+              </marker>
+            </defs>
+            ${edges.map(([from, to, cycle]) => line(from, to, cycle)).join("")}
+            ${Object.keys(positions).map((label) => node(label, step)).join("")}
+          </svg>
+          <div class="status-strip">
+            <div><strong>slow</strong><span>${step.slow}</span></div>
+            <div><strong>fast</strong><span>${step.fast}</span></div>
+            <div><strong>resultado</strong><span>${step.result}</span></div>
+          </div>
+        `;
+        explanation.innerHTML = `<h3>${step.title}</h3><p>${step.explanation}</p>`;
+        counter.textContent = `passo ${index + 1} de ${steps.length}`;
+        progress.style.width = `${((index + 1) / steps.length) * 100}%`;
+        document.querySelector('[data-action="prev"]').disabled = index === 0;
+        document.querySelector('[data-action="next"]').disabled = index === steps.length - 1;
+      }
+
+      function stop() {
+        if (timer) {
+          clearInterval(timer);
+          timer = null;
+        }
+      }
+
+      function go(delta) {
+        stop();
+        index = Math.max(0, Math.min(steps.length - 1, index + delta));
+        render();
+      }
+
+      function run() {
+        stop();
+        timer = setInterval(() => {
+          if (index >= steps.length - 1) {
+            stop();
+            return;
+          }
+          index += 1;
+          render();
+        }, 1600);
+      }
+
+      document.querySelectorAll("[data-action]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const action = button.dataset.action;
+          if (action === "prev") go(-1);
+          if (action === "next") go(1);
+          if (action === "run") run();
+          if (action === "pause") stop();
+          if (action === "reset") {
+            stop();
+            index = 0;
+            render();
+          }
+        });
+      });
+
+      document.querySelectorAll("[data-code-tab]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const language = button.dataset.codeTab;
+          document.querySelectorAll("[data-code-tab]").forEach((candidate) => {
+            candidate.setAttribute("aria-pressed", String(candidate === button));
+          });
+          document.querySelectorAll("[data-language]").forEach((block) => {
+            block.hidden = block.dataset.language !== language;
+          });
+        });
+      });
+
+      render();
+    })();
+  </script>
 </body>
 </html>
