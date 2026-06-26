@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contains Duplicate - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f6f1e8;
+      --ink: #1d1a16;
+      --muted: #6a6258;
+      --accent: #b24a2a;
+      --accent-soft: rgba(178, 74, 42, 0.14);
+      --line: rgba(29, 26, 22, 0.12);
+      --card: rgba(255, 252, 247, 0.84);
+      --shadow: 0 24px 60px rgba(52, 39, 24, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(178, 74, 42, 0.16), transparent 30%),
+        repeating-linear-gradient(180deg, transparent 0 31px, rgba(29, 26, 22, 0.055) 31px 32px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 22px;
+      align-items: end;
+      margin-bottom: 24px;
+    }
+
+    .hero-card,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(5px);
+    }
+
+    .hero-card {
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      right: -50px;
+      top: -40px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    h1, h2 { margin: 0 0 12px; font-weight: 700; }
+    h1 { font-size: clamp(2.2rem, 4vw, 4rem); line-height: 0.94; }
+    h2 { font-size: 1.25rem; }
+    p, li { font-size: 1rem; line-height: 1.7; color: var(--ink); }
+
+    .hero-note {
+      border-left: 3px solid var(--accent);
+      padding-left: 16px;
+      color: var(--muted);
+      max-width: 44ch;
+    }
+
+    .scorecard {
+      padding: 24px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .scorecard strong { font-size: 1.8rem; display: block; }
+    .scorecard span { color: var(--muted); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 22px;
+      position: relative;
+    }
+
+    .panel.wide { grid-column: 1 / -1; }
+
+    .hint-list, .path-list, .complexity-list {
+      padding-left: 18px;
+      margin: 0;
+    }
+
+    pre {
+      margin: 0;
+      overflow-x: auto;
+      padding: 18px;
+      background: #1f1a16;
+      color: #f8f3e9;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 6px 10px;
+      margin: 0 8px 8px 0;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.58);
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="hero-card">
+        <div class="eyebrow">Interview Notebook</div>
+        <h1>Contains Duplicate</h1>
+        <p class="hero-note">Pergunta curta, sinal forte. O entrevistador quer ver se voce abandona a comparacao de todos contra todos e passa a tratar "ja vi este valor?" como consulta de estrutura auxiliar.</p>
+      </article>
+      <aside class="scorecard hero-card">
+        <div>
+          <strong>Tempo</strong>
+          <span>Ingenua: O(n^2) | Otimizada: O(n)</span>
+        </div>
+        <div>
+          <strong>Espaco</strong>
+          <span>Ingenua: O(1) | Otimizada: O(n)</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="layout">
+      <article class="panel">
+        <h2>Prompt</h2>
+        <p>Dado um array de inteiros, retorne <strong>true</strong> se algum valor aparece pelo menos duas vezes. Caso contrario, retorne <strong>false</strong>.</p>
+        <div class="tag">array</div>
+        <div class="tag">hash set</div>
+        <div class="tag">big o</div>
+      </article>
+
+      <article class="panel">
+        <h2>Hints</h2>
+        <ol class="hint-list">
+          <li>Como voce resolveria sem memoria extra?</li>
+          <li>Qual pergunta se repete a cada iteracao?</li>
+          <li>Existe uma estrutura que responde rapidamente se um valor ja apareceu?</li>
+        </ol>
+      </article>
+
+      <article class="panel">
+        <h2>Naive Path</h2>
+        <ul class="path-list">
+          <li>Fixe um indice inicial.</li>
+          <li>Compare com todos os elementos a frente.</li>
+          <li>Se encontrar igualdade, retorne true.</li>
+          <li>Se examinar todos os pares, retorne false.</li>
+        </ul>
+        <p>Raciocinio correto, mas quadratico.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Optimized Path</h2>
+        <ul class="path-list">
+          <li>Mantenha um set com os valores vistos.</li>
+          <li>Ao ler um valor, cheque se ele ja esta no set.</li>
+          <li>Se sim, a duplicata foi provada.</li>
+          <li>Se nao, registre e avance.</li>
+        </ul>
+        <p>A troca principal e memoria extra por um unico percurso linear.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Complexity</h2>
+        <ul class="complexity-list">
+          <li><strong>Tempo:</strong> O(n), porque cada elemento e processado uma vez.</li>
+          <li><strong>Espaco:</strong> O(n), porque o set pode armazenar todos os elementos.</li>
+          <li><strong>Entrevista:</strong> cite explicitamente a troca entre tempo e memoria.</li>
+        </ul>
+      </article>
+
+      <article class="panel wide">
+        <h2>Final Solution</h2>
+        <pre>def containsDuplicate(nums: list[int]) -&gt; bool:
+    seen = set()
+
+    for value in nums:
+        if value in seen:
+            return True
+        seen.add(value)
+
+    return False</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

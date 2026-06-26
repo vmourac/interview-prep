@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swim in Rising Water - Interview Prep</title>
+  <style>
+    :root {
+      --bg: #061219;
+      --panel: rgba(8, 20, 30, 0.86);
+      --panel-2: rgba(6, 27, 39, 0.95);
+      --line: rgba(106, 240, 255, 0.18);
+      --text: #e3fcff;
+      --muted: #92c9d2;
+      --accent: #6af0ff;
+      --accent-2: #a6ffea;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 18%, rgba(106, 240, 255, 0.14), transparent 24%),
+        radial-gradient(circle at 78% 14%, rgba(166, 255, 234, 0.11), transparent 17%),
+        linear-gradient(180deg, #061219, #09202a 58%, #061219);
+    }
+    .page { max-width: 1180px; margin: 0 auto; padding: 34px 18px 72px; }
+    .hero, .grid { display: grid; gap: 22px; }
+    .hero { grid-template-columns: 1.08fr 0.92fr; margin-bottom: 22px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card { background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 24px; backdrop-filter: blur(8px); }
+    .eyebrow { text-transform: uppercase; letter-spacing: 0.24em; font-size: 12px; color: var(--accent); }
+    h1 { margin: 10px 0 14px; font-size: clamp(2.3rem, 4vw, 4rem); line-height: 0.95; }
+    h2 { margin: 0 0 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.05rem; }
+    p, li { color: var(--muted); line-height: 1.7; }
+    ul, ol { margin: 0; padding-left: 20px; }
+    .metrics { display: grid; gap: 12px; }
+    .metric { background: var(--panel-2); border: 1px solid var(--line); padding: 12px 14px; }
+    .wide { grid-column: 1 / -1; }
+    .gridmap {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .gridmap span {
+      text-align: center;
+      padding: 13px 10px;
+      border: 1px solid var(--line);
+      background: rgba(106, 240, 255, 0.08);
+    }
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #031017;
+      border: 1px solid rgba(106, 240, 255, 0.14);
+      color: #dffaff;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Flood Navigation</div>
+        <h1>Swim in Rising Water</h1>
+        <p>O tempo minimo equivale ao menor gargalo possivel no caminho. Em outras palavras, queremos o trajeto cujo maior nivel de agua exigido seja o menor entre todos.</p>
+        <div class="gridmap" aria-hidden="true">
+          <span>0</span>
+          <span>2</span>
+          <span>5</span>
+          <span>1</span>
+          <span>7</span>
+          <span>6</span>
+          <span>3</span>
+          <span>4</span>
+          <span>8</span>
+        </div>
+      </article>
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> minimize o maior nivel requerido</div>
+        <div class="metric"><strong>State:</strong> (time, row, col)</div>
+        <div class="metric"><strong>Relax:</strong> max(current, next cell)</div>
+        <div class="metric"><strong>Tempo:</strong> O(R * C * log(R * C))</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Voce so entra em uma celula quando a agua ja subiu o bastante para cobrir sua elevacao. Descubra o menor tempo que torna possivel sair da origem e chegar ao destino.</p>
+      </article>
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>O custo do caminho e o maximo das elevacoes visitadas.</li>
+          <li>O custo inicial ja e a elevacao da origem.</li>
+          <li>A melhor proxima celula e a que exige o menor tempo acumulado.</li>
+        </ol>
+      </article>
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Subir o tempo aos poucos e repetir testes de conectividade recalcula demais a mesma grade para tempos diferentes.</p>
+      </article>
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Use Dijkstra com custo minimax. Ao mover, o novo tempo necessario vira o maximo entre o tempo atual e a elevacao da proxima celula.</p>
+      </article>
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>Este problema e praticamente irmao de Path With Minimum Effort. A mudanca central esta apenas no significado do custo local.</p>
+      </article>
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>import heapq
+
+
+def swimInWater(grid: list[list[int]]) -&gt; int:
+    n = len(grid)
+    inf = float("inf")
+    best = [[inf] * n for _ in range(n)]
+    best[0][0] = grid[0][0]
+    heap = [(grid[0][0], 0, 0)]
+    directions = ((1, 0), (-1, 0), (0, 1), (0, -1))
+
+    while heap:
+        current_time, row, col = heapq.heappop(heap)
+
+        if row == n - 1 and col == n - 1:
+            return current_time
+
+        if current_time &gt; best[row][col]:
+            continue
+
+        for delta_row, delta_col in directions:
+            next_row = row + delta_row
+            next_col = col + delta_col
+
+            if not (0 &lt;= next_row &lt; n and 0 &lt;= next_col &lt; n):
+                continue
+
+            next_time = max(current_time, grid[next_row][next_col])
+
+            if next_time &lt; best[next_row][next_col]:
+                best[next_row][next_col] = next_time
+                heapq.heappush(heap, (next_time, next_row, next_col))
+
+    return -1</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

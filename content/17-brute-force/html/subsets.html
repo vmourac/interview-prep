@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subsets - Interview Prep</title>
+  <style>
+    :root {
+      --bg: #efe6d4;
+      --ink: #1f1a14;
+      --muted: #5f5346;
+      --line: rgba(31, 26, 20, 0.16);
+      --panel: rgba(255, 252, 245, 0.9);
+      --accent: #9a4f21;
+      --accent-soft: rgba(154, 79, 33, 0.12);
+      --shadow: 0 24px 60px rgba(41, 31, 21, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(154, 79, 33, 0.18), transparent 26%),
+        linear-gradient(135deg, rgba(255,255,255,0.2), transparent 42%),
+        repeating-linear-gradient(0deg, transparent 0 52px, rgba(31, 26, 20, 0.04) 52px 53px),
+        var(--bg);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 18px 72px;
+    }
+
+    .hero, .grid { display: grid; gap: 22px; }
+    .hero { grid-template-columns: 1.1fr 0.9fr; margin-bottom: 24px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4vw, 4.2rem);
+      line-height: 0.94;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 1.12rem; color: var(--accent); }
+    p, li { line-height: 1.72; color: var(--muted); }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .tile {
+      padding: 14px 10px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .metrics { display: grid; gap: 12px; }
+
+    .metric {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #17120d;
+      color: #f6efe4;
+      border-radius: 10px;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+      .board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Puzzle Board</div>
+        <h1>Subsets</h1>
+        <p>O discurso certo aqui e mostrar que cada elemento abre uma bifurcacao binaria: eu incluo ou ignoro, e a arvore inteira representa o espaco de respostas.</p>
+        <div class="board" aria-hidden="true">
+          <div class="tile">[]</div>
+          <div class="tile">[1]</div>
+          <div class="tile">[2]</div>
+          <div class="tile">[1,2]</div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> gerar todas as configuracoes</div>
+        <div class="metric"><strong>Tempo:</strong> O(n * 2^n)</div>
+        <div class="metric"><strong>Espaco:</strong> O(n * 2^n)</div>
+        <div class="metric"><strong>Chave:</strong> incluir ou nao incluir</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dado um array sem repeticao, retorne todos os subconjuntos possiveis em qualquer ordem.</p>
+      </article>
+
+      <article class="card">
+        <h2>Por que cai em entrevista</h2>
+        <ol>
+          <li>Explicita a arvore binaria de escolhas.</li>
+          <li>Treina copia de estado no ponto certo.</li>
+          <li>Forca a justificar por que o custo exponencial e inevitavel.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Gerar tamanhos separadamente ou iterar mascaras de bits funciona, mas comunica menos sobre o modelo geral de backtracking.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Use DFS por indice. Em cada elemento, siga um ramo sem usar o valor e outro ramo incluindo o valor.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O entrevistador quer ouvir que existem `2^n` respostas possiveis e que copiar o caminho em cada folha explica o fator `n` adicional.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>def subsets(nums: list[int]) -&gt; list[list[int]]:
+    result = []
+    path = []
+
+    def dfs(index: int) -&gt; None:
+        if index == len(nums):
+            result.append(path[:])
+            return
+
+        dfs(index + 1)
+
+        path.append(nums[index])
+        dfs(index + 1)
+        path.pop()
+
+    dfs(0)
+    return result</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

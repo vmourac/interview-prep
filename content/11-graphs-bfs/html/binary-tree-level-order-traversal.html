@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binary Tree Level Order Traversal - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f3efe6;
+      --ink: #1c2731;
+      --muted: #55626d;
+      --line: rgba(28, 39, 49, 0.14);
+      --rail: #0d5c63;
+      --rail-soft: rgba(13, 92, 99, 0.12);
+      --signal: #c97c2c;
+      --card: rgba(255, 252, 247, 0.92);
+      --shadow: 0 20px 48px rgba(34, 42, 48, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(13, 92, 99, 0.07), transparent 28%),
+        repeating-linear-gradient(90deg, transparent 0 86px, rgba(28, 39, 49, 0.045) 86px 87px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 18px 74px;
+    }
+
+    .hero,
+    .grid {
+      display: grid;
+      gap: 22px;
+    }
+
+    .hero {
+      grid-template-columns: 1.1fr 0.9fr;
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 8px;
+      background: linear-gradient(180deg, var(--rail), var(--signal));
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      color: var(--rail);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.1rem, 4vw, 3.7rem);
+      line-height: 0.96;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      color: var(--rail);
+      font-size: 1.08rem;
+    }
+
+    p, li {
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .metrics {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .metric,
+    .stop {
+      background: var(--rail-soft);
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+    }
+
+    .metro {
+      position: relative;
+      min-height: 260px;
+      margin-top: 16px;
+      background:
+        linear-gradient(var(--line), var(--line)) 90px 30px / 3px calc(100% - 60px) no-repeat,
+        linear-gradient(90deg, var(--signal), var(--signal)) 90px 82px / 220px 3px no-repeat,
+        linear-gradient(90deg, var(--rail), var(--rail)) 90px 156px / 220px 3px no-repeat;
+    }
+
+    .stop {
+      position: absolute;
+      border-radius: 999px;
+      padding: 8px 12px 8px 18px;
+      min-width: 120px;
+    }
+
+    .stop::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--signal);
+      transform: translateY(-50%);
+      box-shadow: 0 0 0 4px rgba(201, 124, 44, 0.15);
+    }
+
+    .stop.level0 { top: 18px; left: 40px; }
+    .stop.level1a { top: 64px; left: 122px; }
+    .stop.level1b { top: 64px; left: 252px; }
+    .stop.level2a { top: 138px; left: 122px; }
+    .stop.level2b { top: 138px; left: 252px; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      background: #182028;
+      color: #f6efe4;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 920px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+
+      .metro {
+        min-height: 320px;
+        background:
+          linear-gradient(var(--line), var(--line)) 54px 30px / 3px calc(100% - 60px) no-repeat,
+          linear-gradient(90deg, var(--signal), var(--signal)) 54px 82px / 180px 3px no-repeat,
+          linear-gradient(90deg, var(--rail), var(--rail)) 54px 156px / 180px 3px no-repeat;
+      }
+
+      .stop.level0 { left: 10px; }
+      .stop.level1a { left: 84px; }
+      .stop.level1b { left: 84px; top: 110px; }
+      .stop.level2a { left: 84px; top: 184px; }
+      .stop.level2b { left: 84px; top: 230px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Metro Layer Walk</div>
+        <h1>Binary Tree Level Order Traversal</h1>
+        <p>Este e o exercicio em que BFS aparece no seu formato mais limpo. O objetivo nao e achar um caminho, mas materializar a arvore nivel por nivel usando a fila como trilho principal.</p>
+        <div class="metro" aria-hidden="true">
+          <div class="stop level0">Nivel 0: raiz</div>
+          <div class="stop level1a">Nivel 1: esquerda</div>
+          <div class="stop level1b">Nivel 1: direita</div>
+          <div class="stop level2a">Nivel 2: filhos</div>
+          <div class="stop level2b">Fila prepara proximo nivel</div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> level by level</div>
+        <div class="metric"><strong>Tempo:</strong> O(N)</div>
+        <div class="metric"><strong>Fila auxiliar:</strong> O(W)</div>
+        <div class="metric"><strong>Saida:</strong> O(N)</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dada a raiz de uma arvore binaria, retorne uma lista de listas com os valores agrupados por nivel, da esquerda para a direita.</p>
+      </article>
+
+      <article class="card">
+        <h2>Por que cai em entrevista</h2>
+        <ol>
+          <li>Mostra se voce associa fila com exploracao por camadas.</li>
+          <li>Forca a separar nivel atual de proximo nivel sem confundir a fila dinamica.</li>
+          <li>Serve de base para zigzag, right side view e media por nivel.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Fazer DFS com parametro de profundidade tambem resolve, mas a intuicao fica menos direta para um problema explicitamente orientado a niveis.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Rode BFS. No inicio de cada rodada, congele `len(queue)`. Esse tamanho representa exatamente o nivel atual; tudo o que for enfileirado depois pertence ao proximo.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>A frase que mais agrega aqui e: eu congelei o tamanho da fila antes do loop interno, entao consigo consumir um nivel inteiro sem misturar filhos recem-descobertos.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>from collections import deque
+
+
+def levelOrder(root):
+    if root is None:
+        return []
+
+    result = []
+    queue = deque([root])
+
+    while queue:
+        level_size = len(queue)
+        current_level = []
+
+        for _ in range(level_size):
+            node = queue.popleft()
+            current_level.append(node.val)
+
+            if node.left is not None:
+                queue.append(node.left)
+            if node.right is not None:
+                queue.append(node.right)
+
+        result.append(current_level)
+
+    return result</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

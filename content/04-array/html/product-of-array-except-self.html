@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04 Array - Product of Array Except Self</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #191919;
+      --muted: #5d5a55;
+      --accent: #225d57;
+      --accent-soft: #d7ebe8;
+      --line: #d3cfc4;
+      --panel: rgba(255, 255, 252, 0.92);
+      --shadow: 0 18px 42px rgba(34, 93, 87, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Book Antiqua", Georgia, serif;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(34, 93, 87, 0.12), transparent 18%),
+        linear-gradient(180deg, #faf7f1 0%, #f0ebe1 100%);
+    }
+
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 44px 20px 74px;
+    }
+
+    .hero, .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      font-size: 0.78rem;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 3.1rem);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: var(--accent);
+    }
+
+    p, li {
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      padding: 22px;
+    }
+
+    .label {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 4px 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      background: #16211f;
+      color: #eefaf7;
+      font-family: "Courier New", monospace;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Topico 04 - Laboratorio editorial</div>
+      <h1>Product of Array Except Self</h1>
+      <p>Material local e autocontido para revisar um padrao muito cobrado em entrevista: decompor a resposta de cada indice em produto da esquerda e produto da direita. Como a aula-fonte nao tem transcript, esta pagina e uma sintese guiada do topico.</p>
+      <p><strong>Prompt:</strong> Retorne um array em que cada posicao contenha o produto de todos os outros elementos, sem usar divisao.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="label">Hints</div>
+        <ul>
+          <li>O que falta para um indice pode ser dividido em parte esquerda e parte direita.</li>
+          <li>Pense em duas passadas, nao em um loop dentro de outro.</li>
+          <li>O proprio array de resposta pode armazenar trabalho parcial.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <div class="label">Caminho ingenuo</div>
+        <p>Multiplicar todos os outros elementos para cada indice resolve o enunciado, mas repete quase todo o trabalho `n` vezes.</p>
+      </article>
+
+      <article class="card">
+        <div class="label">Caminho otimizado</div>
+        <p>Primeiro registre o produto acumulado da esquerda. Depois multiplique por um acumulado da direita em uma passada inversa.</p>
+      </article>
+
+      <article class="card">
+        <div class="label">Complexidade</div>
+        <p><strong>Tempo:</strong> O(n)</p>
+        <p><strong>Espaco:</strong> O(1) auxiliar</p>
+        <p>O custo fica linear porque cada elemento participa de duas atualizacoes constantes e nao ha arrays auxiliares extras alem da saida.</p>
+      </article>
+    </section>
+
+    <section class="card" style="margin-top: 20px;">
+      <h2>Solucao final</h2>
+      <pre>def productExceptSelf(nums):
+    n = len(nums)
+    answer = [1] * n
+
+    prefix = 1
+    for i in range(n):
+        answer[i] = prefix
+        prefix *= nums[i]
+
+    suffix = 1
+    for i in range(n - 1, -1, -1):
+        answer[i] *= suffix
+        suffix *= nums[i]
+
+    return answer</pre>
+    </section>
+  </main>
+</body>
+</html>

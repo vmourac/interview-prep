@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invert Binary Tree - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f7f1e6;
+      --sheet: #fffaf2;
+      --ink: #2d241d;
+      --muted: #6a5a4d;
+      --accent: #b45a1f;
+      --accent-soft: #f5d9bf;
+      --line: #dccab6;
+      --shadow: rgba(52, 35, 22, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 80% 10%, rgba(180, 90, 31, 0.12), transparent 18%),
+        linear-gradient(180deg, #f0e3d3 0%, #faf6ef 45%, #efe5d8 100%);
+    }
+
+    .page {
+      width: min(1120px, calc(100% - 28px));
+      margin: 26px auto 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--sheet), var(--paper));
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 40px var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "swap left and right";
+      position: absolute;
+      right: -34px;
+      top: 32px;
+      transform: rotate(90deg);
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(180, 90, 31, 0.22);
+      font-size: 0.72rem;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      font-size: 0.78rem;
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.3rem, 4.5vw, 4.2rem);
+      line-height: 0.94;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 1.05rem;
+    }
+
+    p, li {
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    .tape {
+      display: inline-block;
+      background: rgba(245, 217, 191, 0.86);
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      transform: rotate(-1.2deg);
+      margin: 18px 0;
+    }
+
+    .diagram {
+      border: 1px dashed var(--line);
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.4);
+      margin-top: 20px;
+    }
+
+    .diagram pre {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      font-size: 0.95rem;
+      line-height: 1.46;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .panel {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.56);
+      border: 1px solid var(--line);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+      padding: 12px;
+      min-height: 76px;
+    }
+
+    pre.code {
+      margin: 0;
+      padding: 16px;
+      border-radius: 12px;
+      background: #2b221c;
+      color: #f7f1e9;
+      overflow-x: auto;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 860px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="card hero">
+      <div class="eyebrow">Guia sintetizado de entrevista</div>
+      <h1>Invert<br />Binary Tree</h1>
+      <div class="tape">A ideia central e repetir a mesma troca local em todos os nos.</div>
+      <h2>Hints do entrevistador</h2>
+      <ul>
+        <li>Voce precisa criar nova arvore ou pode reutilizar a existente?</li>
+        <li>Qual e o caso base quando a raiz e nula?</li>
+        <li>Depois de trocar, o mesmo raciocinio reaparece nas subarvores.</li>
+      </ul>
+      <div class="diagram">
+        <pre>Antes:              Depois:
+
+    4                   4
+   / \                 / \
+  2   7      -->      7   2
+ / \ / \             / \ / \
+1  3 6  9           9  6 3  1</pre>
+      </div>
+    </section>
+
+    <section class="card stack">
+      <div class="panel">
+        <h2>Caminho ingenuo</h2>
+        <p>Construir uma nova arvore espelhada. E correto, mas aloca memoria desnecessaria para um problema que pode ser resolvido in-place.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Caminho otimizado</h2>
+        <p>Troque `left` e `right` no proprio no atual e continue o mesmo processo recursivamente nas duas subarvores.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Complexidade</h2>
+        <div class="metrics">
+          <div class="metric">Tempo ingenuo: O(n)</div>
+          <div class="metric">Espaco ingenuo: O(n)</div>
+          <div class="metric">Tempo otimizado: O(n)</div>
+          <div class="metric">Espaco otimizado: O(h)</div>
+        </div>
+        <p>O tempo nao muda porque todos os nos ainda precisam ser visitados. A economia aparece por evitar a criacao de uma segunda arvore completa.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Solucao final</h2>
+        <pre class="code">def invert_tree(root):
+    if root is None:
+        return None
+
+    root.left, root.right = root.right, root.left
+
+    invert_tree(root.left)
+    invert_tree(root.right)
+
+    return root</pre>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

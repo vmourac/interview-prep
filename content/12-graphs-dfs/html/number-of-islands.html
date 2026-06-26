@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number of Islands - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #ece2d2;
+      --ink: #201914;
+      --muted: #64584b;
+      --line: rgba(32, 25, 20, 0.15);
+      --accent: #2f6b68;
+      --accent-soft: rgba(47, 107, 104, 0.12);
+      --card: rgba(255, 251, 246, 0.92);
+      --shadow: 0 26px 56px rgba(42, 34, 28, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(47, 107, 104, 0.12), transparent 24%),
+        repeating-linear-gradient(0deg, transparent 0 34px, rgba(32, 25, 20, 0.035) 34px 35px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 36px 18px 72px;
+    }
+
+    .hero, .grid {
+      display: grid;
+      gap: 22px;
+    }
+
+    .hero {
+      grid-template-columns: 1.05fr 0.95fr;
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      line-height: 0.95;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.12rem;
+      color: var(--accent);
+    }
+
+    p, li {
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .map {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      max-width: 320px;
+      margin-top: 16px;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+      font-weight: bold;
+    }
+
+    .metrics { display: grid; gap: 12px; }
+
+    .metric {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #171411;
+      color: #f7efe5;
+      border-radius: 10px;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Field Notes</div>
+        <h1>Number of Islands</h1>
+        <p>O entrevistador quer ouvir que uma grade pode ser tratada como grafo implicito e que contar ilhas significa contar componentes conectadas.</p>
+        <div class="map" aria-hidden="true">
+          <div class="cell">1</div>
+          <div class="cell">1</div>
+          <div class="cell">0</div>
+          <div class="cell">0</div>
+          <div class="cell">0</div>
+          <div class="cell">1</div>
+          <div class="cell">1</div>
+          <div class="cell">0</div>
+          <div class="cell">1</div>
+          <div class="cell">0</div>
+          <div class="cell">0</div>
+          <div class="cell">0</div>
+          <div class="cell">1</div>
+          <div class="cell">1</div>
+          <div class="cell">0</div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> componente conectada em grid</div>
+        <div class="metric"><strong>Tempo:</strong> O(R * C)</div>
+        <div class="metric"><strong>Espaco:</strong> O(R * C) no pior caso</div>
+        <div class="metric"><strong>Erro comum:</strong> esquecer de marcar visitado cedo</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Conte quantas regioes de terra conectadas por cima, baixo, esquerda e direita existem em uma grade de agua e terra.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Uma ilha inteira deve ser consumida assim que a primeira celula dela for encontrada.</li>
+          <li>Marcar in-place simplifica a explicacao.</li>
+          <li>A pergunta real e: quantas DFS completas eu preciso iniciar?</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Relancar exploracoes sem uma nocao global de visitado reprocessa a mesma massa de terra varias vezes.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Varra a grade. Quando achar uma nova terra, incremente a resposta e rode DFS para zerar toda a ilha atual.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O melhor discurso aqui conecta tres ideias: grid como grafo, ilha como componente e marca de visitado como bloqueio de recontagem.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>def numIslands(grid: list[list[str]]) -&gt; int:
+    if not grid or not grid[0]:
+        return 0
+
+    rows = len(grid)
+    cols = len(grid[0])
+    islands = 0
+
+    def dfs(row: int, col: int) -&gt; None:
+        if row &lt; 0 or row &gt;= rows or col &lt; 0 or col &gt;= cols:
+            return
+        if grid[row][col] != "1":
+            return
+
+        grid[row][col] = "0"
+        dfs(row + 1, col)
+        dfs(row - 1, col)
+        dfs(row, col + 1)
+        dfs(row, col - 1)
+
+    for row in range(rows):
+        for col in range(cols):
+            if grid[row][col] == "1":
+                islands += 1
+                dfs(row, col)
+
+    return islands</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

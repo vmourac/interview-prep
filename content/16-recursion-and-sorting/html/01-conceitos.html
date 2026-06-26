@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>16 Recursion and Sorting - Conceitos</title>
+  <style>
+    :root {
+      --paper: #f6f0e5;
+      --paper-deep: #ece1d0;
+      --ink: #221b16;
+      --muted: #65584d;
+      --accent: #8b4a2f;
+      --accent-soft: #eac9b3;
+      --line: #d8c6b5;
+      --panel: rgba(255, 251, 245, 0.9);
+      --shadow: 0 22px 50px rgba(90, 59, 43, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Palatino Linotype", Georgia, serif;
+      background:
+        radial-gradient(circle at top left, rgba(139, 74, 47, 0.14), transparent 25%),
+        linear-gradient(145deg, rgba(234, 201, 179, 0.28), transparent 35%),
+        repeating-linear-gradient(0deg, var(--paper) 0, var(--paper) 33px, var(--paper-deep) 33px, var(--paper-deep) 34px);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 40px 20px 72px;
+    }
+
+    .hero, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      margin-bottom: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      right: -40px;
+      top: -70px;
+      border-radius: 50%;
+      background: rgba(139, 74, 47, 0.08);
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.78rem;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 4vw, 3.3rem);
+      line-height: 1.05;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: 1.2rem;
+    }
+
+    p, li, td, th {
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 22px;
+    }
+
+    .ribbon {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 5px 11px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.78rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    @media (max-width: 700px) {
+      .hero, .panel {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Topico 16 - Editorial Lab Notebook</div>
+      <h1>Recursao e Sorting</h1>
+      <p>Este caderno local organiza o que um entrevistador espera ouvir sobre base case, call stack, divide and conquer, backtracking e familias de ordenacao. As 7 aulas da fonte estao marcadas como sem captions, entao este material e uma sintese guiada pelos topicos do curso.</p>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <div class="ribbon">Recursao</div>
+        <p>Pense em promessa da funcao, caso minimo resolvivel e regra de reducao. Se voce nao consegue descrever o subproblema menor com a mesma forma do original, a recursao ainda nao esta bem modelada.</p>
+      </article>
+
+      <article class="panel">
+        <div class="ribbon">Base Case</div>
+        <p>O base case e a ancora de corretude. Ele impede stack overflow e define o menor caso em que a resposta e imediata, sem novas chamadas.</p>
+      </article>
+
+      <article class="panel">
+        <div class="ribbon">Call Stack</div>
+        <p>Cada chamada guarda parametros, variaveis locais e ponto de retorno. Por isso a profundidade da recursao importa tanto quanto o tempo total.</p>
+      </article>
+
+      <article class="panel">
+        <div class="ribbon">Backtracking</div>
+        <p>Escolher, explorar e desfazer. O entrevistador observa se o estado parcial volta limpo quando voce retorna de um ramo.</p>
+      </article>
+    </section>
+
+    <section class="panel" style="margin-top: 20px;">
+      <h2>Comparativo rapido</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Tecnica</th>
+            <th>Tempo tipico</th>
+            <th>Espaco extra</th>
+            <th>Quando brilha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Insertion sort</td>
+            <td>O(n^2)</td>
+            <td>O(1)</td>
+            <td>Entrada pequena ou quase ordenada</td>
+          </tr>
+          <tr>
+            <td>Merge sort</td>
+            <td>O(n log n)</td>
+            <td>O(n)</td>
+            <td>Pior caso previsivel e estabilidade</td>
+          </tr>
+          <tr>
+            <td>Quicksort</td>
+            <td>O(n log n) medio</td>
+            <td>O(log n) stack media</td>
+            <td>Velocidade pratica com bons pivots</td>
+          </tr>
+          <tr>
+            <td>Backtracking em permutations</td>
+            <td>O(n x n!)</td>
+            <td>O(n)</td>
+            <td>Enumerar todas as configuracoes validas</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>

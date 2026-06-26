@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Implement Trie (Prefix Tree) - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #1d1a16;
+      --muted: #625a50;
+      --line: rgba(29, 26, 22, 0.14);
+      --accent: #2f5d50;
+      --accent-soft: rgba(47, 93, 80, 0.14);
+      --card: rgba(255, 252, 247, 0.88);
+      --shadow: 0 24px 48px rgba(37, 29, 22, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(47, 93, 80, 0.08), transparent 18%),
+        repeating-linear-gradient(90deg, transparent 0 74px, rgba(29, 26, 22, 0.04) 74px 75px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 36px 18px 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "field notes";
+      position: absolute;
+      top: 14px;
+      right: -24px;
+      transform: rotate(90deg);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: rgba(47, 93, 80, 0.32);
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      line-height: 0.95;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 1.15rem;
+    }
+
+    p, li {
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .stats {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stat {
+      padding: 12px 14px;
+      background: var(--accent-soft);
+      border: 1px solid var(--line);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      background: #191714;
+      color: #f6efe5;
+      line-height: 1.55;
+      font-size: 0.94rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Interview Atlas</div>
+        <h1>Implement Trie<br>(Prefix Tree)</h1>
+        <p>Este prompt mede se voce sabe transformar palavras em caminhos, compartilhar prefixos e distinguir prefixo valido de palavra completa.</p>
+        <p>Nota de fonte: este material e sintetizado a partir do topico do curso, porque a aula original nao tem captions nem transcript disponiveis.</p>
+      </article>
+
+      <aside class="card stats">
+        <div class="stat"><strong>Insert:</strong> O(L)</div>
+        <div class="stat"><strong>Search:</strong> O(L)</div>
+        <div class="stat"><strong>StartsWith:</strong> O(L)</div>
+        <div class="stat"><strong>Space:</strong> O(S)</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Implemente `insert`, `search` e `startsWith` para uma estrutura de trie com letras minusculas.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Qual e a diferenca entre existir um caminho e existir uma palavra completa?</li>
+          <li>Onde voce guarda a informacao de terminal?</li>
+          <li>Por que cada operacao consome apenas um caractere por passo?</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Guardar palavras em lista e responder `search` e `startsWith` por varredura direta. Funciona, mas nao reaproveita prefixos e custa `O(N * L)` por consulta.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Represente cada palavra como um caminho na trie. Prefixos compartilhados reutilizam os mesmos nos, e `startsWith` vira apenas a verificacao da existencia do caminho.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>Uma resposta forte deixa claro que `search` exige `is_end = True`, enquanto `startsWith` exige apenas que o caminho exista.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+
+
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def insert(self, word: str) -&gt; None:
+        node = self.root
+
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+
+        node.is_end = True
+
+    def search(self, word: str) -&gt; bool:
+        node = self.root
+
+        for char in word:
+            if char not in node.children:
+                return False
+            node = node.children[char]
+
+        return node.is_end
+
+    def startsWith(self, prefix: str) -&gt; bool:
+        node = self.root
+
+        for char in prefix:
+            if char not in node.children:
+                return False
+            node = node.children[char]
+
+        return True</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

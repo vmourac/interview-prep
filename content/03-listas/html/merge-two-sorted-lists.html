@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03 Listas - Merge Two Sorted Lists</title>
+  <style>
+    :root {
+      --paper: #fbf6ec;
+      --ink: #1a1613;
+      --muted: #5f564e;
+      --accent: #1c5c4c;
+      --accent-soft: #cae3d9;
+      --line: #d8cec2;
+      --card: rgba(255, 255, 252, 0.88);
+      --shadow: 0 16px 36px rgba(29, 34, 32, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Palatino Linotype", Georgia, serif;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(28, 92, 76, 0.1), transparent 26%),
+        repeating-linear-gradient(0deg, #f7f0e4 0, #f7f0e4 28px, #f3eadc 28px, #f3eadc 29px);
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 18px 72px;
+    }
+
+    .header, .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .header {
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 6px 10px;
+      margin-right: 8px;
+      margin-top: 10px;
+      border: 1px solid rgba(28, 92, 76, 0.2);
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-size: 0.88rem;
+    }
+
+    h1 { font-size: clamp(2rem, 4vw, 3.2rem); margin: 0 0 10px; }
+    h2 { margin-top: 0; color: var(--accent); }
+    p, li { line-height: 1.65; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+    }
+
+    .panel { padding: 22px; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      background: #15241f;
+      color: #f0f7f3;
+      overflow: auto;
+      white-space: pre-wrap;
+      font-family: "Courier New", monospace;
+    }
+
+    ul { padding-left: 20px; }
+
+    @media (max-width: 820px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="header">
+      <p style="margin:0; text-transform:uppercase; letter-spacing:0.16em; color:var(--accent); font-size:0.78rem;">Topico 03 - Treino guiado</p>
+      <h1>Merge Two Sorted Lists</h1>
+      <p>Sintese de estudo em formato de entrevista. O foco aqui e explorar o padrao de dummy node e justificar por que o merge correto e linear no total de nos.</p>
+      <div class="tag">Dummy node</div>
+      <div class="tag">Merge linear</div>
+      <div class="tag">O(n + m)</div>
+    </section>
+
+    <section class="layout">
+      <article class="panel">
+        <h2>Prompt</h2>
+        <p>Receba duas listas ligadas simples ordenadas em ordem crescente e devolva uma unica lista ordenada contendo todos os nos.</p>
+
+        <h2>Hints</h2>
+        <ul>
+          <li>Pense em um ponteiro que sempre aponta para o final da resposta.</li>
+          <li>Evite tratar a cabeca como um caso especial usando um no sentinela.</li>
+          <li>Quando uma lista acabar, o restante da outra ja esta pronto para anexar.</li>
+        </ul>
+
+        <h2>Caminho ingenuo</h2>
+        <p>Copiar tudo para um array, ordenar e reconstruir resolve o problema, mas adiciona memoria extra e desperdi ca o fato de as entradas ja estarem ordenadas.</p>
+
+        <h2>Caminho otimizado</h2>
+        <p>Compare as pontas de ambas as listas e sempre ligue o menor no ao final da resposta. Avance apenas a lista que forneceu esse no. O <code>tail</code> caminha uma vez por no anexado.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Complexidade</h2>
+        <p><strong>Tempo:</strong> O(n + m)</p>
+        <p><strong>Espaco:</strong> O(1)</p>
+        <p>Cada comparacao consome um no de alguma lista. Nenhum no volta para processamento futuro.</p>
+
+        <h2>Solucao final</h2>
+        <pre>def mergeTwoLists(l1, l2):
+    dummy = ListNode(0)
+    tail = dummy
+
+    while l1 is not None and l2 is not None:
+        if l1.val <= l2.val:
+            tail.next = l1
+            l1 = l1.next
+        else:
+            tail.next = l2
+            l2 = l2.next
+
+        tail = tail.next
+
+    if l1 is not None:
+        tail.next = l1
+    else:
+        tail.next = l2
+
+    return dummy.next</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

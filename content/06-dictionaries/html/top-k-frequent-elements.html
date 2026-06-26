@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top K Frequent Elements - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f8f4ec;
+      --ink: #171611;
+      --muted: #5f5a51;
+      --accent: #285c7a;
+      --accent-soft: rgba(40, 92, 122, 0.12);
+      --line: rgba(23, 22, 17, 0.12);
+      --card: rgba(255, 255, 255, 0.84);
+      --shadow: 0 24px 56px rgba(23, 34, 43, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(40, 92, 122, 0.08), transparent 36%),
+        repeating-linear-gradient(90deg, rgba(40, 92, 122, 0.04) 0 1px, transparent 1px 26px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 44px 20px 80px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      font-size: clamp(2.3rem, 4vw, 4rem);
+      line-height: 0.95;
+      margin: 10px 0 14px;
+    }
+
+    h2 { margin-top: 0; font-size: 1.2rem; }
+    p, li { line-height: 1.75; }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .deck { color: var(--muted); max-width: 55ch; }
+
+    .stats strong {
+      display: block;
+      font-size: 1.65rem;
+      margin-bottom: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    .tags span {
+      display: inline-block;
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      margin: 0 8px 8px 0;
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      border-radius: 10px;
+      background: #15232c;
+      color: #eff6fb;
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Frequency Drill</div>
+        <h1>Top K Frequent Elements</h1>
+        <p class="deck">A primeira metade do problema e obvia: contar frequencias. A segunda e o filtro de senioridade: voce vai ordenar tudo ou explorar a propria faixa de frequencias para evitar custo extra?</p>
+        <div class="tags">
+          <span>frequency map</span>
+          <span>bucket sort</span>
+          <span>selection</span>
+        </div>
+      </article>
+      <aside class="card stats">
+        <div>
+          <strong>Naive</strong>
+          <div>O(n + m log m)</div>
+        </div>
+        <div>
+          <strong>Optimized</strong>
+          <div>O(n)</div>
+        </div>
+        <div>
+          <strong>Memory</strong>
+          <div>O(n)</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dado um array de inteiros e um valor `k`, retorne os `k` elementos mais frequentes em qualquer ordem.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Qual estrutura resolve a contagem rapidamente?</li>
+          <li>Voce realmente precisa ordenar todos os valores distintos?</li>
+          <li>Qual e a maior frequencia possivel de um numero em um array de tamanho `n`?</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Conte com hash map, transforme em lista de pares e ordene tudo por frequencia decrescente. A solucao e correta, mas paga ordenacao global mesmo quando so precisamos dos primeiros `k`.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Monte baldes por frequencia. Como uma frequencia nunca passa de `n`, podemos indexar uma lista de baldes e depois ler do maior para o menor ate preencher a resposta.</p>
+      </article>
+
+      <article class="card">
+        <h2>Complexity</h2>
+        <ul>
+          <li><strong>Tempo:</strong> O(n), somando contagem, distribuicao em baldes e coleta final.</li>
+          <li><strong>Espaco:</strong> O(n), pelo mapa e pelos baldes.</li>
+          <li><strong>Entrevista:</strong> a resposta forte explica por que frequencia pertence a uma faixa limitada.</li>
+        </ul>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>def topKFrequent(nums: list[int], k: int) -&gt; list[int]:
+    freq = {}
+    for value in nums:
+        freq[value] = freq.get(value, 0) + 1
+
+    buckets = [[] for _ in range(len(nums) + 1)]
+    for value, count in freq.items():
+        buckets[count].append(value)
+
+    result = []
+    for count in range(len(buckets) - 1, 0, -1):
+        for value in buckets[count]:
+            result.append(value)
+            if len(result) == k:
+                return result
+
+    return result</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

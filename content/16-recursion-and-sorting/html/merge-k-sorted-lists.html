@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>16 Recursion and Sorting - Merge K Sorted Lists</title>
+  <style>
+    :root {
+      --paper: #f5efe5;
+      --ink: #221c17;
+      --muted: #67594d;
+      --accent: #8a4a30;
+      --soft: #ead0bf;
+      --line: #d9c8b8;
+      --panel: rgba(255, 251, 246, 0.92);
+      --shadow: 0 22px 46px rgba(86, 55, 40, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Palatino Linotype", Georgia, serif;
+      background:
+        linear-gradient(135deg, rgba(138, 74, 48, 0.1), transparent 28%),
+        radial-gradient(circle at top right, rgba(138, 74, 48, 0.14), transparent 24%),
+        repeating-linear-gradient(0deg, #f7f2e8 0, #f7f2e8 31px, #efe6d8 31px, #efe6d8 32px);
+    }
+    .page { max-width: 1120px; margin: 0 auto; padding: 42px 20px 70px; }
+    .hero, .panel { background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .hero { padding: 30px; margin-bottom: 20px; }
+    .panel { padding: 22px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+    .eyebrow { text-transform: uppercase; letter-spacing: 0.16em; font-size: 0.77rem; color: var(--accent); margin-bottom: 10px; }
+    .tag { display: inline-block; padding: 4px 10px; background: var(--soft); color: var(--accent); font-size: 0.82rem; margin-bottom: 12px; }
+    h1 { margin: 0 0 10px; font-size: clamp(2rem, 4vw, 3.1rem); }
+    h2 { margin-top: 0; color: var(--accent); font-size: 1.15rem; }
+    p, li { line-height: 1.7; }
+    pre { margin: 0; padding: 18px; background: #1f1a17; color: #fff6ef; overflow: auto; white-space: pre-wrap; }
+    ul { margin: 0; padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Topico 16 - Merge estrutural</div>
+      <h1>Merge K Sorted Lists</h1>
+      <p>Problema excelente para discutir por que juntar k listas uma a uma desperdiça trabalho. Esta pagina sintetiza o roteiro esperado em entrevistas a partir do tema do curso, ja que a fonte nao tem captions.</p>
+      <p><strong>Prompt:</strong> Receba k listas ligadas ordenadas e devolva uma unica lista ordenada.</p>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <div class="tag">Armadilha comum</div>
+        <p>Mesclar sequencialmente parece natural, mas faz o resultado parcial ser reprocessado varias vezes. Isso pode empurrar o custo para O(Nk).</p>
+      </article>
+
+      <article class="panel">
+        <div class="tag">Resposta forte</div>
+        <ul>
+          <li>Mescle em pares.</li>
+          <li>Reduza o numero de listas pela metade a cada rodada.</li>
+          <li>Explique por que cada no participa de O(log k) rodadas.</li>
+        </ul>
+      </article>
+
+      <article class="panel">
+        <div class="tag">Complexidade</div>
+        <p><strong>Tempo:</strong> O(N log k)</p>
+        <p><strong>Espaco auxiliar:</strong> O(1) no merge iterativo de duas listas</p>
+        <p>O fator log vem do numero de rodadas de reducão de k listas.</p>
+      </article>
+    </section>
+
+    <section class="panel" style="margin-top: 20px;">
+      <h2>Implementacao de referencia</h2>
+      <pre>class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+def mergeKLists(lists):
+    if not lists:
+        return None
+
+    def merge_two(a, b):
+        dummy = ListNode()
+        tail = dummy
+
+        while a and b:
+            if a.val <= b.val:
+                tail.next = a
+                a = a.next
+            else:
+                tail.next = b
+                b = b.next
+            tail = tail.next
+
+        tail.next = a if a else b
+        return dummy.next
+
+    while len(lists) > 1:
+        merged_lists = []
+
+        for i in range(0, len(lists), 2):
+            left = lists[i]
+            right = lists[i + 1] if i + 1 < len(lists) else None
+            merged_lists.append(merge_two(left, right))
+
+        lists = merged_lists
+
+    return lists[0]</pre>
+    </section>
+  </main>
+</body>
+</html>

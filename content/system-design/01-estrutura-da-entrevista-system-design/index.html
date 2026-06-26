@@ -1,0 +1,1715 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cockpit autocontido para praticar a estrutura de uma entrevista de System Design.">
+  <title>Cockpit de entrevista — System Design</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #e8e2d6;
+      --muted: #aaa79e;
+      --paper: #111513;
+      --panel: #171c19;
+      --panel-2: #202620;
+      --rule: #3b443d;
+      --rule-hot: #778578;
+      --amber: #f2a43a;
+      --amber-soft: #5f431f;
+      --mint: #78c9a7;
+      --cyan: #74b9d1;
+      --danger: #e66b58;
+      --violet: #b5a0dc;
+      --white: #fffaf0;
+      --shadow: 0 22px 50px rgba(0, 0, 0, .32);
+      --serif: Georgia, Cambria, "Times New Roman", serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --sans: "Trebuchet MS", "Gill Sans", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      min-width: 300px;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+        radial-gradient(circle at 82% 8%, rgba(242,164,58,.12), transparent 28rem),
+        var(--paper);
+      background-size: 32px 32px, 32px 32px, auto, auto;
+      font-family: var(--sans);
+      line-height: 1.6;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: 6px;
+      z-index: 20;
+      background: linear-gradient(var(--amber) 0 36%, var(--mint) 36% 68%, var(--danger) 68%);
+    }
+
+    a { color: var(--mint); text-underline-offset: .2em; }
+    a:hover { color: var(--white); }
+
+    button, input { font: inherit; }
+
+    button {
+      border: 1px solid var(--rule-hot);
+      border-radius: 0;
+      color: var(--ink);
+      background: #161b18;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--amber);
+      color: var(--white);
+      background: #24271e;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--amber);
+      outline-offset: 4px;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: .75rem;
+      left: 1rem;
+      z-index: 100;
+      padding: .65rem .9rem;
+      color: #111;
+      background: var(--amber);
+      transform: translateY(-180%);
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .masthead {
+      border-bottom: 1px solid var(--rule);
+      padding: clamp(1.25rem, 4vw, 3.2rem) clamp(1.25rem, 5vw, 5rem) 1.4rem;
+      background: linear-gradient(105deg, rgba(255,255,255,.025), transparent 62%);
+    }
+
+    .masthead-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 340px);
+      gap: 2rem;
+      align-items: end;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    .eyebrow, .micro-label, .source-tag, .stage-kicker, .timer-strip,
+    .stage-number, .diagram-legend, .hotkey, .compare-label {
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: .72rem;
+    }
+
+    .eyebrow {
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+      color: var(--amber);
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 2.8rem;
+      height: 1px;
+      background: currentColor;
+    }
+
+    h1, h2, h3 {
+      font-family: var(--serif);
+      font-weight: 500;
+      line-height: 1.08;
+      text-wrap: balance;
+    }
+
+    h1 {
+      max-width: 900px;
+      margin: .55rem 0 .8rem;
+      color: var(--white);
+      font-size: clamp(2.6rem, 7.4vw, 7rem);
+      letter-spacing: -.055em;
+    }
+
+    h1 em {
+      color: var(--amber);
+      font-weight: 400;
+    }
+
+    .dek {
+      max-width: 780px;
+      margin: 0;
+      color: #c5c0b5;
+      font-family: var(--serif);
+      font-size: clamp(1.05rem, 2vw, 1.38rem);
+    }
+
+    .briefing-card {
+      position: relative;
+      padding: 1.1rem 1.2rem 1.25rem;
+      border: 1px solid var(--rule-hot);
+      background: rgba(17,21,19,.78);
+      box-shadow: var(--shadow);
+    }
+
+    .briefing-card::before {
+      content: "BRIEF 01";
+      position: absolute;
+      top: -1px;
+      right: -1px;
+      padding: .25rem .5rem;
+      color: #18130b;
+      background: var(--amber);
+      font: 700 .66rem var(--mono);
+      letter-spacing: .12em;
+    }
+
+    .briefing-card p { margin: .4rem 0; }
+    .briefing-card strong { color: var(--white); }
+
+    .source-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+      max-width: 1500px;
+      margin: 1.5rem auto 0;
+    }
+
+    .source-tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.9rem;
+      padding: .2rem .55rem;
+      border: 1px solid var(--rule);
+      color: var(--muted);
+      background: #151916;
+    }
+
+    .source-tag.local { border-color: var(--mint); color: var(--mint); }
+    .source-tag.extra { border-color: var(--cyan); color: var(--cyan); }
+    .source-tag.hypothesis { border-color: var(--amber); color: var(--amber); }
+
+    .cockpit-shell {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      max-width: 1500px;
+      min-height: 75vh;
+      margin: 0 auto;
+    }
+
+    .rail {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      min-height: 100vh;
+      padding: 1.35rem 1rem 2rem;
+      border-right: 1px solid var(--rule);
+      background: rgba(14,18,16,.88);
+      backdrop-filter: blur(12px);
+    }
+
+    .timer-strip {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: .6rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: .85rem;
+      border-bottom: 1px solid var(--rule);
+      color: var(--muted);
+    }
+
+    .timer-strip strong { color: var(--amber); }
+
+    .progress-track {
+      height: 3px;
+      margin: .4rem 0 1.2rem;
+      overflow: hidden;
+      background: #343a35;
+    }
+
+    .progress-bar {
+      width: 16.666%;
+      height: 100%;
+      background: var(--amber);
+      transition: width .28s ease;
+    }
+
+    .stage-nav {
+      display: grid;
+      gap: .35rem;
+    }
+
+    .stage-tab {
+      display: grid;
+      grid-template-columns: 2.2rem 1fr;
+      gap: .55rem;
+      width: 100%;
+      padding: .72rem .6rem;
+      border-color: transparent;
+      text-align: left;
+      background: transparent;
+    }
+
+    .stage-tab[aria-selected="true"] {
+      border-color: var(--rule-hot);
+      color: var(--white);
+      background: linear-gradient(90deg, rgba(242,164,58,.16), transparent);
+    }
+
+    .stage-number { color: var(--amber); }
+    .stage-tab small {
+      display: block;
+      color: var(--muted);
+      font: .68rem var(--mono);
+      letter-spacing: .03em;
+    }
+
+    .rail-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .5rem;
+      margin-top: 1.2rem;
+    }
+
+    .rail-controls button {
+      min-height: 2.8rem;
+      padding: .55rem;
+      font-family: var(--mono);
+      font-size: .75rem;
+    }
+
+    .hotkey-note {
+      margin-top: 1.1rem;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .hotkey {
+      display: inline-block;
+      min-width: 1.7rem;
+      margin: .1rem;
+      padding: .05rem .3rem;
+      border: 1px solid var(--rule-hot);
+      color: var(--ink);
+      text-align: center;
+      background: #20251f;
+    }
+
+    .content {
+      min-width: 0;
+      padding: clamp(1.4rem, 4vw, 4.5rem);
+    }
+
+    .stage-panel {
+      max-width: 1100px;
+      margin: 0 auto 5rem;
+      padding-bottom: 3.5rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .js .stage-panel[hidden] { display: none; }
+
+    .stage-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: start;
+      margin-bottom: 2rem;
+    }
+
+    .stage-kicker { color: var(--amber); }
+
+    .stage-heading h2 {
+      margin: .18rem 0 .5rem;
+      color: var(--white);
+      font-size: clamp(2.2rem, 5vw, 4.6rem);
+      letter-spacing: -.04em;
+    }
+
+    .stage-heading p {
+      max-width: 720px;
+      margin: 0;
+      color: var(--muted);
+      font-family: var(--serif);
+      font-size: 1.1rem;
+    }
+
+    .minute-mark {
+      min-width: 7rem;
+      padding: .75rem;
+      border-top: 3px solid var(--amber);
+      color: var(--muted);
+      font-family: var(--mono);
+      text-align: right;
+    }
+
+    .minute-mark strong {
+      display: block;
+      color: var(--white);
+      font-size: 1.4rem;
+    }
+
+    .minute-mark small {
+      display: block;
+      max-width: 10rem;
+      margin-top: .25rem;
+      font-size: .68rem;
+      line-height: 1.35;
+    }
+
+    .grid-2, .grid-3 {
+      display: grid;
+      gap: 1rem;
+      margin: 1.2rem 0;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card, .checkpoint-board, .question, .trade-card, .script-block, .warning,
+    .estimate-ticket, .api-block, .closing-strip {
+      border: 1px solid var(--rule);
+      background: rgba(24,29,25,.92);
+    }
+
+    .card, .trade-card, .estimate-ticket { padding: 1.15rem; }
+
+    .card h3, .trade-card h3, .estimate-ticket h3 {
+      margin: .1rem 0 .65rem;
+      color: var(--white);
+      font-size: 1.35rem;
+    }
+
+    .card p, .trade-card p, .estimate-ticket p { margin: .45rem 0; }
+
+    .card ul, .card ol { padding-left: 1.2rem; }
+
+    .card.accent { border-top: 3px solid var(--mint); }
+    .card.amber { border-top: 3px solid var(--amber); }
+    .card.cyan { border-top: 3px solid var(--cyan); }
+
+    .script-block {
+      position: relative;
+      margin: 1.2rem 0;
+      padding: 1.2rem 1.25rem 1.2rem 3.6rem;
+      color: #d8d1c3;
+      font-family: var(--serif);
+      font-size: 1.08rem;
+    }
+
+    .script-block::before {
+      content: "DIGA";
+      position: absolute;
+      top: 1.3rem;
+      left: .55rem;
+      color: var(--amber);
+      font: 700 .72rem var(--mono);
+      letter-spacing: .15em;
+      writing-mode: vertical-rl;
+    }
+
+    .checkpoint-board {
+      margin: 1.4rem 0;
+      padding: 1.1rem;
+      border-left: 4px solid var(--amber);
+    }
+
+    .checkpoint-board h3 {
+      margin: 0 0 .7rem;
+      font-size: 1.25rem;
+    }
+
+    .check-list {
+      display: grid;
+      gap: .55rem;
+    }
+
+    .check-list label {
+      display: grid;
+      grid-template-columns: 1.25rem 1fr;
+      gap: .65rem;
+      align-items: start;
+      color: #d2cec4;
+    }
+
+    .check-list input {
+      width: 1.05rem;
+      height: 1.05rem;
+      margin-top: .25rem;
+      accent-color: var(--amber);
+    }
+
+    .micro-label { color: var(--muted); }
+
+    .estimate-ticket {
+      position: relative;
+      overflow: hidden;
+      border-top: 3px solid var(--amber);
+    }
+
+    .estimate-ticket::after {
+      content: "HIPÓTESE";
+      position: absolute;
+      top: .45rem;
+      right: -2.2rem;
+      width: 8rem;
+      padding: .15rem 0;
+      color: #17110a;
+      background: var(--amber);
+      font: 700 .58rem var(--mono);
+      text-align: center;
+      transform: rotate(35deg);
+    }
+
+    .math {
+      display: block;
+      margin: .65rem 0;
+      padding: .55rem .7rem;
+      border-left: 2px solid var(--amber);
+      color: var(--white);
+      font-family: var(--mono);
+      background: #111512;
+    }
+
+    .api-block {
+      margin: 1rem 0;
+      padding: 1rem;
+      overflow-x: auto;
+      color: #d8e6db;
+      font-family: var(--mono);
+      font-size: .88rem;
+      white-space: pre-wrap;
+    }
+
+    .architecture-board {
+      margin: 1.35rem 0;
+      border: 1px solid var(--rule-hot);
+      background: #0e1210;
+      box-shadow: var(--shadow);
+    }
+
+    .board-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+      align-items: center;
+      padding: .7rem;
+      border-bottom: 1px solid var(--rule);
+      background: #171c18;
+    }
+
+    .board-toolbar button {
+      padding: .45rem .65rem;
+      font: .72rem var(--mono);
+    }
+
+    .board-toolbar button[aria-pressed="true"] {
+      border-color: var(--amber);
+      color: #17110a;
+      background: var(--amber);
+    }
+
+    .toolbar-separator {
+      width: 1px;
+      height: 1.6rem;
+      margin: 0 .2rem;
+      background: var(--rule);
+    }
+
+    .diagram-wrap {
+      padding: .4rem;
+      overflow-x: auto;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      min-width: 760px;
+      height: auto;
+    }
+
+    .node rect {
+      fill: #1b211d;
+      stroke: #7a857c;
+      stroke-width: 1.5;
+    }
+
+    .node text {
+      fill: #f5efe4;
+      font: 14px var(--mono);
+      text-anchor: middle;
+    }
+
+    .node .sub {
+      fill: #aaa79e;
+      font-size: 10px;
+    }
+
+    html:not(.js) #scaled-view,
+    .js #minimal-view[hidden],
+    .js #scaled-view[hidden] { display: none; }
+
+    .flow {
+      fill: none;
+      stroke-width: 3;
+      opacity: .8;
+      transition: opacity .2s ease, stroke-width .2s ease;
+    }
+
+    .flow-write {
+      stroke: var(--mint);
+      stroke-dasharray: none;
+    }
+
+    .flow-read {
+      stroke: var(--cyan);
+      stroke-dasharray: 12 5;
+    }
+
+    .flow-async {
+      stroke: var(--violet);
+      stroke-dasharray: 2 6;
+      stroke-linecap: round;
+    }
+
+    .flow-failure {
+      stroke: var(--danger);
+      stroke-dasharray: 10 4 2 4;
+    }
+
+    .flow-label {
+      fill: #ddd6ca;
+      font: 700 9px var(--mono);
+      letter-spacing: .06em;
+      paint-order: stroke;
+      pointer-events: none;
+      stroke: #0e1210;
+      stroke-width: 4px;
+      stroke-linejoin: round;
+      transition: opacity .2s ease;
+    }
+
+    .failure-indicator {
+      opacity: .82;
+      transition: opacity .2s ease;
+    }
+
+    .architecture-board[data-flow="read"] .flow:not(.flow-read),
+    .architecture-board[data-flow="write"] .flow:not(.flow-write),
+    .architecture-board[data-flow="async"] .flow:not(.flow-async),
+    .architecture-board[data-flow="failure"] .flow:not(.flow-failure) {
+      opacity: .12;
+      stroke-width: 1.2;
+    }
+
+    .architecture-board[data-flow="read"] .flow-read,
+    .architecture-board[data-flow="write"] .flow-write,
+    .architecture-board[data-flow="async"] .flow-async,
+    .architecture-board[data-flow="failure"] .flow-failure {
+      opacity: 1;
+      stroke-width: 5;
+    }
+
+    .architecture-board[data-flow="read"] .flow-label:not(.label-read),
+    .architecture-board[data-flow="write"] .flow-label:not(.label-write),
+    .architecture-board[data-flow="async"] .flow-label:not(.label-async),
+    .architecture-board[data-flow="failure"] .flow-label:not(.label-failure),
+    .architecture-board[data-flow="read"] .failure-indicator,
+    .architecture-board[data-flow="write"] .failure-indicator,
+    .architecture-board[data-flow="async"] .failure-indicator {
+      opacity: .1;
+    }
+
+    .architecture-board[data-flow="read"] .label-read,
+    .architecture-board[data-flow="write"] .label-write,
+    .architecture-board[data-flow="async"] .label-async,
+    .architecture-board[data-flow="failure"] .label-failure,
+    .architecture-board[data-flow="failure"] .failure-indicator {
+      opacity: 1;
+    }
+
+    .diagram-status {
+      margin: 0;
+      padding: .55rem .8rem;
+      border-bottom: 1px solid var(--rule);
+      color: #c9c4b9;
+      font: .74rem/1.45 var(--mono);
+      background: #111512;
+    }
+
+    .diagram-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: .65rem .9rem .9rem;
+      color: var(--muted);
+    }
+
+    .legend-line {
+      display: inline-block;
+      width: 1.8rem;
+      margin-right: .35rem;
+      vertical-align: middle;
+      border-top: 3px solid currentColor;
+    }
+
+    .legend-token {
+      display: inline-block;
+      min-width: 2.1rem;
+      margin-right: .25rem;
+      color: var(--white);
+      font-weight: 700;
+    }
+
+    .legend-read { color: var(--cyan); }
+    .legend-write { color: var(--mint); }
+    .legend-async { color: var(--violet); }
+    .legend-failure { color: var(--danger); }
+    .legend-read .legend-line { border-top-style: dashed; }
+    .legend-async .legend-line { border-top-style: dotted; }
+    .legend-failure .legend-line { border-top-style: double; }
+
+    .question {
+      margin: .8rem 0;
+      padding: 1rem;
+    }
+
+    .question-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .question h3 {
+      margin: 0;
+      color: var(--white);
+      font-size: 1.12rem;
+    }
+
+    .reveal-button {
+      min-width: 9rem;
+      padding: .5rem .7rem;
+      font: .72rem var(--mono);
+    }
+
+    .answer {
+      margin-top: .85rem;
+      padding-top: .85rem;
+      border-top: 1px solid var(--rule);
+      color: #cbc7bd;
+    }
+
+    .answer[hidden] { display: none; }
+
+    .compare-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin: 1rem 0;
+    }
+
+    .compare-controls button {
+      padding: .55rem .8rem;
+      font: .73rem var(--mono);
+    }
+
+    .compare-controls button[aria-pressed="true"] {
+      color: #101512;
+      background: var(--mint);
+      border-color: var(--mint);
+    }
+
+    .trade-card {
+      transition: opacity .2s ease, transform .2s ease, border-color .2s ease;
+    }
+
+    .trade-grid[data-choice="sync"] .trade-card[data-option="async"],
+    .trade-grid[data-choice="async"] .trade-card[data-option="sync"] {
+      opacity: .38;
+      transform: scale(.985);
+    }
+
+    .trade-grid[data-choice="sync"] .trade-card[data-option="sync"],
+    .trade-grid[data-choice="async"] .trade-card[data-option="async"] {
+      border-color: var(--mint);
+    }
+
+    .trade-card ul { padding-left: 1.2rem; }
+    .trade-card .gain { color: var(--mint); }
+    .trade-card .cost { color: var(--danger); }
+
+    .warning {
+      margin: 1rem 0;
+      padding: 1rem 1.1rem;
+      border-left: 4px solid var(--danger);
+    }
+
+    .warning strong { color: var(--danger); }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1px;
+      margin: 1.25rem 0;
+      border: 1px solid var(--rule);
+      background: var(--rule);
+    }
+
+    .timeline article {
+      min-height: 9rem;
+      padding: .85rem;
+      background: #171c19;
+    }
+
+    .timeline strong {
+      display: block;
+      color: var(--amber);
+      font: .78rem var(--mono);
+    }
+
+    .timeline span {
+      display: block;
+      margin-top: .55rem;
+      color: var(--white);
+      font-family: var(--serif);
+      font-size: 1rem;
+      line-height: 1.25;
+    }
+
+    .closing-strip {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: center;
+      margin-top: 1.3rem;
+      padding: 1rem;
+      border-top: 3px solid var(--mint);
+    }
+
+    .closing-strip p { margin: 0; }
+
+    .status {
+      min-height: 1.5rem;
+      margin-top: .8rem;
+      color: var(--mint);
+      font-family: var(--mono);
+      font-size: .76rem;
+    }
+
+    .footer {
+      padding: 2rem clamp(1.25rem, 5vw, 5rem);
+      border-top: 1px solid var(--rule);
+      color: var(--muted);
+      background: #0d100e;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
+      justify-content: space-between;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    noscript {
+      display: block;
+      margin: 1rem;
+      padding: 1rem;
+      border: 2px solid var(--amber);
+      color: var(--ink);
+      background: #2b2114;
+    }
+
+    @media (max-width: 980px) {
+      .masthead-grid, .cockpit-shell { grid-template-columns: 1fr; }
+      .rail {
+        position: relative;
+        min-height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--rule);
+      }
+      .stage-nav { grid-template-columns: repeat(3, 1fr); }
+      .timeline { grid-template-columns: repeat(3, 1fr); }
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      body::before { width: 3px; }
+      .stage-nav, .grid-2, .grid-3, .timeline { grid-template-columns: 1fr; }
+      .stage-heading, .question-row, .closing-strip { grid-template-columns: 1fr; }
+      .minute-mark { text-align: left; }
+      .stage-tab { min-height: 3.6rem; }
+      .content { padding-inline: 1rem; }
+      .masthead { padding-inline: 1rem; }
+      h1 { font-size: clamp(2.6rem, 16vw, 4.8rem); }
+    }
+
+    @media print {
+      :root { color-scheme: light; }
+      body { color: #111; background: #fff; }
+      body::before, .rail, .board-toolbar, .reveal-button, .compare-controls { display: none; }
+      .cockpit-shell { display: block; }
+      .stage-panel[hidden] { display: block; }
+      .answer[hidden] { display: block; }
+      #minimal-view[hidden], #scaled-view[hidden], html:not(.js) #scaled-view { display: block; }
+      .stage-panel { break-inside: avoid; }
+      .card, .question, .trade-card, .checkpoint-board, .architecture-board {
+        color: #111;
+        background: #fff;
+        box-shadow: none;
+      }
+      h1, .stage-heading h2, .card h3, .question h3 { color: #111; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="masthead">
+    <div class="masthead-grid">
+      <div>
+        <div class="eyebrow">Roteiro de 45 minutos · modo prática</div>
+        <h1>Cockpit de <em>System Design</em></h1>
+        <p class="dek">Conduza a conversa do contrato mínimo ao risco residual. Cada etapa produz uma evidência que autoriza a próxima.</p>
+      </div>
+      <aside class="briefing-card" aria-label="Briefing do exercício">
+        <p class="micro-label">missão</p>
+        <p><strong>Desenhar uma rede social textual</strong> como caso reutilizável.</p>
+        <p><strong>Não buscar o diagrama perfeito.</strong> Tornar decisões, hipóteses, custos e recuperação observáveis.</p>
+        <p class="micro-label">checkpoint crítico</p>
+        <p>Design funcional completo por volta de <strong>20 minutos</strong>.</p>
+      </aside>
+    </div>
+    <div class="source-key" aria-label="Legenda de origem do conteúdo">
+      <span class="source-tag local">Aula local</span>
+      <span class="source-tag extra">Complemento</span>
+      <span class="source-tag hypothesis">Hipótese pedagógica</span>
+    </div>
+  </header>
+
+  <noscript>
+    JavaScript está desabilitado. Todo o conteúdo essencial continua visível em sequência. O SVG mostra a visão mínima; a visão escalada fica descrita pelos cartões “Deltas para escala”, “Falha”, “Hotspot” e “Consistência”. Navegação por etapas, filtros e respostas recolhíveis ficam sem interação.
+  </noscript>
+
+  <div class="cockpit-shell">
+    <aside class="rail" aria-label="Controles do cockpit">
+      <div class="timer-strip">
+        <span>janela sugerida</span>
+        <strong id="time-window">00–08 min</strong>
+      </div>
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <nav class="stage-nav" aria-label="Etapas da entrevista" role="tablist">
+        <button class="stage-tab" id="tab-escopo" type="button" role="tab" aria-selected="true" aria-controls="stage-escopo" tabindex="0" data-stage="0">
+          <span class="stage-number">01</span><span>Escopo<small>contrato e prioridades</small></span>
+        </button>
+        <button class="stage-tab" id="tab-estimativas" type="button" role="tab" aria-selected="false" aria-controls="stage-estimativas" tabindex="-1" data-stage="1">
+          <span class="stage-number">02</span><span>Estimativas<small>mapear antes; calcular sob demanda</small></span>
+        </button>
+        <button class="stage-tab" id="tab-api" type="button" role="tab" aria-selected="false" aria-controls="stage-api" tabindex="-1" data-stage="2">
+          <span class="stage-number">03</span><span>API e dados<small>semântica e acessos</small></span>
+        </button>
+        <button class="stage-tab" id="tab-arquitetura" type="button" role="tab" aria-selected="false" aria-controls="stage-arquitetura" tabindex="-1" data-stage="3">
+          <span class="stage-number">04</span><span>Arquitetura<small>mínimo e escala</small></span>
+        </button>
+        <button class="stage-tab" id="tab-deep" type="button" role="tab" aria-selected="false" aria-controls="stage-deep" tabindex="-1" data-stage="4">
+          <span class="stage-number">05</span><span>Deep dives<small>trade-offs e falhas</small></span>
+        </button>
+        <button class="stage-tab" id="tab-fechamento" type="button" role="tab" aria-selected="false" aria-controls="stage-fechamento" tabindex="-1" data-stage="5">
+          <span class="stage-number">06</span><span>Fechamento<small>riscos e síntese</small></span>
+        </button>
+      </nav>
+
+      <div class="rail-controls" aria-label="Navegação sequencial">
+        <button id="prev-stage" type="button" aria-label="Ir para a etapa anterior">← anterior</button>
+        <button id="next-stage" type="button" aria-label="Ir para a próxima etapa">próxima →</button>
+      </div>
+      <p class="hotkey-note">
+        Teclado: <span class="hotkey">←</span><span class="hotkey">→</span> muda etapa;
+        <span class="hotkey">1</span>–<span class="hotkey">6</span> salta direto.
+      </p>
+      <div class="status" id="stage-status" role="status" aria-live="polite">Etapa 1 de 6: Escopo.</div>
+    </aside>
+
+    <main class="content" id="conteudo">
+      <section class="stage-panel active" id="stage-escopo" role="tabpanel" aria-labelledby="tab-escopo">
+        <header class="stage-heading">
+          <div>
+            <div class="stage-kicker">Etapa 01 · reduzir ambiguidade</div>
+            <h2>Escopo</h2>
+            <p>Transforme um prompt aberto em um contrato pequeno, relevante e verificável. Comunicação e negociação são parte da solução.</p>
+          </div>
+          <div class="minute-mark">alvo<strong>0–08</strong>min</div>
+        </header>
+
+        <div class="grid-3">
+          <article class="card accent">
+            <div class="source-tag local">Aula local</div>
+            <h3>Entender antes de desenhar</h3>
+            <p>Quem usa? Qual jornada define valor? Que parte do produto é o centro da entrevista?</p>
+          </article>
+          <article class="card amber">
+            <div class="source-tag local">Aula local</div>
+            <h3>Negociar 2–3 requisitos</h3>
+            <p>O conjunto funcional é o contrato mínimo que o high-level design precisa cobrir.</p>
+          </article>
+          <article class="card cyan">
+            <div class="source-tag extra">Complemento</div>
+            <h3>Registrar prioridades</h3>
+            <p>Latência, disponibilidade, consistência e durabilidade precisam de ordem, não de adjetivos vagos.</p>
+          </article>
+        </div>
+
+        <div class="script-block">
+          “Antes de desenhar, vou alinhar usuários, jornadas e qualidades. Depois proponho um recorte que caiba no tempo e confirmo o que fica fora.”
+        </div>
+
+        <div class="grid-2">
+          <article class="card">
+            <h3>Perguntas de clarificação</h3>
+            <ul>
+              <li>Publicação e leitura de feed são as jornadas centrais?</li>
+              <li>O conteúdo é somente texto?</li>
+              <li>Feed cronológico ou ranqueado?</li>
+              <li>Qual escala e distribuição geográfica?</li>
+              <li>O autor precisa ler imediatamente o próprio post?</li>
+              <li>Durante partição, preferimos dado antigo ou erro?</li>
+              <li>Há retenção, privacidade ou moderação obrigatória?</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Proposta de contrato</h3>
+            <p><strong>Dentro:</strong> publicar texto, ler feed, relação de follow no nível necessário.</p>
+            <p><strong>Fora:</strong> chat, vídeo, publicidade, recomendação avançada e moderação humana.</p>
+            <p><strong>Qualidades:</strong> leitura disponível e rápida; escrita durável; atraso curto aceitável para seguidores.</p>
+          </article>
+        </div>
+
+        <div class="checkpoint-board">
+          <h3>Checkpoint — só avance se puder marcar</h3>
+          <div class="check-list">
+            <label><input type="checkbox"> <span>Consigo repetir o problema em uma frase sem citar tecnologia.</span></label>
+            <label><input type="checkbox"> <span>Há dois ou três requisitos funcionais confirmados.</span></label>
+            <label><input type="checkbox"> <span>O que ficou fora foi dito explicitamente.</span></label>
+            <label><input type="checkbox"> <span>Sei qual operação prioriza latência, disponibilidade e consistência.</span></label>
+            <label><input type="checkbox"> <span>Números ainda desconhecidos estão marcados como perguntas ou hipóteses.</span></label>
+          </div>
+        </div>
+
+        <article class="question">
+          <div class="question-row">
+            <h3>Pergunta do entrevistador: “Por que não incluir upload de vídeo?”</h3>
+            <button class="reveal-button" type="button" aria-expanded="true" aria-controls="answer-scope-1">Ocultar resposta</button>
+          </div>
+          <div class="answer" id="answer-scope-1">
+            Porque vídeo introduz armazenamento de objetos, transcodificação, CDN e moderação, consumindo a entrevista inteira. O recorte textual ainda exercita escrita, feed, assimetria de tráfego e consistência. Se mídia for o foco desejado, troco um requisito em vez de apenas somá-lo.
+          </div>
+        </article>
+      </section>
+
+      <section class="stage-panel" id="stage-estimativas" role="tabpanel" aria-labelledby="tab-estimativas">
+        <header class="stage-heading">
+          <div>
+            <div class="stage-kicker">Etapa 02 · mapear antes, calcular quando decidir</div>
+            <h2>Estimativas</h2>
+            <p>Antes do HLD, identifique hipóteses e estimativas decisivas, com unidades e limiares que podem mudar o desenho. Cálculos detalhados podem ser executados após o design mínimo, quando alterarem uma decisão.</p>
+          </div>
+          <div class="minute-mark">mapear<strong>08–12</strong>min<small>retomar sob demanda após o HLD mínimo</small></div>
+        </header>
+
+        <div class="warning">
+          <strong>Regra única de timing:</strong> não faça uma bateria obrigatória de contas antes do HLD. Registre cedo as hipóteses e perguntas de capacidade; calcule quando um limiar selecionar ou rejeitar uma escolha, inclusive depois do desenho funcional.
+          <br><strong>Rastreabilidade:</strong> todos os números abaixo são hipóteses pedagógicas. Não vêm da aula, da Ada ou do Uber.
+        </div>
+
+        <p class="micro-label">exemplos de contas para executar quando uma decisão pedir — inclusive após o design mínimo</p>
+        <div class="grid-3">
+          <article class="estimate-ticket">
+            <p class="micro-label">tráfego</p>
+            <h3>Leituras de feed</h3>
+            <p>20 M usuários × 20 aberturas/dia</p>
+            <code class="math">400 M / dia ≈ 4,6 k/s média</code>
+            <code class="math">pico 8× ≈ 37 k/s</code>
+            <p><strong>Decisão:</strong> múltiplas instâncias, cache e caminho de leitura independente.</p>
+          </article>
+          <article class="estimate-ticket">
+            <p class="micro-label">armazenamento</p>
+            <h3>Postagens</h3>
+            <p>4 M posts/dia × 1 KiB</p>
+            <code class="math">≈ 4 GiB/dia primários</code>
+            <code class="math">× réplicas + índices + logs</code>
+            <p><strong>Decisão:</strong> retenção, capacidade anual e futura estratégia de partição.</p>
+          </article>
+          <article class="estimate-ticket">
+            <p class="micro-label">amplificação</p>
+            <h3>Fan-out</h3>
+            <p>Postagens × seguidores ativos</p>
+            <code class="math">média esconde celebridades</code>
+            <code class="math">p99 domina o custo</code>
+            <p><strong>Decisão:</strong> fan-out híbrido e proteção de hotspots.</p>
+          </article>
+        </div>
+
+        <div class="script-block">
+          “Meu objetivo não é obter precisão contábil; é verificar se cruzamos um limiar. Com dezenas de milhares de leituras por segundo no pico, uma única instância deixa de ser uma hipótese segura.”
+        </div>
+
+        <div class="grid-2">
+          <article class="card accent">
+            <h3>Protocolo sem ritualismo</h3>
+            <ol>
+              <li>Formule a pergunta arquitetural.</li>
+              <li>Declare uma hipótese e unidade.</li>
+              <li>Arredonde de modo explícito.</li>
+              <li>Compare com um limiar.</li>
+              <li>Tome uma decisão ou peça dados.</li>
+            </ol>
+          </article>
+          <article class="card amber">
+            <h3>Contas que podem esperar</h3>
+            <ul>
+              <li>bytes exatos de todos os campos;</li>
+              <li>custo financeiro sem modelo de preço;</li>
+              <li>QPS de operação fora do escopo;</li>
+              <li>capacidade de produto específico não escolhido;</li>
+              <li>precisão que não muda a ordem de grandeza.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="checkpoint-board">
+          <h3>Checkpoint — cada número precisa de consequência</h3>
+          <div class="check-list">
+            <label><input type="checkbox"> <span>Taxa média e pico não foram confundidos.</span></label>
+            <label><input type="checkbox"> <span>Considerei skew/hotspot, não apenas a média.</span></label>
+            <label><input type="checkbox"> <span>Declare unidades e fatores ignorados.</span></label>
+            <label><input type="checkbox"> <span>Cada conta selecionou uma decisão ou um deep dive.</span></label>
+          </div>
+        </div>
+
+        <article class="question">
+          <div class="question-row">
+            <h3>Pergunta do entrevistador: “Você precisa mesmo particionar agora?”</h3>
+            <button class="reveal-button" type="button" aria-expanded="true" aria-controls="answer-estimate-1">Ocultar resposta</button>
+          </div>
+          <div class="answer" id="answer-estimate-1">
+            Não necessariamente. O volume inicial pode caber em um primário com réplicas. Eu preservaria uma chave e um esquema que permitam particionar depois, mediria crescimento e só pagaria a complexidade de roteamento e rebalanceamento quando o limiar de capacidade ou hotspot fosse demonstrado.
+          </div>
+        </article>
+      </section>
+
+      <section class="stage-panel" id="stage-api" role="tabpanel" aria-labelledby="tab-api">
+        <header class="stage-heading">
+          <div>
+            <div class="stage-kicker">Etapa 03 · tornar semântica explícita</div>
+            <h2>API e dados</h2>
+            <p>Interfaces e padrões de acesso revelam idempotência, ordenação, paginação, autorização e fronteiras de consistência.</p>
+            <div class="source-tag extra">Complemento · APIs e entidades aplicadas ao exemplo</div>
+          </div>
+          <div class="minute-mark">alvo<strong>12–16</strong>min</div>
+        </header>
+
+        <div class="grid-2">
+          <div>
+            <div class="api-block" aria-label="Exemplo de API para criação de post">POST /v1/posts
+Idempotency-Key: &lt;token&gt;
+{ author_id, text }
+
+201
+{ post_id, created_at }</div>
+            <div class="api-block" aria-label="Exemplo de API para leitura de feed">GET /v1/users/{id}/feed
+  ?cursor=&lt;opaque&gt;&amp;limit=50
+
+200
+{ items: [...], next_cursor }</div>
+            <div class="api-block" aria-label="Exemplo de API para seguir ou deixar de seguir usuário">PUT /v1/users/{id}/following/{target_id}
+Authorization: Bearer &lt;token&gt;
+Idempotency-Key: &lt;token&gt;
+
+204
+
+DELETE /v1/users/{id}/following/{target_id}
+Authorization: Bearer &lt;token&gt;
+
+204</div>
+          </div>
+          <article class="card accent">
+            <div class="source-tag extra">Complemento</div>
+            <h3>Perguntas escondidas nas interfaces</h3>
+            <ul>
+              <li>Quando uma escrita está confirmada?</li>
+              <li>Retry pode criar postagem duplicada?</li>
+              <li>Cursor permanece estável com novas inserções?</li>
+              <li>Quem pode publicar em nome de quem?</li>
+              <li>Qual tamanho máximo e resposta à sobrecarga?</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="grid-3">
+          <article class="card amber">
+            <div class="source-tag extra">Complemento</div>
+            <p class="micro-label">entidade</p>
+            <h3>Post</h3>
+            <p><code>post_id</code>, <code>author_id</code>, corpo, instante e estado.</p>
+            <p><strong>Acessos:</strong> por ID, por autor e por faixa temporal.</p>
+          </article>
+          <article class="card cyan">
+            <div class="source-tag extra">Complemento</div>
+            <p class="micro-label">relação</p>
+            <h3>Follow</h3>
+            <p><code>follower_id</code>, <code>followed_id</code>, instante.</p>
+            <p><strong>Acessos:</strong> quem sigo e quem me segue.</p>
+          </article>
+          <article class="card accent">
+            <div class="source-tag extra">Complemento</div>
+            <p class="micro-label">visão derivada</p>
+            <h3>FeedEntry</h3>
+            <p><code>owner_id</code>, <code>rank_key</code>, <code>post_id</code>.</p>
+            <p><strong>Existe somente</strong> se materialização for escolhida.</p>
+          </article>
+        </div>
+
+        <div class="script-block">
+          “Vou manter tecnologia abstrata. O dado tem relações claras, mas a decisão de armazenamento depende de transações, consultas e escala. Primeiro fixo a semântica e os padrões de acesso.”
+        </div>
+
+        <div class="checkpoint-board">
+          <h3>Checkpoint — precisão sem baixo nível prematuro</h3>
+          <div class="check-list">
+            <label><input type="checkbox"> <span>Cada requisito funcional tem uma interface.</span></label>
+            <label><input type="checkbox"> <span>As entidades existem por causa de um fluxo ou invariante.</span></label>
+            <label><input type="checkbox"> <span>Defini paginação, idempotência e autorização relevantes.</span></label>
+            <label><input type="checkbox"> <span>Padrões de leitura e escrita estão claros antes do produto de banco.</span></label>
+          </div>
+        </div>
+
+        <article class="question">
+          <div class="question-row">
+            <h3>Pergunta do entrevistador: “SQL ou NoSQL?”</h3>
+            <button class="reveal-button" type="button" aria-expanded="true" aria-controls="answer-api-1">Ocultar resposta</button>
+          </div>
+          <div class="answer" id="answer-api-1">
+            Para a fonte de verdade de usuários, follows e posts, começo pelo modelo que preserve os invariantes e consultas necessárias. Se volume e acesso por chave dominarem, posso particionar ou adotar armazenamento distribuído em fronteiras específicas. A escolha não é global: a visão materializada do feed pode ter requisitos diferentes da escrita autoritativa.
+          </div>
+        </article>
+      </section>
+
+      <section class="stage-panel" id="stage-arquitetura" role="tabpanel" aria-labelledby="tab-arquitetura">
+        <header class="stage-heading">
+          <div>
+            <div class="stage-kicker">Etapa 04 · provar e evoluir</div>
+            <h2>Arquitetura</h2>
+            <p>Comece com o menor diagrama que cobre os fluxos. Depois ative escala, assíncrono e falha como deltas justificados.</p>
+            <div class="source-tag local">Aula local · método do HLD</div>
+            <div class="source-tag hypothesis">Hipótese pedagógica · arquitetura específica da rede social</div>
+          </div>
+          <div class="minute-mark">alvo<strong>16–27</strong>min</div>
+        </header>
+
+        <div class="architecture-board" id="architecture-board" data-flow="all" data-view="minimal">
+          <div class="board-toolbar" aria-label="Controles do diagrama">
+            <span class="micro-label">visão</span>
+            <button type="button" class="view-button" data-view="minimal" aria-pressed="true" aria-controls="architecture-diagram diagram-status">mínima</button>
+            <button type="button" class="view-button" data-view="scaled" aria-pressed="false" aria-controls="architecture-diagram diagram-status">escalada</button>
+            <span class="toolbar-separator" aria-hidden="true"></span>
+            <span class="micro-label">fluxo</span>
+            <button type="button" class="flow-button" data-flow="all" aria-pressed="true" aria-controls="architecture-diagram diagram-status">todos</button>
+            <button type="button" class="flow-button" data-flow="write" aria-pressed="false" aria-controls="architecture-diagram diagram-status">escrita</button>
+            <button type="button" class="flow-button" data-flow="read" aria-pressed="false" aria-controls="architecture-diagram diagram-status">leitura</button>
+            <button type="button" class="flow-button" data-flow="async" aria-pressed="false" aria-controls="architecture-diagram diagram-status">assíncrono</button>
+            <button type="button" class="flow-button" data-flow="failure" aria-pressed="false" aria-controls="architecture-diagram diagram-status">falha</button>
+          </div>
+          <p class="diagram-status" id="diagram-status" role="status" aria-live="polite" aria-atomic="true">Diagrama: visão mínima; todos os fluxos funcionais.</p>
+
+          <div class="diagram-wrap" data-diagram>
+            <svg id="architecture-diagram" viewBox="0 0 1000 540" role="img" aria-labelledby="diagram-title diagram-desc">
+              <title id="diagram-title">Evolução de uma arquitetura de rede social textual</title>
+              <desc id="diagram-desc">Visão mínima com todos os fluxos: escrita de postagem, leitura de feed e atualização da relação de follow atravessam cliente, API, serviços e banco.</desc>
+              <defs>
+                <marker id="arrow-read" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#74b9d1" stroke-width="1.7"></path></marker>
+                <marker id="arrow-write" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 z" fill="#78c9a7"></path></marker>
+                <marker id="arrow-async" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,1 L5,4.5 L0,8 M5,1 L10,4.5 L5,8" fill="none" stroke="#b5a0dc" stroke-width="1.6"></path></marker>
+                <marker id="arrow-fail" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M6,0 L12,11 L0,11 z" fill="#e66b58"></path><text x="6" y="9" fill="#111513" font-family="monospace" font-size="8" font-weight="700" text-anchor="middle">!</text></marker>
+              </defs>
+
+              <g id="minimal-view">
+                <text x="40" y="35" fill="#f2a43a" font-family="monospace" font-size="12">VISÃO MÍNIMA · COBERTURA FUNCIONAL</text>
+                <g class="node"><rect x="45" y="90" width="145" height="66"></rect><text x="117" y="117">Cliente</text><text class="sub" x="117" y="139">web / app</text></g>
+                <g class="node"><rect x="270" y="90" width="160" height="66"></rect><text x="350" y="117">API</text><text class="sub" x="350" y="139">auth + limites</text></g>
+                <g class="node"><rect x="515" y="55" width="180" height="66"></rect><text x="605" y="82">Post service</text><text class="sub" x="605" y="104">escrita</text></g>
+                <g class="node"><rect x="515" y="165" width="180" height="66"></rect><text x="605" y="192">Feed service</text><text class="sub" x="605" y="214">leitura</text></g>
+                <g class="node"><rect x="515" y="245" width="180" height="48"></rect><text x="605" y="274">Follow service</text></g>
+                <g class="node"><rect x="790" y="80" width="165" height="190"></rect><text x="872" y="151">Banco</text><text class="sub" x="872" y="175">posts + follows</text><text class="sub" x="872" y="194">fonte de verdade</text></g>
+                <path class="flow flow-write" d="M190 112 H270" marker-end="url(#arrow-write)"></path>
+                <path class="flow flow-write" d="M430 108 L515 88" marker-end="url(#arrow-write)"></path>
+                <path class="flow flow-write" d="M695 89 L790 134" marker-end="url(#arrow-write)"></path>
+                <path class="flow flow-read" d="M190 143 H270" marker-end="url(#arrow-read)"></path>
+                <path class="flow flow-read" d="M430 142 L515 194" marker-end="url(#arrow-read)"></path>
+                <path class="flow flow-read" d="M695 196 L790 170" marker-end="url(#arrow-read)"></path>
+                <path class="flow flow-write" d="M430 150 L515 268" marker-end="url(#arrow-write)"></path>
+                <path class="flow flow-write" d="M695 269 L790 226" marker-end="url(#arrow-write)"></path>
+                <text class="flow-label label-write" x="204" y="103">[W] PUBLICAR</text>
+                <text class="flow-label label-read" x="204" y="158">[R] LER FEED</text>
+                <text class="flow-label label-write" x="447" y="234">[W] SEGUIR</text>
+              </g>
+
+              <g id="scaled-view">
+                <text x="40" y="35" fill="#f2a43a" font-family="monospace" font-size="12">VISÃO ESCALADA · PRESSÕES, FOLLOW E RECUPERAÇÃO</text>
+                <g class="node"><rect x="35" y="220" width="120" height="64"></rect><text x="95" y="247">Edge/API</text><text class="sub" x="95" y="269">balanceado</text></g>
+                <g class="node"><rect x="210" y="55" width="140" height="64"></rect><text x="280" y="82">Post svc</text><text class="sub" x="280" y="104">N instâncias</text></g>
+                <g class="node"><rect x="210" y="205" width="140" height="64"></rect><text x="280" y="232">Feed svc</text><text class="sub" x="280" y="254">N instâncias</text></g>
+                <g class="node"><rect x="210" y="355" width="140" height="64"></rect><text x="280" y="382">Follow svc</text><text class="sub" x="280" y="404">auth + relação</text></g>
+                <g class="node"><rect x="420" y="55" width="140" height="64"></rect><text x="490" y="82">Posts DB</text><text class="sub" x="490" y="104">primário</text></g>
+                <g class="node"><rect x="420" y="180" width="140" height="64"></rect><text x="490" y="207">Cache</text><text class="sub" x="490" y="229">TTL + versão</text></g>
+                <g class="node"><rect x="420" y="355" width="140" height="64"></rect><text x="490" y="382">Follow store</text><text class="sub" x="490" y="404">fonte de verdade</text></g>
+                <g class="node"><rect x="420" y="455" width="140" height="50"></rect><text x="490" y="476">Réplica</text><text class="sub" x="490" y="495">lag monitorado</text></g>
+                <g class="node"><rect x="640" y="55" width="130" height="64"></rect><text x="705" y="82">Outbox / fila</text><text class="sub" x="705" y="104">CDC + DLQ</text></g>
+                <g class="node"><rect x="825" y="55" width="130" height="64"></rect><text x="890" y="82">Workers</text><text class="sub" x="890" y="104">idempotentes</text></g>
+                <g class="node"><rect x="640" y="205" width="130" height="64"></rect><text x="705" y="232">Feed store</text><text class="sub" x="705" y="254">materializado</text></g>
+                <g class="node"><rect x="640" y="330" width="150" height="64"></rect><text x="715" y="357">Posts do autor</text><text class="sub" x="715" y="379">overlay autoritativo</text></g>
+
+                <path class="flow flow-write" d="M155 233 L210 87" marker-end="url(#arrow-write)"></path>
+                <path class="flow flow-write" d="M350 87 H420" marker-end="url(#arrow-write)"></path>
+                <path class="flow flow-write" d="M155 271 L210 387" marker-end="url(#arrow-write)"></path>
+                <path class="flow flow-write" d="M350 387 H420" marker-end="url(#arrow-write)"></path>
+                <path class="flow flow-read" d="M155 252 L210 237" marker-end="url(#arrow-read)"></path>
+                <path class="flow flow-read" d="M350 225 L420 212" marker-end="url(#arrow-read)"></path>
+                <path class="flow flow-read" d="M560 212 L640 237" marker-end="url(#arrow-read)"></path>
+                <path class="flow flow-read" d="M350 253 C390 285 382 365 420 382" marker-end="url(#arrow-read)"></path>
+                <path class="flow flow-read" d="M350 237 C430 317 535 355 640 362" marker-end="url(#arrow-read)"></path>
+                <path class="flow flow-async" d="M560 87 H640" marker-end="url(#arrow-async)"></path>
+                <path class="flow flow-async" d="M770 87 H825" marker-end="url(#arrow-async)"></path>
+                <path class="flow flow-async" d="M890 119 C890 190 825 237 770 237" marker-end="url(#arrow-async)"></path>
+                <path class="flow flow-async" d="M520 119 C585 155 585 425 520 455" marker-end="url(#arrow-async)"></path>
+
+                <path class="flow flow-failure" d="M350 105 C390 145 370 480 420 480" marker-end="url(#arrow-fail)"></path>
+                <path class="flow flow-failure" d="M560 480 C615 470 615 135 560 105" marker-end="url(#arrow-fail)"></path>
+                <g class="failure-indicator" aria-hidden="true">
+                  <circle cx="548" cy="66" r="12" fill="#e66b58"></circle>
+                  <text x="548" y="71" fill="#111513" font-family="monospace" font-size="14" font-weight="700" text-anchor="middle">!</text>
+                </g>
+
+                <text class="flow-label label-write" x="161" y="165">[W] PUBLICAR</text>
+                <text class="flow-label label-write" x="162" y="341">[W] SEGUIR</text>
+                <text class="flow-label label-read" x="160" y="245">[R] LER FEED</text>
+                <text class="flow-label label-read" x="365" y="318">[R] CONSULTAR FOLLOWS</text>
+                <text class="flow-label label-read" x="472" y="333">[R] OVERLAY DO AUTOR</text>
+                <text class="flow-label label-async" x="574" y="78">[A] EVENTO</text>
+                <text class="flow-label label-failure" x="355" y="447">FAILOVER · PROMOVER RÉPLICA</text>
+                <text class="flow-label label-failure" x="603" y="342" transform="rotate(-90 603 342)">RECONCILIAR APÓS RETORNO</text>
+              </g>
+            </svg>
+          </div>
+          <div class="diagram-legend">
+            <span class="legend-write"><i class="legend-line"></i><b class="legend-token">[W] ▶</b> escrita sólida</span>
+            <span class="legend-read"><i class="legend-line"></i><b class="legend-token">[R] &gt;</b> leitura tracejada</span>
+            <span class="legend-async"><i class="legend-line"></i><b class="legend-token">[A] »</b> assíncrono pontilhado</span>
+            <span class="legend-failure"><i class="legend-line"></i><b class="legend-token">[!] △</b> desvio, failover e reconciliação</span>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <article class="card accent">
+            <h3>Prova do mínimo</h3>
+            <ol>
+              <li>Publicação atravessa API, serviço e persistência.</li>
+              <li>Feed consulta follows e postagens.</li>
+              <li>Resposta e semântica de erro são visíveis.</li>
+              <li>Nenhuma caixa existe apenas “porque escala”.</li>
+            </ol>
+          </article>
+          <article class="card amber">
+            <h3>Deltas para escala</h3>
+            <ol>
+              <li>Leitura dominante → cache e instâncias.</li>
+              <li>Distribuição de feed → outbox transacional, CDC, fila e workers.</li>
+              <li>Hotspot → estratégia híbrida.</li>
+              <li>Falha de dados → réplica, failover e reconciliação.</li>
+            </ol>
+          </article>
+        </div>
+
+        <div class="script-block">
+          “A publicação confirma depois de gravar o post e o registro de outbox na mesma transação. Um processo de CDC publica o evento na fila; workers idempotentes atualizam o Feed store. Na leitura, uso cache-aside ou read-through com versão/TTL: se o feed materializado ainda não contém o post do próprio autor, faço overlay autoritativo por <code>author_id</code> e removo duplicatas por <code>post_id</code>.”
+        </div>
+
+        <div class="checkpoint-board">
+          <h3>Checkpoint aproximado dos 20 minutos</h3>
+          <div class="check-list">
+            <label><input type="checkbox"> <span>Todos os requisitos funcionais têm um caminho completo.</span></label>
+            <label><input type="checkbox"> <span>Consigo explicar cada seta e sua semântica.</span></label>
+            <label><input type="checkbox"> <span>A visão mínima continua compreensível sem os componentes de escala.</span></label>
+            <label><input type="checkbox"> <span>As adições escaladas estão ligadas a estimativas ou qualidades.</span></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="stage-panel" id="stage-deep" role="tabpanel" aria-labelledby="tab-deep">
+        <header class="stage-heading">
+          <div>
+            <div class="stage-kicker">Etapa 05 · aprofundar com direção</div>
+            <h2>Deep dives</h2>
+            <p>Escolha as pressões de maior impacto. Compare alternativas, modele a falha e incorpore o redirecionamento sem defender o primeiro desenho.</p>
+          </div>
+          <div class="minute-mark">alvo<strong>27–40</strong>min</div>
+        </header>
+
+        <h3 class="compare-label">Comparação interativa · comunicação</h3>
+        <div class="compare-controls" aria-label="Destacar alternativa de comunicação">
+          <button type="button" class="compare-button" data-choice="both" aria-pressed="true">comparar ambas</button>
+          <button type="button" class="compare-button" data-choice="sync" aria-pressed="false">destacar síncrono</button>
+          <button type="button" class="compare-button" data-choice="async" aria-pressed="false">destacar assíncrono</button>
+        </div>
+
+        <div class="grid-2 trade-grid" id="trade-grid" data-choice="both">
+          <article class="trade-card" data-option="sync">
+            <h3>Síncrono</h3>
+            <p class="gain"><strong>Ganha:</strong> resposta imediata, fluxo simples, erro próximo do cliente.</p>
+            <p class="cost"><strong>Paga:</strong> acoplamento temporal, latência acumulada, cascata.</p>
+            <ul>
+              <li>Use quando a decisão participa da resposta.</li>
+              <li>Exija timeout, orçamento de latência e fallback.</li>
+              <li>Evite cadeia longa de dependências.</li>
+            </ul>
+          </article>
+          <article class="trade-card" data-option="async">
+            <h3>Assíncrono</h3>
+            <p class="gain"><strong>Ganha:</strong> absorção de picos, desacoplamento, reexecução.</p>
+            <p class="cost"><strong>Paga:</strong> atraso, duplicidade possível, observação fragmentada.</p>
+            <ul>
+              <li>Use quando o trabalho pode terminar depois.</li>
+              <li>Exija idempotência, lag, retry e DLQ.</li>
+              <li>Defina como o usuário percebe falha tardia.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="script-block">
+          “Como leitura rápida é prioridade e seguidores toleram atraso curto, materializo o feed de forma assíncrona. Ganho previsibilidade na leitura, pago amplificação e complexidade operacional; celebridades usam fan-out na leitura.”
+        </div>
+
+        <div class="grid-3">
+          <article class="card accent">
+            <h3>Falha</h3>
+            <p>Se a fila parar, a postagem autoritativa permanece; o feed atrasa. Monitore backlog e reprocese com consumidores idempotentes.</p>
+          </article>
+          <article class="card amber">
+            <h3>Hotspot</h3>
+            <p>Distribuição de seguidores é enviesada. Não dimensione celebridades pela média; use fan-out híbrido e limites.</p>
+          </article>
+          <article class="card cyan">
+            <h3>Consistência</h3>
+            <p>Autor recebe read-your-writes por overlay autoritativo dos próprios posts ou invalidação síncrona do cache do autor; seguidores aceitam atraso da materialização. Deduplicação por <code>post_id</code> evita mostrar duas cópias quando o evento assíncrono chega ao feed.</p>
+          </article>
+        </div>
+
+        <article class="question">
+          <div class="question-row">
+            <h3>Redirecionamento: “Agora a região principal caiu.”</h3>
+            <button class="reveal-button" type="button" aria-expanded="true" aria-controls="answer-deep-1">Ocultar resposta</button>
+          </div>
+          <div class="answer" id="answer-deep-1">
+            Primeiro separo leitura e escrita. Leituras podem usar réplica regional com possível atraso, se isso respeitar a prioridade de disponibilidade. Escritas precisam de uma autoridade: faço failover seguro se houver consenso de promoção; caso contrário, rejeito temporariamente para evitar split-brain. Depois reconcilio visões derivadas e meço perda/atraso contra RPO e RTO negociados.
+          </div>
+        </article>
+
+        <article class="question">
+          <div class="question-row">
+            <h3>Redirecionamento: “Não precisamos de consistência forte.”</h3>
+            <button class="reveal-button" type="button" aria-expanded="true" aria-controls="answer-deep-2">Ocultar resposta</button>
+          </div>
+          <div class="answer" id="answer-deep-2">
+            Reconheço a nova prioridade e localizo o impacto: posso servir réplicas atrasadas e manter o feed disponível durante mais falhas. Ainda preservo durabilidade da postagem e uma garantia de read-your-writes para o autor, se essa experiência for necessária. “Eventual” não elimina invariantes de autorização ou idempotência.
+          </div>
+        </article>
+
+        <div class="checkpoint-board">
+          <h3>Checkpoint — profundidade com foco</h3>
+          <div class="check-list">
+            <label><input type="checkbox"> <span>Escolhi no máximo dois deep dives de alto impacto.</span></label>
+            <label><input type="checkbox"> <span>Para cada escolha, disse contexto, ganho, custo e mitigação.</span></label>
+            <label><input type="checkbox"> <span>Modelei ao menos uma falha observável pelo usuário.</span></label>
+            <label><input type="checkbox"> <span>Expliquei detecção, degradação, recuperação e reconciliação.</span></label>
+            <label><input type="checkbox"> <span>Incorporei feedback alterando a hipótese correta.</span></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="stage-panel" id="stage-fechamento" role="tabpanel" aria-labelledby="tab-fechamento">
+        <header class="stage-heading">
+          <div>
+            <div class="stage-kicker">Etapa 06 · demonstrar consciência</div>
+            <h2>Fechamento</h2>
+            <p>Não acrescente caixas por reflexo. Faça auditoria de cobertura, nomeie riscos e indique o próximo experimento que reduziria incerteza.</p>
+          </div>
+          <div class="minute-mark">alvo<strong>40–45</strong>min</div>
+        </header>
+
+        <div class="timeline" aria-label="Linha do tempo reutilizável da entrevista">
+          <article><strong>00–08</strong><span>Escopo e contrato</span></article>
+          <article><strong>08–12</strong><span>Hipóteses e limiares</span></article>
+          <article><strong>12–16</strong><span>API e dados</span></article>
+          <article><strong>16–27</strong><span>HLD mínimo, contas decisivas e escala</span></article>
+          <article><strong>27–40</strong><span>Deep dives e falhas</span></article>
+          <article><strong>40–45</strong><span>Síntese e riscos</span></article>
+        </div>
+
+        <div class="grid-2">
+          <article class="card accent">
+            <h3>Auditoria de cobertura</h3>
+            <ul>
+              <li>Publicação: interface, persistência e confirmação.</li>
+              <li>Feed: consulta/materialização, paginação e frescor.</li>
+              <li>Follow: autorização e efeito sobre leituras.</li>
+              <li>Escala: leitura, hotspot e armazenamento.</li>
+              <li>Falha: degradação, failover e reconciliação.</li>
+            </ul>
+          </article>
+          <article class="card amber">
+            <h3>Registro de riscos</h3>
+            <ul>
+              <li><strong>Capacidade:</strong> fan-out de celebridades.</li>
+              <li><strong>Correção:</strong> duplicidade em reprocessamento.</li>
+              <li><strong>Operação:</strong> promoção de réplica e backlog.</li>
+              <li><strong>Validação:</strong> medir distribuição, lag e hit rate.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="checkpoint-board">
+          <h3>Checklist final de entrevistador experiente</h3>
+          <div class="check-list">
+            <label><input type="checkbox"> <span>Repeti dentro e fora do escopo.</span></label>
+            <label><input type="checkbox"> <span>Cada requisito funcional está coberto.</span></label>
+            <label><input type="checkbox"> <span>Hipóteses foram separadas de fatos.</span></label>
+            <label><input type="checkbox"> <span>Trade-offs têm contexto, ganho e custo.</span></label>
+            <label><input type="checkbox"> <span>Segurança, abuso, observabilidade e operação foram considerados.</span></label>
+            <label><input type="checkbox"> <span>Nomeei riscos não resolvidos e próximos passos.</span></label>
+          </div>
+        </div>
+
+        <div class="closing-strip">
+          <p><strong>Frase de saída:</strong> “Cobrimos as jornadas acordadas. Evoluímos por causa da assimetria de leitura e do fan-out. Priorizamos disponibilidade de leitura com atraso controlado. Os maiores riscos restantes são hotspot, duplicidade e failover; eu validaria distribuição e lag antes de fechar capacidade.”</p>
+          <span class="source-tag local">Aula: análise crítica</span>
+        </div>
+
+        <article class="question">
+          <div class="question-row">
+            <h3>Pergunta final: “O que você faria com mais tempo?”</h3>
+            <button class="reveal-button" type="button" aria-expanded="true" aria-controls="answer-close-1">Ocultar resposta</button>
+          </div>
+          <div class="answer" id="answer-close-1">
+            Eu não adicionaria tecnologia às cegas. Primeiro mediria distribuição de seguidores, tamanho real de feed, hit rate e lag. Depois testaria capacidade, failover e restauração. Com esses dados, decidiria limiares da estratégia híbrida, política de retenção, partição e objetivos operacionais.
+          </div>
+        </article>
+
+        <div class="warning">
+          <strong>Sinal de senioridade:</strong> sistema incompleto com riscos bem compreendidos é mais convincente que diagrama lotado sem semântica, falhas ou justificativa.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>Conteúdo em português · arquivo estático e autocontido</span>
+      <span><a href="README.md">Guia principal</a> · <a href="deep-dives.md">Deep dives</a></span>
+      <span>Aula local + complementos + hipóteses explicitamente marcados</span>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      "use strict";
+
+      document.documentElement.classList.add("js");
+
+      const tabs = Array.from(document.querySelectorAll(".stage-tab"));
+      const panels = Array.from(document.querySelectorAll(".stage-panel"));
+      const progressBar = document.getElementById("progress-bar");
+      const timeWindow = document.getElementById("time-window");
+      const stageStatus = document.getElementById("stage-status");
+      const previousButton = document.getElementById("prev-stage");
+      const nextButton = document.getElementById("next-stage");
+      const windows = ["00–08 min", "08–12 min", "12–16 min", "16–27 min", "27–40 min", "40–45 min"];
+      const labels = ["Escopo", "Estimativas", "API e dados", "Arquitetura", "Deep dives", "Fechamento"];
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let activeIndex = 0;
+
+      function activateStage(index, moveFocus = false, scrollToCockpit = true) {
+        activeIndex = Math.max(0, Math.min(index, tabs.length - 1));
+        tabs.forEach((tab, tabIndex) => {
+          const selected = tabIndex === activeIndex;
+          tab.setAttribute("aria-selected", String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+        });
+        panels.forEach((panel, panelIndex) => {
+          const selected = panelIndex === activeIndex;
+          panel.hidden = !selected;
+          panel.classList.toggle("active", selected);
+        });
+        progressBar.style.width = `${((activeIndex + 1) / tabs.length) * 100}%`;
+        timeWindow.textContent = windows[activeIndex];
+        stageStatus.textContent = `Etapa ${activeIndex + 1} de ${tabs.length}: ${labels[activeIndex]}.`;
+        previousButton.disabled = activeIndex === 0;
+        nextButton.disabled = activeIndex === tabs.length - 1;
+        if (moveFocus) {
+          tabs[activeIndex].focus();
+        }
+        if (scrollToCockpit) {
+          window.scrollTo({
+            top: document.querySelector(".cockpit-shell").offsetTop,
+            behavior: reduceMotion ? "auto" : "smooth"
+          });
+        }
+      }
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => activateStage(index));
+        tab.addEventListener("keydown", (event) => {
+          if (event.key === "ArrowRight") {
+            event.preventDefault();
+            activateStage(index + 1, true);
+          }
+          if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            activateStage(index - 1, true);
+          }
+          if (event.key === "Home") {
+            event.preventDefault();
+            activateStage(0, true);
+          }
+          if (event.key === "End") {
+            event.preventDefault();
+            activateStage(tabs.length - 1, true);
+          }
+        });
+      });
+
+      previousButton.addEventListener("click", () => activateStage(activeIndex - 1, true));
+      nextButton.addEventListener("click", () => activateStage(activeIndex + 1, true));
+
+      document.querySelectorAll(".reveal-button").forEach((button) => {
+        const answer = document.getElementById(button.getAttribute("aria-controls"));
+        answer.hidden = true;
+        button.setAttribute("aria-expanded", "false");
+        button.textContent = "Revelar resposta";
+        button.addEventListener("click", () => {
+          const expanded = button.getAttribute("aria-expanded") === "true";
+          button.setAttribute("aria-expanded", String(!expanded));
+          answer.hidden = expanded;
+          button.textContent = expanded ? "Revelar resposta" : "Ocultar resposta";
+        });
+      });
+
+      const architectureBoard = document.getElementById("architecture-board");
+      const minimalView = document.getElementById("minimal-view");
+      const scaledView = document.getElementById("scaled-view");
+      const diagramDesc = document.getElementById("diagram-desc");
+      const diagramStatus = document.getElementById("diagram-status");
+      const flowDescriptions = {
+        minimal: {
+          all: "Visão mínima com todos os fluxos: escrita de postagem, leitura de feed e atualização da relação de follow atravessam cliente, API, serviços e banco.",
+          write: "Visão mínima, fluxo de escrita: o cliente passa pela API para publicar no Post service ou atualizar uma relação no Follow service; ambos persistem na fonte de verdade.",
+          read: "Visão mínima, fluxo de leitura tracejado e marcado com R: o cliente passa pela API e pelo Feed service, que consulta postagens e relações de follow no banco.",
+          async: "Visão mínima: nenhum fluxo assíncrono foi introduzido; o filtro permanece vazio para tornar essa ausência explícita.",
+          failure: "Visão mínima: recuperação ainda não foi desenhada; a ausência destaca o risco que será tratado na visão escalada."
+        },
+        scaled: {
+          all: "Hipótese pedagógica de arquitetura escalada: publicação usa Post service, Posts DB, outbox transacional/CDC, workers e Feed store; leitura usa Feed service, cache, Feed store, Follow store e overlay dos posts do próprio autor; seguir usa Follow service e Follow store; a réplica suporta desvio, failover e reconciliação.",
+          write: "Visão escalada, fluxos de escrita sólidos e marcados com W: publicar grava no Posts DB; seguir grava no Follow store por meio do Follow service.",
+          read: "Visão escalada, fluxos de leitura tracejados e marcados com R: o Feed service consulta cache, Feed store, Follow store e overlay autoritativo dos posts do próprio autor para garantir read-your-writes.",
+          async: "Visão escalada, fluxo assíncrono pontilhado e marcado com A: o Posts DB registra outbox transacional lida por CDC, workers idempotentes materializam o Feed store e a réplica recebe dados com lag monitorado.",
+          failure: "Visão escalada, fluxo de falha marcado com exclamação: o Post service desvia escritas para a réplica somente após promoção segura; leituras degradam por cache e Feed store; quando o primário retorna, o sistema reconcilia dados e visões derivadas."
+        }
+      };
+      const viewLabels = { minimal: "mínima", scaled: "escalada" };
+      const flowLabels = {
+        all: "todos os fluxos",
+        write: "escrita",
+        read: "leitura",
+        async: "assíncrono",
+        failure: "falha"
+      };
+
+      function updateDiagramDescription() {
+        const view = architectureBoard.dataset.view;
+        const flow = architectureBoard.dataset.flow;
+        const description = flowDescriptions[view][flow];
+        diagramDesc.textContent = description;
+        diagramStatus.textContent = `Diagrama: visão ${viewLabels[view]}; fluxo ${flowLabels[flow]}. ${description}`;
+      }
+
+      function setArchitectureView(view) {
+        architectureBoard.dataset.view = view;
+        minimalView.toggleAttribute("hidden", view === "scaled");
+        scaledView.toggleAttribute("hidden", view === "minimal");
+        document.querySelectorAll(".view-button").forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.view === view));
+        });
+        updateDiagramDescription();
+      }
+
+      function setArchitectureFlow(flow) {
+        architectureBoard.dataset.flow = flow;
+        document.querySelectorAll(".flow-button").forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.flow === flow));
+        });
+        updateDiagramDescription();
+      }
+
+      document.querySelectorAll(".view-button").forEach((button) => {
+        button.addEventListener("click", () => setArchitectureView(button.dataset.view));
+      });
+
+      document.querySelectorAll(".flow-button").forEach((button) => {
+        button.addEventListener("click", () => setArchitectureFlow(button.dataset.flow));
+      });
+
+      const tradeGrid = document.getElementById("trade-grid");
+      document.querySelectorAll(".compare-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          tradeGrid.dataset.choice = button.dataset.choice;
+          document.querySelectorAll(".compare-button").forEach((candidate) => {
+            candidate.setAttribute("aria-pressed", String(candidate === button));
+          });
+        });
+      });
+
+      setArchitectureView("minimal");
+      setArchitectureFlow("all");
+      activateStage(0, false, false);
+    })();
+  </script>
+</body>
+</html>

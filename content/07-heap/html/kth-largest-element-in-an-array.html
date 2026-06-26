@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kth Largest Element in an Array - Interview Prep</title>
+  <style>
+    :root {
+      --bg: #0a1216;
+      --panel: rgba(11, 23, 28, 0.86);
+      --panel-strong: rgba(8, 17, 22, 0.96);
+      --line: rgba(109, 209, 255, 0.16);
+      --text: #e5f6fb;
+      --muted: #8ca6b0;
+      --accent: #79e0ff;
+      --accent-2: #ffd166;
+      --good: #8ef0b8;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(121, 224, 255, 0.18), transparent 28%),
+        linear-gradient(180deg, rgba(255, 209, 102, 0.08), transparent 28%),
+        repeating-linear-gradient(90deg, rgba(121, 224, 255, 0.05) 0 1px, transparent 1px 38px),
+        repeating-linear-gradient(0deg, rgba(121, 224, 255, 0.04) 0 1px, transparent 1px 38px),
+        var(--bg);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 36px 18px 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(121, 224, 255, 0.06), transparent 45%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 12px;
+      font-size: clamp(2.4rem, 5vw, 4.5rem);
+      line-height: 0.94;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+    }
+
+    p, li {
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .deck { color: var(--muted); max-width: 58ch; }
+
+    .stats {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.5rem;
+      color: var(--good);
+      margin-bottom: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .strip {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .badge {
+      border: 1px solid var(--line);
+      padding: 7px 10px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(6, 13, 17, 0.55);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: var(--panel-strong);
+      border: 1px solid rgba(255, 209, 102, 0.15);
+      color: #f3fbff;
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="panel">
+        <div class="eyebrow">Control Room / Heap Filter</div>
+        <h1>Kth Largest Element in an Array</h1>
+        <p class="deck">O entrevistador nao quer saber se voce consegue ordenar. Ele quer saber se voce percebe que a pergunta pede filtragem incremental: preservar apenas os `k` maiores enquanto o restante pode ser descartado.</p>
+        <div class="strip">
+          <span class="badge">min-heap</span>
+          <span class="badge">top-k</span>
+          <span class="badge">selection</span>
+        </div>
+      </article>
+      <aside class="panel stats">
+        <div class="stat">
+          <strong>Naive</strong>
+          <div>O(n log n)</div>
+        </div>
+        <div class="stat">
+          <strong>Optimized</strong>
+          <div>O(n log k)</div>
+        </div>
+        <div class="stat">
+          <strong>Memory</strong>
+          <div>O(k)</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Prompt</h2>
+        <p>Dado `nums` e `k`, retorne o `k`-esimo maior valor do array. Nao e o `k`-esimo distinto; e a posicao na ordem classificada.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Hints</h2>
+        <ol>
+          <li>Voce precisa mesmo da ordem completa dos `n` elementos?</li>
+          <li>Que estrutura mantem o menor entre os `k` melhores sempre visivel?</li>
+          <li>O que acontece se a heap ultrapassar tamanho `k`?</li>
+        </ol>
+      </article>
+
+      <article class="panel">
+        <h2>Naive Path</h2>
+        <p>Ordene tudo em ordem decrescente e leia `nums[k - 1]`. Funciona, mas paga custo global para responder uma pergunta local.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Optimized Path</h2>
+        <p>Mantenha uma min-heap de tamanho `k`. Quando ela cresce demais, remova o menor. No fim, a raiz da heap e o `k`-esimo maior global.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Complexity</h2>
+        <ul>
+          <li><strong>Tempo:</strong> O(n log k), porque cada elemento gera no maximo operacoes de heap sobre tamanho controlado `k`.</li>
+          <li><strong>Espaco:</strong> O(k), porque a heap nunca armazena mais que `k` elementos.</li>
+          <li><strong>Entrevista:</strong> a frase forte e "eu nao preciso do array ordenado; eu so preciso preservar a fronteira dos `k` maiores".</li>
+        </ul>
+      </article>
+
+      <article class="panel wide">
+        <h2>Final Solution</h2>
+        <pre>import heapq
+
+
+def findKthLargest(nums: list[int], k: int) -&gt; int:
+    heap: list[int] = []
+
+    for value in nums:
+        heapq.heappush(heap, value)
+        if len(heap) &gt; k:
+            heapq.heappop(heap)
+
+    return heap[0]</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Path With Minimum Effort - Interview Prep</title>
+  <style>
+    :root {
+      --bg: #07131a;
+      --panel: rgba(9, 23, 32, 0.86);
+      --panel-2: rgba(7, 27, 38, 0.95);
+      --line: rgba(106, 240, 255, 0.18);
+      --text: #e5fcff;
+      --muted: #91cad3;
+      --accent: #6af0ff;
+      --accent-2: #ffd36a;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 16%, rgba(106, 240, 255, 0.15), transparent 24%),
+        radial-gradient(circle at 80% 14%, rgba(255, 211, 106, 0.12), transparent 18%),
+        linear-gradient(180deg, #07131a, #0a1d27 55%, #07131a);
+    }
+    .page { max-width: 1180px; margin: 0 auto; padding: 34px 18px 72px; }
+    .hero, .grid { display: grid; gap: 22px; }
+    .hero { grid-template-columns: 1.08fr 0.92fr; margin-bottom: 22px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card { background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 24px; backdrop-filter: blur(8px); }
+    .eyebrow { text-transform: uppercase; letter-spacing: 0.24em; font-size: 12px; color: var(--accent); }
+    h1 { margin: 10px 0 14px; font-size: clamp(2.3rem, 4vw, 4rem); line-height: 0.95; }
+    h2 { margin: 0 0 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.05rem; }
+    p, li { color: var(--muted); line-height: 1.7; }
+    ul, ol { margin: 0; padding-left: 20px; }
+    .metrics { display: grid; gap: 12px; }
+    .metric { background: var(--panel-2); border: 1px solid var(--line); padding: 12px 14px; }
+    .wide { grid-column: 1 / -1; }
+    .cells {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .cells span {
+      text-align: center;
+      padding: 12px 10px;
+      border: 1px solid var(--line);
+      background: rgba(106, 240, 255, 0.08);
+    }
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #031017;
+      border: 1px solid rgba(106, 240, 255, 0.14);
+      color: #dffaff;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+      .cells { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Terrain Radar</div>
+        <h1>Path With Minimum Effort</h1>
+        <p>A leitura correta e minimax: o custo do caminho nao e a soma dos saltos, mas o pior salto que voce foi obrigado a aceitar ate o destino.</p>
+        <div class="cells" aria-hidden="true">
+          <span>1</span>
+          <span>2</span>
+          <span>2</span>
+          <span>3</span>
+          <span>3</span>
+          <span>8</span>
+          <span>2</span>
+          <span>1</span>
+        </div>
+      </article>
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> minimize o maior salto</div>
+        <div class="metric"><strong>State:</strong> (effort, row, col)</div>
+        <div class="metric"><strong>Relax:</strong> max(current, edge)</div>
+        <div class="metric"><strong>Tempo:</strong> O(R * C * log(R * C))</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Encontre um caminho do canto superior esquerdo ao inferior direito cujo pior degrau entre celulas adjacentes seja o menor possivel.</p>
+      </article>
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Pense em custo do caminho, nao de uma unica aresta.</li>
+          <li>O custo novo e o maximo entre esforco atual e salto local.</li>
+          <li>A heap deve ordenar pelo menor pior salto conhecido.</li>
+        </ol>
+      </article>
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Backtracking por todos os caminhos da grade tenta combinacoes demais e recalcula varias vezes o mesmo estado com esforcos piores.</p>
+      </article>
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Use Dijkstra minimax. A melhor fronteira e a celula cujo maior salto acumulado ate agora e o menor entre todos os candidatos vivos.</p>
+      </article>
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>Este problema diferencia quem memoriza Dijkstra de quem entende o padrao. A soma foi trocada por uma funcao monotona de maximo.</p>
+      </article>
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>import heapq
+
+
+def minimumEffortPath(heights: list[list[int]]) -&gt; int:
+    rows = len(heights)
+    cols = len(heights[0])
+    inf = float("inf")
+
+    effort = [[inf] * cols for _ in range(rows)]
+    effort[0][0] = 0
+    heap = [(0, 0, 0)]
+    directions = ((1, 0), (-1, 0), (0, 1), (0, -1))
+
+    while heap:
+        current_effort, row, col = heapq.heappop(heap)
+
+        if row == rows - 1 and col == cols - 1:
+            return current_effort
+
+        if current_effort &gt; effort[row][col]:
+            continue
+
+        for delta_row, delta_col in directions:
+            next_row = row + delta_row
+            next_col = col + delta_col
+
+            if not (0 &lt;= next_row &lt; rows and 0 &lt;= next_col &lt; cols):
+                continue
+
+            edge_cost = abs(heights[row][col] - heights[next_row][next_col])
+            next_effort = max(current_effort, edge_cost)
+
+            if next_effort &lt; effort[next_row][next_col]:
+                effort[next_row][next_col] = next_effort
+                heapq.heappush(heap, (next_effort, next_row, next_col))
+
+    return 0</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

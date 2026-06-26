@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04 Array - Best Time to Buy and Sell Stock</title>
+  <style>
+    :root {
+      --paper: #f5f0e6;
+      --ink: #1f1914;
+      --muted: #6d6157;
+      --accent: #8a3f2b;
+      --accent-soft: #efd6cb;
+      --line: #d7c7b8;
+      --panel: rgba(255, 252, 247, 0.9);
+      --shadow: 0 20px 46px rgba(78, 49, 35, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Palatino Linotype", Georgia, serif;
+      background:
+        linear-gradient(135deg, rgba(138, 63, 43, 0.1), transparent 28%),
+        radial-gradient(circle at top right, rgba(138, 63, 43, 0.12), transparent 24%),
+        repeating-linear-gradient(0deg, #f6f1e7 0, #f6f1e7 31px, #efe7da 31px, #efe7da 32px);
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 42px 20px 72px;
+    }
+
+    .hero, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.77rem;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: var(--accent);
+      font-size: 1.2rem;
+    }
+
+    p, li {
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 22px;
+    }
+
+    .tape {
+      display: inline-block;
+      padding: 4px 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      background: #201a17;
+      color: #fff5ed;
+      font-family: "Courier New", monospace;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Topico 04 - Caderno de entrevista</div>
+      <h1>Best Time to Buy and Sell Stock</h1>
+      <p>Esta pagina local e autocontida transforma o problema em um roteiro de entrevista. Como a fonte do curso nao tem captions, o conteudo abaixo e uma sintese de estudo derivada do tema de arrays e do repertorio classico de entrevistas.</p>
+      <p><strong>Prompt:</strong> Dado `prices`, encontre o maior lucro possivel com no maximo uma compra e uma venda, respeitando a ordem temporal.</p>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <div class="tape">Hints</div>
+        <ul>
+          <li>Se voce vender hoje, qual e a melhor compra que poderia ter acontecido antes?</li>
+          <li>O problema parece de pares, mas nao precisa guardar todos eles.</li>
+          <li>Mantenha estado incremental, nao historico completo.</li>
+        </ul>
+      </article>
+
+      <article class="panel">
+        <div class="tape">Caminho ingenuo</div>
+        <p>Testar todos os pares de compra e venda produz uma solucao simples, mas quadratica. Ela reaproveita mal a informacao de menor preco ja vista.</p>
+      </article>
+
+      <article class="panel">
+        <div class="tape">Caminho otimizado</div>
+        <p>Uma passada basta: acompanhe o menor preco ate agora e, em cada dia, calcule o lucro potencial de vender naquele ponto.</p>
+      </article>
+
+      <article class="panel">
+        <div class="tape">Complexidade</div>
+        <p><strong>Tempo:</strong> O(n)</p>
+        <p><strong>Espaco:</strong> O(1)</p>
+        <p>Cada dia entra uma vez no calculo, e o algoritmo so carrega dois valores agregados.</p>
+      </article>
+    </section>
+
+    <section class="panel" style="margin-top: 20px;">
+      <h2>Solucao final</h2>
+      <pre>def maxProfit(prices):
+    min_price = float("inf")
+    best_profit = 0
+
+    for price in prices:
+        min_price = min(min_price, price)
+        best_profit = max(best_profit, price - min_price)
+
+    return best_profit</pre>
+    </section>
+  </main>
+</body>
+</html>

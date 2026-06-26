@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>05 Stacks and Queues - Daily Temperatures</title>
+  <style>
+    :root {
+      --bg: #f4efe7;
+      --ink: #191612;
+      --muted: #5d554c;
+      --accent: #9b4d20;
+      --accent-soft: #f0d7c7;
+      --line: #dbcdbf;
+      --panel: rgba(255, 250, 244, 0.9);
+      --code: #1b2432;
+      --code-ink: #eef3fb;
+      --shadow: 0 22px 42px rgba(41, 29, 21, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(155, 77, 32, 0.12), transparent 22%),
+        radial-gradient(circle at 88% 18%, rgba(155, 77, 32, 0.1), transparent 18%),
+        linear-gradient(180deg, #f8f3ec 0%, var(--bg) 100%);
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 42px 18px 76px;
+    }
+
+    .hero, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      font-size: 0.78rem;
+    }
+
+    h1 { margin: 8px 0 12px; font-size: clamp(2rem, 4vw, 3.2rem); }
+    h2 { margin-top: 0; color: var(--accent); }
+    p, li { line-height: 1.72; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 22px;
+    }
+
+    .ribbon {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.95rem;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow: auto;
+      background: var(--code);
+      color: var(--code-ink);
+      font-family: "Courier New", monospace;
+      white-space: pre-wrap;
+    }
+
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Topico 05 · Monotonic stack</div>
+      <h1>Daily Temperatures</h1>
+      <p><strong>Prompt:</strong> Para cada dia, informe quantos dias faltam ate aparecer uma temperatura estritamente maior.</p>
+      <div class="ribbon">Fonte indireta: o curso menciona monotonic deque e Sliding Window Maximum; esta pagina usa Daily Temperatures como treino equivalente de monotonic structure.</div>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Hints</h2>
+        <ul>
+          <li>Voce nao quer comparar cada dia com todos os seguintes.</li>
+          <li>A estrutura certa precisa lembrar apenas dias ainda nao resolvidos.</li>
+          <li>Guarde indices, nao apenas valores, porque a resposta depende da distancia.</li>
+        </ul>
+      </article>
+
+      <article class="panel">
+        <h2>Caminho ingenuo</h2>
+        <p>Para cada dia, varrer todos os proximos dias funciona, mas repete comparacoes demais. Em sequencias decrescentes, o custo explode para O(n^2).</p>
+      </article>
+
+      <article class="panel">
+        <h2>Caminho otimizado</h2>
+        <p>Mantenha uma stack monotonic decrescente de indices. Quando surge uma temperatura maior, ela resolve em lote os dias do topo que estavam esperando por esse momento.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Complexidade</h2>
+        <p><strong>Tempo:</strong> O(n)</p>
+        <p><strong>Espaco:</strong> O(n)</p>
+        <p>Cada indice entra e sai da stack no maximo uma vez. Esse e o argumento amortizado que protege o algoritmo contra leitura superficial de "for + while".</p>
+      </article>
+    </section>
+
+    <section class="panel" style="margin-top: 20px;">
+      <h2>Solucao final</h2>
+      <pre>def dailyTemperatures(temperatures):
+    answer = [0] * len(temperatures)
+    stack = []
+
+    for index, current in enumerate(temperatures):
+        while stack and current > temperatures[stack[-1]]:
+            prev_index = stack.pop()
+            answer[prev_index] = index - prev_index
+
+        stack.append(index)
+
+    return answer</pre>
+    </section>
+  </main>
+</body>
+</html>

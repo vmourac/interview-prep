@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Schedule II - Interview Prep</title>
+  <style>
+    :root {
+      --bg: #f4f0e6;
+      --panel: rgba(250, 246, 239, 0.95);
+      --ink: #1c2730;
+      --muted: #55636d;
+      --line: rgba(28, 39, 48, 0.15);
+      --accent: #1d5f73;
+      --accent-soft: rgba(29, 95, 115, 0.11);
+      --accent-strong: #c9892a;
+      --shadow: 0 28px 64px rgba(28, 39, 48, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(29, 95, 115, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(29, 95, 115, 0.05) 1px, transparent 1px),
+        radial-gradient(circle at 15% 15%, rgba(201, 137, 42, 0.16), transparent 20%),
+        radial-gradient(circle at 85% 10%, rgba(29, 95, 115, 0.16), transparent 24%),
+        var(--bg);
+      background-size: 28px 28px, 28px 28px, auto, auto, auto;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 18px 70px;
+    }
+
+    .hero, .grid { display: grid; gap: 22px; }
+    .hero { grid-template-columns: 1.1fr 0.9fr; margin-bottom: 24px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+      opacity: 0.75;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.4rem, 4.5vw, 4.3rem);
+      line-height: 0.95;
+    }
+
+    h2 { margin: 0 0 10px; color: var(--accent); font-size: 1.1rem; }
+    p, li { line-height: 1.72; color: var(--muted); }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .metrics { display: grid; gap: 12px; }
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+      padding: 12px 14px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .slot {
+      border: 1px dashed var(--line);
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.46);
+      min-height: 88px;
+    }
+
+    .pill {
+      display: inline-block;
+      margin: 4px 6px 0 0;
+      padding: 6px 10px;
+      background: rgba(29, 95, 115, 0.14);
+      border: 1px solid rgba(29, 95, 115, 0.22);
+      font-weight: 700;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #142029;
+      color: #eef6fa;
+      border-radius: 12px;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 920px) {
+      .hero, .grid, .board { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Scheduling Board</div>
+        <h1>Course Schedule II</h1>
+        <p>O entrevistador quer ver se voce sai do booleano de ciclo e produz a ordem concreta dos cursos usando os nos que estao liberados agora.</p>
+        <div class="board" aria-hidden="true">
+          <div class="slot"><strong>Ready</strong><br><span class="pill">0</span><span class="pill">4</span></div>
+          <div class="slot"><strong>After 0</strong><br><span class="pill">1</span></div>
+          <div class="slot"><strong>After 1</strong><br><span class="pill">2</span></div>
+          <div class="slot"><strong>After 2</strong><br><span class="pill">3</span></div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> DAG de prerequisitos</div>
+        <div class="metric"><strong>Tempo:</strong> O(V + E)</div>
+        <div class="metric"><strong>Espaco:</strong> O(V + E)</div>
+        <div class="metric"><strong>Ferramenta:</strong> indegree + fila</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Retorne uma ordem valida de cursos. Se o grafo tiver ciclo, a resposta precisa ser lista vazia.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Defina a aresta como prereq aponta para course.</li>
+          <li>`indegree == 0` significa curso liberado.</li>
+          <li>Se faltar curso no final, havia ciclo.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Tentar permutar agendas de cursos por backtracking ignora a estrutura do grafo e explode em combinacoes.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Use Kahn. Retire cursos liberados, reduza indegree dos dependentes e construa a ordem incrementalmente.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>Fale que topological sort responde as duas perguntas ao mesmo tempo: qual ordem funciona e como provar que uma ordem nao existe.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>from collections import deque
+
+
+def findOrder(numCourses: int, prerequisites: list[list[int]]) -&gt; list[int]:
+    graph = [[] for _ in range(numCourses)]
+    indegree = [0] * numCourses
+
+    for course, prereq in prerequisites:
+        graph[prereq].append(course)
+        indegree[course] += 1
+
+    queue = deque(course for course in range(numCourses) if indegree[course] == 0)
+    order = []
+
+    while queue:
+        course = queue.popleft()
+        order.append(course)
+
+        for neighbor in graph[course]:
+            indegree[neighbor] -= 1
+            if indegree[neighbor] == 0:
+                queue.append(neighbor)
+
+    return order if len(order) == numCourses else []</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

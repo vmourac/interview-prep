@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maximum Subarray - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #fcf7ef;
+      --ink: #171614;
+      --muted: #5f5a52;
+      --accent: #0d6b63;
+      --accent-soft: rgba(13, 107, 99, 0.14);
+      --line: rgba(23, 22, 20, 0.12);
+      --card: rgba(255, 255, 255, 0.82);
+      --shadow: 0 22px 52px rgba(19, 31, 28, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(13, 107, 99, 0.08), transparent 40%),
+        repeating-linear-gradient(90deg, rgba(13, 107, 99, 0.035) 0 1px, transparent 1px 24px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 42px 20px 80px;
+    }
+
+    .masthead {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .title {
+      font-size: clamp(2.2rem, 4vw, 4.1rem);
+      line-height: 0.95;
+      margin: 10px 0 14px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      color: var(--accent);
+    }
+
+    .deck {
+      color: var(--muted);
+      max-width: 56ch;
+      line-height: 1.8;
+    }
+
+    .stats {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+      background:
+        linear-gradient(180deg, rgba(13, 107, 99, 0.08), transparent),
+        var(--card);
+    }
+
+    .stats strong {
+      display: block;
+      font-size: 1.7rem;
+      margin-bottom: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .wide { grid-column: 1 / -1; }
+    h2 { margin-top: 0; font-size: 1.2rem; }
+    p, li { line-height: 1.75; }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      border-radius: 10px;
+      background: #122321;
+      color: #eef8f7;
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    .tags span {
+      display: inline-block;
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      margin: 0 8px 8px 0;
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    @media (max-width: 860px) {
+      .masthead,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="masthead">
+      <article class="card">
+        <div class="eyebrow">Editorial Drill</div>
+        <h1 class="title">Maximum Subarray</h1>
+        <p class="deck">Aqui o entrevistador quer ver a virada mental: sair da enumeracao de todos os intervalos e perceber que um prefixo ruim pode ser descartado imediatamente. E um teste de clareza sobre por que uma decisao local ainda preserva a melhor resposta global.</p>
+        <div class="tags">
+          <span>array</span>
+          <span>kadane</span>
+          <span>dp</span>
+        </div>
+      </article>
+      <aside class="card stats">
+        <div>
+          <strong>Naive</strong>
+          <div>O(n^2) tempo</div>
+        </div>
+        <div>
+          <strong>Optimized</strong>
+          <div>O(n) tempo</div>
+        </div>
+        <div>
+          <strong>Memory</strong>
+          <div>O(1) espaco adicional</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dado um array de inteiros, encontre a maior soma possivel entre todos os subarrays contiguos nao vazios.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Se a soma acumulada anterior ficou negativa, ela ajuda ou atrapalha?</li>
+          <li>Voce precisa guardar todos os subarrays ou apenas o melhor que termina na posicao atual?</li>
+          <li>Como atualizar a melhor resposta global durante um unico percurso?</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Escolha cada indice inicial e expanda o fim do intervalo. Mesmo reaproveitando a soma conforme expande, ainda existem O(n^2) subarrays contiguos a considerar.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Para cada valor, escolha entre recomecar nele ou estender o subarray anterior. Se o passado tornou a soma pior do que recomecar, descarte-o. Esse e o nucleo do algoritmo de Kadane.</p>
+      </article>
+
+      <article class="card">
+        <h2>Complexity</h2>
+        <ul>
+          <li><strong>Tempo:</strong> O(n), porque ha um unico percurso e custo constante por elemento.</li>
+          <li><strong>Espaco:</strong> O(1), porque so duas variaveis acompanham estado local e melhor resposta.</li>
+          <li><strong>Entrevista:</strong> explique por que um prefixo negativo nunca ajuda um subarray futuro.</li>
+        </ul>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>def maxSubArray(nums: list[int]) -&gt; int:
+    best = nums[0]
+    current = nums[0]
+
+    for value in nums[1:]:
+        current = max(value, current + value)
+        best = max(best, current)
+
+    return best</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Min Cost to Connect All Points - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #e9e6de;
+      --ink: #1d2221;
+      --muted: #4e5f59;
+      --line: rgba(29, 34, 33, 0.14);
+      --accent: #2d6a52;
+      --accent-soft: rgba(45, 106, 82, 0.12);
+      --card: rgba(252, 250, 245, 0.94);
+      --shadow: 0 26px 58px rgba(35, 42, 40, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(45, 106, 82, 0.11), transparent 30%),
+        repeating-linear-gradient(0deg, transparent 0 36px, rgba(29, 34, 33, 0.03) 36px 37px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 18px 72px;
+    }
+
+    .hero, .grid { display: grid; gap: 22px; }
+    .hero { grid-template-columns: 1.06fr 0.94fr; margin-bottom: 24px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      line-height: 0.95;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 1.12rem; color: var(--accent); }
+    p, li { line-height: 1.72; color: var(--muted); }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .plot {
+      position: relative;
+      height: 220px;
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      background:
+        repeating-linear-gradient(0deg, transparent 0 43px, rgba(29, 34, 33, 0.04) 43px 44px),
+        repeating-linear-gradient(90deg, transparent 0 43px, rgba(29, 34, 33, 0.04) 43px 44px),
+        var(--accent-soft);
+    }
+
+    .dot {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      transform: translate(-50%, -50%);
+    }
+
+    .metrics { display: grid; gap: 12px; }
+    .metric {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: #141917;
+      color: #eef5f1;
+      border-radius: 10px;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Cost Surface</div>
+        <h1>Min Cost to Connect All Points</h1>
+        <p>Mesmo sem o termo MST no enunciado, o objetivo e construir uma rede que conecte todos os pontos pelo menor custo total possivel.</p>
+        <div class="plot" aria-hidden="true">
+          <div class="dot" style="left: 16%; top: 68%;"></div>
+          <div class="dot" style="left: 31%; top: 24%;"></div>
+          <div class="dot" style="left: 52%; top: 57%;"></div>
+          <div class="dot" style="left: 74%; top: 18%;"></div>
+          <div class="dot" style="left: 84%; top: 74%;"></div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> conectar tudo com custo minimo</div>
+        <div class="metric"><strong>Tempo:</strong> O(n^2)</div>
+        <div class="metric"><strong>Espaco:</strong> O(n)</div>
+        <div class="metric"><strong>Estrategia:</strong> Prim sem heap</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dado um conjunto de pontos no plano, conecte todos eles minimizando a soma das distancias Manhattan usadas.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>O grafo implicito e completo: todo par de pontos tem uma aresta.</li>
+          <li>Voce nao precisa construir todas as arestas explicitamente para usar Prim.</li>
+          <li>`min_dist[i]` e o melhor custo atual para puxar o ponto `i` para dentro da MST.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Enumerar arvores candidatas ou comparar muitas combinacoes de conexoes e inviavel porque o espaco de busca explode.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Cresca a arvore ponto a ponto, sempre anexando o vertice fora da MST com menor custo de conexao conhecido.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O argumento decisivo aqui e escolher Prim porque o custo entre dois pontos pode ser calculado sob demanda, evitando listar e ordenar `O(n^2)` arestas.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>def minCostConnectPoints(points: list[list[int]]) -&gt; int:
+    n = len(points)
+    in_mst = [False] * n
+    min_dist = [float("inf")] * n
+    min_dist[0] = 0
+    total_cost = 0
+
+    for _ in range(n):
+        current = -1
+
+        for node in range(n):
+            if not in_mst[node] and (current == -1 or min_dist[node] &lt; min_dist[current]):
+                current = node
+
+        in_mst[current] = True
+        total_cost += min_dist[current]
+
+        x1, y1 = points[current]
+
+        for neighbor in range(n):
+            if in_mst[neighbor]:
+                continue
+
+            x2, y2 = points[neighbor]
+            cost = abs(x1 - x2) + abs(y1 - y2)
+
+            if cost &lt; min_dist[neighbor]:
+                min_dist[neighbor] = cost
+
+    return total_cost</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top K Frequent Words - Interview Prep</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: rgba(20, 25, 31, 0.9);
+      --panel-soft: rgba(15, 21, 27, 0.96);
+      --line: rgba(246, 173, 85, 0.18);
+      --text: #f5efe6;
+      --muted: #b7afa2;
+      --accent: #f6ad55;
+      --accent-2: #7dd3fc;
+      --good: #9ae6b4;
+      --shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Verdana, Geneva, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(246, 173, 85, 0.16), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(125, 211, 252, 0.13), transparent 32%),
+        repeating-linear-gradient(90deg, rgba(246, 173, 85, 0.05) 0 1px, transparent 1px 34px),
+        var(--bg);
+    }
+
+    .page {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 38px 18px 70px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.24em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 10px 0 12px;
+      font-size: clamp(2.2rem, 4.6vw, 4.2rem);
+      line-height: 0.95;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: var(--accent-2);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 1rem;
+    }
+
+    p, li {
+      line-height: 1.72;
+    }
+
+    .deck { color: var(--muted); max-width: 56ch; }
+
+    .stats {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .stats strong {
+      display: block;
+      font-size: 1.45rem;
+      color: var(--good);
+      margin-bottom: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      padding: 7px 10px;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      background: rgba(12, 17, 22, 0.65);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: var(--panel-soft);
+      border: 1px solid rgba(125, 211, 252, 0.14);
+      color: #f8fafc;
+      line-height: 1.55;
+      font-size: 0.94rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="panel">
+        <div class="eyebrow">Control Room / Ranked Signals</div>
+        <h1>Top K Frequent Words</h1>
+        <p class="deck">Aqui heap sozinha nao basta. O entrevistador quer ver se voce combina contagem, ranking parcial e desempate lexicografico sem cair na tentacao de ordenar tudo.</p>
+        <div class="chips">
+          <span class="chip">frequency map</span>
+          <span class="chip">min-heap</span>
+          <span class="chip">compound ordering</span>
+        </div>
+      </article>
+      <aside class="panel stats">
+        <div>
+          <strong>Naive</strong>
+          <div>O(n + m log m)</div>
+        </div>
+        <div>
+          <strong>Optimized</strong>
+          <div>O(n + m log k + k log k)</div>
+        </div>
+        <div>
+          <strong>Memory</strong>
+          <div>O(m + k)</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Prompt</h2>
+        <p>Dado um array de palavras e um inteiro `k`, devolva as `k` palavras mais frequentes. Empates de frequencia devem respeitar ordem lexicografica crescente.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Hints</h2>
+        <ol>
+          <li>Qual parte do problema e so dicionario?</li>
+          <li>Como representar "pior candidato atual" em uma heap de tamanho fixo?</li>
+          <li>Por que talvez valha ordenar so os `k` sobreviventes no fim?</li>
+        </ol>
+      </article>
+
+      <article class="panel">
+        <h2>Naive Path</h2>
+        <p>Conte tudo e ordene todas as palavras distintas pela regra final do problema. Correto, mas gasta `log m` sobre todo o universo distinto.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Optimized Path</h2>
+        <p>Conte frequencias e mantenha so os `k` melhores em uma min-heap. O topo representa o pior entre os escolhidos; quando aparece algo melhor, ele sai.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Complexity</h2>
+        <ul>
+          <li><strong>Tempo:</strong> O(n + m log k + k log k).</li>
+          <li><strong>Espaco:</strong> O(m + k).</li>
+          <li><strong>Entrevista:</strong> explique com clareza o desempate lexicografico. Esse e o ponto que mais derruba respostas mecanicas.</li>
+        </ul>
+      </article>
+
+      <article class="panel wide">
+        <h2>Final Solution</h2>
+        <pre>import heapq
+from collections import Counter
+
+
+class Entry:
+    def __init__(self, word: str, count: int) -&gt; None:
+        self.word = word
+        self.count = count
+
+    def __lt__(self, other: "Entry") -&gt; bool:
+        if self.count == other.count:
+            return self.word &gt; other.word
+        return self.count &lt; other.count
+
+
+def topKFrequent(words: list[str], k: int) -&gt; list[str]:
+    freq = Counter(words)
+    heap: list[Entry] = []
+
+    for word, count in freq.items():
+        heapq.heappush(heap, Entry(word, count))
+        if len(heap) &gt; k:
+            heapq.heappop(heap)
+
+    result = []
+    while heap:
+        result.append(heapq.heappop(heap))
+
+    result.sort(key=lambda entry: (-entry.count, entry.word))
+    return [entry.word for entry in result]</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

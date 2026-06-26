@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Portal estático de estudo para entrevistas: DSA e System Design.">
+  <title>Interview Prep — Portal de Estudos</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101210;
+      --panel: #181d19;
+      --panel-2: #222820;
+      --ink: #f2eadf;
+      --muted: #aaa196;
+      --line: #3d463d;
+      --gold: #f0b35b;
+      --mint: #8fd6aa;
+      --blue: #8fc7e8;
+      --red: #ef7664;
+      --shadow: 0 22px 70px rgba(0, 0, 0, .35);
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --serif: Georgia, Cambria, "Times New Roman", serif;
+      --sans: "Trebuchet MS", "Gill Sans", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px),
+        radial-gradient(circle at 86% 10%, rgba(240,179,91,.16), transparent 28rem),
+        radial-gradient(circle at 8% 35%, rgba(143,214,170,.10), transparent 30rem),
+        var(--bg);
+      background-size: 34px 34px, 34px 34px, auto, auto, auto;
+      font-family: var(--sans);
+      line-height: 1.55;
+    }
+    a { color: var(--mint); text-underline-offset: .2em; }
+    a:hover { color: var(--ink); }
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    header { padding: clamp(2.5rem, 7vw, 6rem) 0 2rem; }
+    .eyebrow, .stat span, .filter button, .card-meta, .note strong {
+      font: .72rem var(--mono);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .eyebrow { color: var(--gold); }
+    h1 {
+      max-width: 840px;
+      margin: .35rem 0 1rem;
+      font: clamp(3.1rem, 9vw, 7rem)/.88 var(--serif);
+      letter-spacing: -.06em;
+    }
+    .lead { max-width: 760px; color: var(--muted); font-size: 1.08rem; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin: 2rem 0;
+      border: 1px solid var(--line);
+      background: var(--line);
+      box-shadow: var(--shadow);
+    }
+    .stat { padding: 1rem; background: rgba(24,29,25,.96); }
+    .stat strong { display: block; font: 2rem var(--serif); color: var(--ink); }
+    .stat span { color: var(--muted); }
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: .8rem;
+      padding: .9rem 0;
+      background: linear-gradient(var(--bg) 75%, rgba(16,18,16,0));
+    }
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      padding: .9rem 1rem;
+      color: var(--ink);
+      background: rgba(24,29,25,.94);
+      font: 1rem var(--sans);
+    }
+    input:focus { outline: 3px solid rgba(240,179,91,.45); border-color: var(--gold); }
+    .filter { display: flex; gap: .5rem; }
+    .filter button {
+      border: 1px solid var(--line);
+      padding: .85rem .9rem;
+      color: var(--ink);
+      background: var(--panel);
+      cursor: pointer;
+    }
+    .filter button[aria-pressed="true"] {
+      color: #111;
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      padding: 1rem 0 4rem;
+    }
+    .card {
+      display: grid;
+      align-content: start;
+      min-height: 14rem;
+      border: 1px solid var(--line);
+      padding: 1rem;
+      background: linear-gradient(150deg, rgba(255,255,255,.035), transparent), var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .card[hidden] { display: none; }
+    .card-meta { display: flex; flex-wrap: wrap; gap: .4rem; color: var(--muted); }
+    .card-meta span {
+      border: 1px solid var(--line);
+      padding: .18rem .4rem;
+      background: var(--panel-2);
+    }
+    .card h3 {
+      margin: 1rem 0 .4rem;
+      font: 1.55rem/1.08 var(--serif);
+      letter-spacing: -.025em;
+    }
+    .card p {
+      margin: 0 0 1.2rem;
+      color: var(--muted);
+      font: .78rem/1.45 var(--mono);
+      overflow-wrap: anywhere;
+    }
+    .card a {
+      align-self: end;
+      justify-self: start;
+      margin-top: auto;
+      border: 1px solid var(--mint);
+      padding: .55rem .75rem;
+      color: #0d1510;
+      background: var(--mint);
+      text-decoration: none;
+      font: .78rem var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .note {
+      margin: 0 0 1.2rem;
+      border-left: 4px solid var(--red);
+      padding: .9rem 1rem;
+      color: var(--muted);
+      background: rgba(239,118,100,.08);
+    }
+    .note strong { color: var(--red); }
+    footer { border-top: 1px solid var(--line); padding: 1.5rem 0 2rem; color: var(--muted); }
+    @media (max-width: 900px) {
+      .grid, .stats { grid-template-columns: 1fr 1fr; }
+      .toolbar { grid-template-columns: 1fr; position: static; }
+    }
+    @media (max-width: 620px) {
+      .grid, .stats { grid-template-columns: 1fr; }
+      .filter { flex-wrap: wrap; }
+      h1 { font-size: clamp(2.8rem, 18vw, 4.2rem); }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="eyebrow">portal estático · entrevista prep</div>
+      <h1>Treino de entrevistas em HTML.</h1>
+      <p class="lead">Índice pesquisável dos exercícios interativos de algoritmos e dos cockpits de System Design. Cada link abre um HTML autocontido para estudar ou apresentar diretamente no navegador.</p>
+      <div class="stats" aria-label="Resumo do conteúdo publicado">
+        <div class="stat"><strong>58</strong><span>HTMLs publicados</span></div>
+        <div class="stat"><strong>53</strong><span>DSA / algoritmos</span></div>
+        <div class="stat"><strong>5</strong><span>System Design</span></div>
+      </div>
+      <p class="note"><strong>Escopo publicado:</strong> este site inclui somente artefatos de estudo em <code>interview-prep/</code>. Fontes raw, metadados autenticados, relatórios internos e notas de processo não fazem parte do artefato Pages.</p>
+    </header>
+
+    <main>
+      <section class="toolbar" aria-label="Busca e filtros">
+        <label>
+          <span class="eyebrow">buscar exercício</span>
+          <input id="search" type="search" placeholder="Ex.: graph, URL, autocomplete, stack..." autocomplete="off">
+        </label>
+        <div class="filter" role="group" aria-label="Filtrar por categoria">
+          <button type="button" data-filter="all" aria-pressed="true">todos</button>
+          <button type="button" data-filter="DSA" aria-pressed="false">DSA</button>
+          <button type="button" data-filter="System Design" aria-pressed="false">System Design</button>
+        </div>
+      </section>
+      <section class="grid" id="cards" aria-live="polite">
+
+          <article class="card" data-kind="DSA" data-search="binary search estrutura da entrevista dsa dsa 01-estrutura-da-entrevista-dsa/html/binary-search.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Estrutura da Entrevista Dsa</span>
+            </div>
+            <h3>Binary Search</h3>
+            <p>01-estrutura-da-entrevista-dsa/html/binary-search.html</p>
+            <a href="content/01-estrutura-da-entrevista-dsa/html/binary-search.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="two sum estrutura da entrevista dsa dsa 01-estrutura-da-entrevista-dsa/html/two-sum.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Estrutura da Entrevista Dsa</span>
+            </div>
+            <h3>Two Sum</h3>
+            <p>01-estrutura-da-entrevista-dsa/html/two-sum.html</p>
+            <a href="content/01-estrutura-da-entrevista-dsa/html/two-sum.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="valid palindrome estrutura da entrevista dsa dsa 01-estrutura-da-entrevista-dsa/html/valid-palindrome.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Estrutura da Entrevista Dsa</span>
+            </div>
+            <h3>Valid Palindrome</h3>
+            <p>01-estrutura-da-entrevista-dsa/html/valid-palindrome.html</p>
+            <a href="content/01-estrutura-da-entrevista-dsa/html/valid-palindrome.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="climbing stairs analysis of algorithms dsa 02-analysis-of-algorithms/html/climbing-stairs.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Analysis of Algorithms</span>
+            </div>
+            <h3>Climbing Stairs</h3>
+            <p>02-analysis-of-algorithms/html/climbing-stairs.html</p>
+            <a href="content/02-analysis-of-algorithms/html/climbing-stairs.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="contains duplicate analysis of algorithms dsa 02-analysis-of-algorithms/html/contains-duplicate.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Analysis of Algorithms</span>
+            </div>
+            <h3>Contains Duplicate</h3>
+            <p>02-analysis-of-algorithms/html/contains-duplicate.html</p>
+            <a href="content/02-analysis-of-algorithms/html/contains-duplicate.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="maximum subarray analysis of algorithms dsa 02-analysis-of-algorithms/html/maximum-subarray.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Analysis of Algorithms</span>
+            </div>
+            <h3>Maximum Subarray</h3>
+            <p>02-analysis-of-algorithms/html/maximum-subarray.html</p>
+            <a href="content/02-analysis-of-algorithms/html/maximum-subarray.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="03 listas - linked list cycle listas dsa 03-listas/html/linked-list-cycle.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Listas</span>
+            </div>
+            <h3>03 Listas - Linked List Cycle</h3>
+            <p>03-listas/html/linked-list-cycle.html</p>
+            <a href="content/03-listas/html/linked-list-cycle.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="03 listas - merge two sorted lists listas dsa 03-listas/html/merge-two-sorted-lists.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Listas</span>
+            </div>
+            <h3>03 Listas - Merge Two Sorted Lists</h3>
+            <p>03-listas/html/merge-two-sorted-lists.html</p>
+            <a href="content/03-listas/html/merge-two-sorted-lists.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="03 listas - reverse linked list listas dsa 03-listas/html/reverse-linked-list.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Listas</span>
+            </div>
+            <h3>03 Listas - Reverse Linked List</h3>
+            <p>03-listas/html/reverse-linked-list.html</p>
+            <a href="content/03-listas/html/reverse-linked-list.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="04 array - best time to buy and sell stock array dsa 04-array/html/best-time-to-buy-and-sell-stock.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Array</span>
+            </div>
+            <h3>04 Array - Best Time to Buy and Sell Stock</h3>
+            <p>04-array/html/best-time-to-buy-and-sell-stock.html</p>
+            <a href="content/04-array/html/best-time-to-buy-and-sell-stock.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="04 array - product of array except self array dsa 04-array/html/product-of-array-except-self.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Array</span>
+            </div>
+            <h3>04 Array - Product of Array Except Self</h3>
+            <p>04-array/html/product-of-array-except-self.html</p>
+            <a href="content/04-array/html/product-of-array-except-self.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="04 array - three sum array dsa 04-array/html/three-sum.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Array</span>
+            </div>
+            <h3>04 Array - Three Sum</h3>
+            <p>04-array/html/three-sum.html</p>
+            <a href="content/04-array/html/three-sum.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="05 stacks and queues - daily temperatures stacks and queues dsa 05-stacks-and-queues/html/daily-temperatures.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Stacks and Queues</span>
+            </div>
+            <h3>05 Stacks and Queues - Daily Temperatures</h3>
+            <p>05-stacks-and-queues/html/daily-temperatures.html</p>
+            <a href="content/05-stacks-and-queues/html/daily-temperatures.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="05 stacks and queues - implement queue using stacks stacks and queues dsa 05-stacks-and-queues/html/implement-queue-using-stacks.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Stacks and Queues</span>
+            </div>
+            <h3>05 Stacks and Queues - Implement Queue Using Stacks</h3>
+            <p>05-stacks-and-queues/html/implement-queue-using-stacks.html</p>
+            <a href="content/05-stacks-and-queues/html/implement-queue-using-stacks.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="05 stacks and queues - valid parentheses stacks and queues dsa 05-stacks-and-queues/html/valid-parentheses.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Stacks and Queues</span>
+            </div>
+            <h3>05 Stacks and Queues - Valid Parentheses</h3>
+            <p>05-stacks-and-queues/html/valid-parentheses.html</p>
+            <a href="content/05-stacks-and-queues/html/valid-parentheses.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="group anagrams dictionaries dsa 06-dictionaries/html/group-anagrams.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Dictionaries</span>
+            </div>
+            <h3>Group Anagrams</h3>
+            <p>06-dictionaries/html/group-anagrams.html</p>
+            <a href="content/06-dictionaries/html/group-anagrams.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="subarray sum equals k dictionaries dsa 06-dictionaries/html/subarray-sum-equals-k.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Dictionaries</span>
+            </div>
+            <h3>Subarray Sum Equals K</h3>
+            <p>06-dictionaries/html/subarray-sum-equals-k.html</p>
+            <a href="content/06-dictionaries/html/subarray-sum-equals-k.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="top k frequent elements dictionaries dsa 06-dictionaries/html/top-k-frequent-elements.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Dictionaries</span>
+            </div>
+            <h3>Top K Frequent Elements</h3>
+            <p>06-dictionaries/html/top-k-frequent-elements.html</p>
+            <a href="content/06-dictionaries/html/top-k-frequent-elements.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="find median from data stream heap dsa 07-heap/html/find-median-from-data-stream.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Heap</span>
+            </div>
+            <h3>Find Median from Data Stream</h3>
+            <p>07-heap/html/find-median-from-data-stream.html</p>
+            <a href="content/07-heap/html/find-median-from-data-stream.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="kth largest element in an array heap dsa 07-heap/html/kth-largest-element-in-an-array.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Heap</span>
+            </div>
+            <h3>Kth Largest Element in an Array</h3>
+            <p>07-heap/html/kth-largest-element-in-an-array.html</p>
+            <a href="content/07-heap/html/kth-largest-element-in-an-array.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="top k frequent words heap dsa 07-heap/html/top-k-frequent-words.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Heap</span>
+            </div>
+            <h3>Top K Frequent Words</h3>
+            <p>07-heap/html/top-k-frequent-words.html</p>
+            <a href="content/07-heap/html/top-k-frequent-words.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="invert binary tree arvores introducao e pratica dsa 08-arvores-introducao-e-pratica/html/invert-binary-tree.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Arvores Introducao e Pratica</span>
+            </div>
+            <h3>Invert Binary Tree</h3>
+            <p>08-arvores-introducao-e-pratica/html/invert-binary-tree.html</p>
+            <a href="content/08-arvores-introducao-e-pratica/html/invert-binary-tree.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="maximum depth of binary tree arvores introducao e pratica dsa 08-arvores-introducao-e-pratica/html/maximum-depth-of-binary-tree.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Arvores Introducao e Pratica</span>
+            </div>
+            <h3>Maximum Depth of Binary Tree</h3>
+            <p>08-arvores-introducao-e-pratica/html/maximum-depth-of-binary-tree.html</p>
+            <a href="content/08-arvores-introducao-e-pratica/html/maximum-depth-of-binary-tree.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="validate binary search tree arvores introducao e pratica dsa 08-arvores-introducao-e-pratica/html/validate-binary-search-tree.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Arvores Introducao e Pratica</span>
+            </div>
+            <h3>Validate Binary Search Tree</h3>
+            <p>08-arvores-introducao-e-pratica/html/validate-binary-search-tree.html</p>
+            <a href="content/08-arvores-introducao-e-pratica/html/validate-binary-search-tree.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="design add and search words data structure tries dsa 09-tries/html/design-add-and-search-words-data-structure.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Tries</span>
+            </div>
+            <h3>Design Add and Search Words Data Structure</h3>
+            <p>09-tries/html/design-add-and-search-words-data-structure.html</p>
+            <a href="content/09-tries/html/design-add-and-search-words-data-structure.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="implement trie (prefix tree) tries dsa 09-tries/html/implement-trie-prefix-tree.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Tries</span>
+            </div>
+            <h3>Implement Trie (Prefix Tree)</h3>
+            <p>09-tries/html/implement-trie-prefix-tree.html</p>
+            <a href="content/09-tries/html/implement-trie-prefix-tree.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="word search ii tries dsa 09-tries/html/word-search-ii.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Tries</span>
+            </div>
+            <h3>Word Search II</h3>
+            <p>09-tries/html/word-search-ii.html</p>
+            <a href="content/09-tries/html/word-search-ii.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="clone graph graphs introducao dsa 10-graphs-introducao/html/clone-graph.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Introducao</span>
+            </div>
+            <h3>Clone Graph</h3>
+            <p>10-graphs-introducao/html/clone-graph.html</p>
+            <a href="content/10-graphs-introducao/html/clone-graph.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="find if path exists in graph graphs introducao dsa 10-graphs-introducao/html/find-if-path-exists-in-graph.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Introducao</span>
+            </div>
+            <h3>Find if Path Exists in Graph</h3>
+            <p>10-graphs-introducao/html/find-if-path-exists-in-graph.html</p>
+            <a href="content/10-graphs-introducao/html/find-if-path-exists-in-graph.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="number of connected components in an undirected graph graphs introducao dsa 10-graphs-introducao/html/number-of-connected-components-in-an-undirected-graph.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Introducao</span>
+            </div>
+            <h3>Number of Connected Components in an Undirected Graph</h3>
+            <p>10-graphs-introducao/html/number-of-connected-components-in-an-undirected-graph.html</p>
+            <a href="content/10-graphs-introducao/html/number-of-connected-components-in-an-undirected-graph.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="binary tree level order traversal graphs bfs dsa 11-graphs-bfs/html/binary-tree-level-order-traversal.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Bfs</span>
+            </div>
+            <h3>Binary Tree Level Order Traversal</h3>
+            <p>11-graphs-bfs/html/binary-tree-level-order-traversal.html</p>
+            <a href="content/11-graphs-bfs/html/binary-tree-level-order-traversal.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="rotting oranges graphs bfs dsa 11-graphs-bfs/html/rotting-oranges.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Bfs</span>
+            </div>
+            <h3>Rotting Oranges</h3>
+            <p>11-graphs-bfs/html/rotting-oranges.html</p>
+            <a href="content/11-graphs-bfs/html/rotting-oranges.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="word ladder graphs bfs dsa 11-graphs-bfs/html/word-ladder.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Bfs</span>
+            </div>
+            <h3>Word Ladder</h3>
+            <p>11-graphs-bfs/html/word-ladder.html</p>
+            <a href="content/11-graphs-bfs/html/word-ladder.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="course schedule graphs dfs dsa 12-graphs-dfs/html/course-schedule.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Dfs</span>
+            </div>
+            <h3>Course Schedule</h3>
+            <p>12-graphs-dfs/html/course-schedule.html</p>
+            <a href="content/12-graphs-dfs/html/course-schedule.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="number of islands graphs dfs dsa 12-graphs-dfs/html/number-of-islands.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Dfs</span>
+            </div>
+            <h3>Number of Islands</h3>
+            <p>12-graphs-dfs/html/number-of-islands.html</p>
+            <a href="content/12-graphs-dfs/html/number-of-islands.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="pacific atlantic water flow graphs dfs dsa 12-graphs-dfs/html/pacific-atlantic-water-flow.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Dfs</span>
+            </div>
+            <h3>Pacific Atlantic Water Flow</h3>
+            <p>12-graphs-dfs/html/pacific-atlantic-water-flow.html</p>
+            <a href="content/12-graphs-dfs/html/pacific-atlantic-water-flow.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="graphs dijkstra - conceitos graphs dijkstra dsa 13-graphs-dijkstra/html/01-conceitos.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Dijkstra</span>
+            </div>
+            <h3>Graphs Dijkstra - Conceitos</h3>
+            <p>13-graphs-dijkstra/html/01-conceitos.html</p>
+            <a href="content/13-graphs-dijkstra/html/01-conceitos.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="network delay time graphs dijkstra dsa 13-graphs-dijkstra/html/network-delay-time.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Dijkstra</span>
+            </div>
+            <h3>Network Delay Time</h3>
+            <p>13-graphs-dijkstra/html/network-delay-time.html</p>
+            <a href="content/13-graphs-dijkstra/html/network-delay-time.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="path with minimum effort graphs dijkstra dsa 13-graphs-dijkstra/html/path-with-minimum-effort.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Dijkstra</span>
+            </div>
+            <h3>Path With Minimum Effort</h3>
+            <p>13-graphs-dijkstra/html/path-with-minimum-effort.html</p>
+            <a href="content/13-graphs-dijkstra/html/path-with-minimum-effort.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="swim in rising water graphs dijkstra dsa 13-graphs-dijkstra/html/swim-in-rising-water.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Dijkstra</span>
+            </div>
+            <h3>Swim in Rising Water</h3>
+            <p>13-graphs-dijkstra/html/swim-in-rising-water.html</p>
+            <a href="content/13-graphs-dijkstra/html/swim-in-rising-water.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="alien dictionary graphs topological sort dsa 14-graphs-topological-sort/html/alien-dictionary.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Topological Sort</span>
+            </div>
+            <h3>Alien Dictionary</h3>
+            <p>14-graphs-topological-sort/html/alien-dictionary.html</p>
+            <a href="content/14-graphs-topological-sort/html/alien-dictionary.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="course schedule ii graphs topological sort dsa 14-graphs-topological-sort/html/course-schedule-ii.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Topological Sort</span>
+            </div>
+            <h3>Course Schedule II</h3>
+            <p>14-graphs-topological-sort/html/course-schedule-ii.html</p>
+            <a href="content/14-graphs-topological-sort/html/course-schedule-ii.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="parallel courses graphs topological sort dsa 14-graphs-topological-sort/html/parallel-courses.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Topological Sort</span>
+            </div>
+            <h3>Parallel Courses</h3>
+            <p>14-graphs-topological-sort/html/parallel-courses.html</p>
+            <a href="content/14-graphs-topological-sort/html/parallel-courses.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="graph valid tree graphs mst union find dsa 15-graphs-mst-union-find/html/graph-valid-tree.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Mst Union Find</span>
+            </div>
+            <h3>Graph Valid Tree</h3>
+            <p>15-graphs-mst-union-find/html/graph-valid-tree.html</p>
+            <a href="content/15-graphs-mst-union-find/html/graph-valid-tree.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="min cost to connect all points graphs mst union find dsa 15-graphs-mst-union-find/html/min-cost-to-connect-all-points.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Mst Union Find</span>
+            </div>
+            <h3>Min Cost to Connect All Points</h3>
+            <p>15-graphs-mst-union-find/html/min-cost-to-connect-all-points.html</p>
+            <a href="content/15-graphs-mst-union-find/html/min-cost-to-connect-all-points.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="redundant connection graphs mst union find dsa 15-graphs-mst-union-find/html/redundant-connection.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Graphs Mst Union Find</span>
+            </div>
+            <h3>Redundant Connection</h3>
+            <p>15-graphs-mst-union-find/html/redundant-connection.html</p>
+            <a href="content/15-graphs-mst-union-find/html/redundant-connection.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="16 recursion and sorting - conceitos recursion and sorting dsa 16-recursion-and-sorting/html/01-conceitos.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Recursion and Sorting</span>
+            </div>
+            <h3>16 Recursion and Sorting - Conceitos</h3>
+            <p>16-recursion-and-sorting/html/01-conceitos.html</p>
+            <a href="content/16-recursion-and-sorting/html/01-conceitos.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="16 recursion and sorting - merge k sorted lists recursion and sorting dsa 16-recursion-and-sorting/html/merge-k-sorted-lists.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Recursion and Sorting</span>
+            </div>
+            <h3>16 Recursion and Sorting - Merge K Sorted Lists</h3>
+            <p>16-recursion-and-sorting/html/merge-k-sorted-lists.html</p>
+            <a href="content/16-recursion-and-sorting/html/merge-k-sorted-lists.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="16 recursion and sorting - permutations recursion and sorting dsa 16-recursion-and-sorting/html/permutations.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Recursion and Sorting</span>
+            </div>
+            <h3>16 Recursion and Sorting - Permutations</h3>
+            <p>16-recursion-and-sorting/html/permutations.html</p>
+            <a href="content/16-recursion-and-sorting/html/permutations.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="16 recursion and sorting - sort an array recursion and sorting dsa 16-recursion-and-sorting/html/sort-an-array.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Recursion and Sorting</span>
+            </div>
+            <h3>16 Recursion and Sorting - Sort an Array</h3>
+            <p>16-recursion-and-sorting/html/sort-an-array.html</p>
+            <a href="content/16-recursion-and-sorting/html/sort-an-array.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="combination sum brute force dsa 17-brute-force/html/combination-sum.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Brute Force</span>
+            </div>
+            <h3>Combination Sum</h3>
+            <p>17-brute-force/html/combination-sum.html</p>
+            <a href="content/17-brute-force/html/combination-sum.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="n-queens brute force dsa 17-brute-force/html/n-queens.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Brute Force</span>
+            </div>
+            <h3>N-Queens</h3>
+            <p>17-brute-force/html/n-queens.html</p>
+            <a href="content/17-brute-force/html/n-queens.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="DSA" data-search="subsets brute force dsa 17-brute-force/html/subsets.html">
+            <div class="card-meta">
+              <span>DSA</span>
+              <span>Brute Force</span>
+            </div>
+            <h3>Subsets</h3>
+            <p>17-brute-force/html/subsets.html</p>
+            <a href="content/17-brute-force/html/subsets.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="System Design" data-search="system design estrutura da entrevista system design system design system-design/01-estrutura-da-entrevista-system-design/index.html">
+            <div class="card-meta">
+              <span>System Design</span>
+              <span>Estrutura da Entrevista System Design</span>
+            </div>
+            <h3>System Design</h3>
+            <p>system-design/01-estrutura-da-entrevista-system-design/index.html</p>
+            <a href="content/system-design/01-estrutura-da-entrevista-system-design/index.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="System Design" data-search="encurtador de url encurtador de url system design system-design/02-encurtador-de-url/index.html">
+            <div class="card-meta">
+              <span>System Design</span>
+              <span>Encurtador de Url</span>
+            </div>
+            <h3>Encurtador de URL</h3>
+            <p>system-design/02-encurtador-de-url/index.html</p>
+            <a href="content/system-design/02-encurtador-de-url/index.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="System Design" data-search="cockpit de entrevista — chat chat system design system-design/03-chat/index.html">
+            <div class="card-meta">
+              <span>System Design</span>
+              <span>Chat</span>
+            </div>
+            <h3>Cockpit de Entrevista — Chat</h3>
+            <p>system-design/03-chat/index.html</p>
+            <a href="content/system-design/03-chat/index.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="System Design" data-search="venda de ingressos site de venda de ingressos system design system-design/04-site-de-venda-de-ingressos/index.html">
+            <div class="card-meta">
+              <span>System Design</span>
+              <span>Site de Venda de Ingressos</span>
+            </div>
+            <h3>Venda de ingressos</h3>
+            <p>system-design/04-site-de-venda-de-ingressos/index.html</p>
+            <a href="content/system-design/04-site-de-venda-de-ingressos/index.html">Abrir HTML</a>
+          </article>
+
+          <article class="card" data-kind="System Design" data-search="autocomplete — cockpit de entrevista autocomplete system design system-design/05-autocomplete/index.html">
+            <div class="card-meta">
+              <span>System Design</span>
+              <span>Autocomplete</span>
+            </div>
+            <h3>Autocomplete — Cockpit de Entrevista</h3>
+            <p>system-design/05-autocomplete/index.html</p>
+            <a href="content/system-design/05-autocomplete/index.html">Abrir HTML</a>
+          </article>
+      </section>
+    </main>
+
+    <footer>
+      Gerado por <code>site/build.py</code>. Publicação estática sem backend e sem dependências externas de runtime.
+    </footer>
+  </div>
+  <script>
+    (() => {
+      const cards = Array.from(document.querySelectorAll(".card"));
+      const search = document.getElementById("search");
+      const buttons = Array.from(document.querySelectorAll("[data-filter]"));
+      let activeFilter = "all";
+
+      function applyFilters() {
+        const query = search.value.trim().toLowerCase();
+        let visible = 0;
+        cards.forEach((card) => {
+          const matchesKind = activeFilter === "all" || card.dataset.kind === activeFilter;
+          const matchesSearch = !query || card.dataset.search.includes(query);
+          const show = matchesKind && matchesSearch;
+          card.hidden = !show;
+          if (show) visible += 1;
+        });
+        document.getElementById("cards").setAttribute("aria-label", `${visible} exercícios visíveis`);
+      }
+
+      search.addEventListener("input", applyFilters);
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          activeFilter = button.dataset.filter;
+          buttons.forEach((candidate) => {
+            candidate.setAttribute("aria-pressed", String(candidate === button));
+          });
+          applyFilters();
+        });
+      });
+      applyFilters();
+    })();
+  </script>
+</body>
+</html>

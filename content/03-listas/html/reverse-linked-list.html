@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03 Listas - Reverse Linked List</title>
+  <style>
+    :root {
+      --paper: #f6f1e8;
+      --ink: #1f1a17;
+      --muted: #655b52;
+      --accent: #9f3a22;
+      --accent-soft: #e9c3a6;
+      --line: #d8cbbc;
+      --card: rgba(255, 252, 246, 0.88);
+      --shadow: 0 18px 40px rgba(52, 37, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(159, 58, 34, 0.12), transparent 28%),
+        linear-gradient(180deg, #efe5d6 0%, var(--paper) 46%, #efe7dc 100%);
+    }
+
+    .page {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 48px 20px 72px;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -48px;
+      top: -48px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: rgba(159, 58, 34, 0.08);
+    }
+
+    .eyebrow {
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-size: 0.78rem;
+      margin-bottom: 10px;
+    }
+
+    h1, h2 { margin: 0 0 12px; }
+    h1 { font-size: clamp(2rem, 4vw, 3.4rem); }
+    p { line-height: 1.65; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      font-size: 1.15rem;
+      color: var(--accent);
+    }
+
+    .prompt-box {
+      margin-top: 26px;
+      padding: 18px;
+      border-left: 5px solid var(--accent);
+      background: rgba(255, 248, 240, 0.92);
+    }
+
+    code, pre {
+      font-family: "Courier New", monospace;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      background: #201a17;
+      color: #f8f2ea;
+      padding: 18px;
+      overflow: auto;
+    }
+
+    ul {
+      padding-left: 20px;
+      line-height: 1.6;
+    }
+
+    .pill {
+      display: inline-block;
+      margin-right: 10px;
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: var(--accent-soft);
+      color: #4b2117;
+      border-radius: 999px;
+      font-size: 0.88rem;
+    }
+
+    .footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Topico 03 - Sintese de estudo</div>
+      <h1>Reverse Linked List</h1>
+      <p>Guia entrevistador em estilo caderno editorial. Este material e uma sintese derivada do topico de listas do curso, nao uma transcricao literal das aulas, porque a fonte nao expoe captions.</p>
+      <div class="pill">Ponteiros</div>
+      <div class="pill">In-place</div>
+      <div class="pill">O(n) tempo</div>
+      <div class="pill">O(1) espaco</div>
+      <div class="prompt-box">
+        <strong>Prompt:</strong> Dado o <code>head</code> de uma lista ligada simples, reverta a lista in-place e retorne o novo <code>head</code>.
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Hints</h2>
+        <ul>
+          <li>Nomeie tres papeis: anterior, atual e proximo.</li>
+          <li>Salve o proximo no antes de sobrescrever <code>next</code>.</li>
+          <li>No final, a cabeca vira o ultimo ponteiro valido da parte revertida.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>Caminho ingenuo</h2>
+        <p>Copiar valores para um array e reconstruir a lista ao contrario funciona, mas usa memoria extra e foge do objetivo real da pergunta, que e manipular referencias com seguranca.</p>
+      </article>
+
+      <article class="card">
+        <h2>Caminho otimizado</h2>
+        <p>Varra a lista uma vez e inverta cada aresta localmente. O segredo e preservar o restante da lista em <code>next_node</code> antes de religar o no atual.</p>
+      </article>
+
+      <article class="card">
+        <h2>Complexidade</h2>
+        <p><strong>Tempo:</strong> O(n)</p>
+        <p><strong>Espaco:</strong> O(1)</p>
+        <p>Cada no muda de direcao uma unica vez e o algoritmo usa apenas um conjunto constante de ponteiros auxiliares.</p>
+      </article>
+    </section>
+
+    <section class="card" style="margin-top: 20px;">
+      <h2>Solucao final</h2>
+      <pre>def reverseList(head):
+    prev = None
+    current = head
+
+    while current is not None:
+        next_node = current.next
+        current.next = prev
+        prev = current
+        current = next_node
+
+    return prev</pre>
+    </section>
+
+    <p class="footer">Abra tambem os markdowns do topico para o passo a passo narrado e a justificativa detalhada de Big O.</p>
+  </main>
+</body>
+</html>

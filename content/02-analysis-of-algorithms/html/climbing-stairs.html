@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Climbing Stairs - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #17130f;
+      --muted: #665a4c;
+      --accent: #8c6a16;
+      --accent-soft: rgba(140, 106, 22, 0.14);
+      --line: rgba(23, 19, 15, 0.12);
+      --card: rgba(255, 250, 242, 0.86);
+      --shadow: 0 24px 58px rgba(51, 42, 18, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(140, 106, 22, 0.14), transparent 26%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0)),
+        repeating-linear-gradient(180deg, transparent 0 33px, rgba(23, 19, 15, 0.05) 33px 34px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 46px 20px 78px;
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .sheet {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .kicker {
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2.3rem, 4vw, 4.2rem);
+      line-height: 0.94;
+    }
+
+    h2 { margin-top: 0; font-size: 1.2rem; }
+    p, li { line-height: 1.75; }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .summary {
+      color: var(--muted);
+      max-width: 54ch;
+    }
+
+    .score {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .score strong { display: block; font-size: 1.75rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      background: #201b13;
+      color: #f8f2e5;
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    .chips span {
+      display: inline-block;
+      padding: 6px 10px;
+      margin: 0 8px 8px 0;
+      border: 1px solid var(--line);
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    @media (max-width: 860px) {
+      .header,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="header">
+      <article class="sheet">
+        <div class="kicker">Recursion to Iteration</div>
+        <h1>Climbing Stairs</h1>
+        <p class="summary">Uma pergunta pequena com uma bifurcacao importante: se voce seguir pela recursao pura, cai em recomputacao exponencial. Se enxergar a repeticao de estados, transforma o problema em programacao dinamica enxuta.</p>
+        <div class="chips">
+          <span>recursion</span>
+          <span>fibonacci</span>
+          <span>dp</span>
+        </div>
+      </article>
+      <aside class="sheet score">
+        <div>
+          <strong>Naive</strong>
+          <div>O(2^n) tempo</div>
+        </div>
+        <div>
+          <strong>Optimized</strong>
+          <div>O(n) tempo</div>
+        </div>
+        <div>
+          <strong>Memory</strong>
+          <div>O(1) iterativo</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="sheet">
+        <h2>Prompt</h2>
+        <p>Voce pode subir 1 ou 2 degraus por vez. Quantas formas distintas existem para chegar exatamente ao degrau <strong>n</strong>?</p>
+      </article>
+
+      <article class="sheet">
+        <h2>Hints</h2>
+        <ol>
+          <li>Quais foram os ultimos passos possiveis antes de chegar ao topo?</li>
+          <li>Quantas vezes a recursao pura recalcula o mesmo estado?</li>
+          <li>Voce realmente precisa guardar a tabela inteira?</li>
+        </ol>
+      </article>
+
+      <article class="sheet">
+        <h2>Naive Path</h2>
+        <p>Defina <strong>ways(n) = ways(n - 1) + ways(n - 2)</strong> e implemente com recursao pura. A relacao esta certa, mas a arvore de chamadas repete muitos subproblemas, como no Fibonacci classico.</p>
+      </article>
+
+      <article class="sheet">
+        <h2>Optimized Path</h2>
+        <p>Calcule as respostas de baixo para cima. Como cada estado depende so dos dois anteriores, use duas variaveis para carregar o historico minimo necessario.</p>
+      </article>
+
+      <article class="sheet">
+        <h2>Complexity</h2>
+        <ul>
+          <li><strong>Tempo:</strong> O(n), com um calculo por degrau a partir do terceiro.</li>
+          <li><strong>Espaco:</strong> O(1), porque so os dois estados anteriores sao mantidos.</li>
+          <li><strong>Entrevista:</strong> conecte a versao ingenua ao padrao exponencial visto no curso.</li>
+        </ul>
+      </article>
+
+      <article class="sheet wide">
+        <h2>Final Solution</h2>
+        <pre>def climbStairs(n: int) -&gt; int:
+    if n &lt;= 2:
+        return n
+
+    prev2 = 1
+    prev1 = 2
+
+    for _ in range(3, n + 1):
+        current = prev1 + prev2
+        prev2 = prev1
+        prev1 = current
+
+    return prev1</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

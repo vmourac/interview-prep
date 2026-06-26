@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Group Anagrams - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f7f2ea;
+      --ink: #191610;
+      --muted: #61584c;
+      --accent: #8d3c2f;
+      --accent-soft: rgba(141, 60, 47, 0.12);
+      --line: rgba(25, 22, 16, 0.12);
+      --card: rgba(255, 251, 246, 0.86);
+      --shadow: 0 24px 56px rgba(42, 31, 22, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(141, 60, 47, 0.15), transparent 28%),
+        repeating-linear-gradient(180deg, transparent 0 33px, rgba(25, 22, 16, 0.05) 33px 34px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 44px 20px 80px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      font-size: clamp(2.3rem, 4vw, 4rem);
+      line-height: 0.95;
+      margin: 10px 0 14px;
+    }
+
+    h2 { margin-top: 0; font-size: 1.2rem; }
+    p, li { line-height: 1.75; }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .deck {
+      color: var(--muted);
+      max-width: 55ch;
+    }
+
+    .stats strong {
+      display: block;
+      font-size: 1.65rem;
+      margin-bottom: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    .tags span {
+      display: inline-block;
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      margin: 0 8px 8px 0;
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      border-radius: 10px;
+      background: #1d1712;
+      color: #f8f2e9;
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Interview Notebook</div>
+        <h1>Group Anagrams</h1>
+        <p class="deck">O entrevistador quer ver se voce percebe que anagramas nao precisam ser comparados dois a dois. O salto real e inventar uma chave canonica que transforme equivalencia de palavras em simples agrupamento de hash map.</p>
+        <div class="tags">
+          <span>hash map</span>
+          <span>canonical key</span>
+          <span>strings</span>
+        </div>
+      </article>
+      <aside class="card stats">
+        <div>
+          <strong>Naive</strong>
+          <div>O(n^2 * k log k)</div>
+        </div>
+        <div>
+          <strong>Optimized</strong>
+          <div>O(n * k log k)</div>
+        </div>
+        <div>
+          <strong>Memory</strong>
+          <div>O(n * k)</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dada uma lista de strings, agrupe palavras que sao anagramas entre si. A ordem dos grupos e a ordem interna podem variar.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Como decidir rapidamente se duas palavras pertencem ao mesmo grupo?</li>
+          <li>Existe uma representacao unica para todas as palavras que usam as mesmas letras?</li>
+          <li>Se essa representacao existir, qual estrutura natural guarda todas as palavras associadas a ela?</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Compare palavras em pares e, a cada comparacao, cheque equivalencia ordenando caracteres ou contando frequencias. Funciona, mas repete trabalho demais.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Converta cada palavra em uma assinatura canonica, como seus caracteres ordenados. Use essa assinatura como chave do dicionario e acumule ali todas as palavras equivalentes.</p>
+      </article>
+
+      <article class="card">
+        <h2>Complexity</h2>
+        <ul>
+          <li><strong>Tempo:</strong> O(n * k log k), dominado pela ordenacao de cada palavra.</li>
+          <li><strong>Espaco:</strong> O(n * k), para armazenar chaves e grupos.</li>
+          <li><strong>Entrevista:</strong> destaque que o ganho vem de trocar comparacao entre pares por classificacao via chave.</li>
+        </ul>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>from collections import defaultdict
+
+
+def groupAnagrams(strs: list[str]) -&gt; list[list[str]]:
+    groups = defaultdict(list)
+
+    for word in strs:
+        key = "".join(sorted(word))
+        groups[key].append(word)
+
+    return list(groups.values())</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

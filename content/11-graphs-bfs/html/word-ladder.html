@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Ladder - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #eef1eb;
+      --ink: #182227;
+      --muted: #56656d;
+      --line: rgba(24, 34, 39, 0.14);
+      --rail: #2e5b88;
+      --rail-soft: rgba(46, 91, 136, 0.12);
+      --signal: #b84d3f;
+      --signal-soft: rgba(184, 77, 63, 0.12);
+      --card: rgba(252, 254, 251, 0.92);
+      --shadow: 0 22px 54px rgba(33, 43, 49, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 84% 12%, rgba(46, 91, 136, 0.15), transparent 21%),
+        repeating-linear-gradient(90deg, transparent 0 78px, rgba(24, 34, 39, 0.045) 78px 79px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 18px 74px;
+    }
+
+    .hero,
+    .grid {
+      display: grid;
+      gap: 22px;
+    }
+
+    .hero {
+      grid-template-columns: 1.06fr 0.94fr;
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      color: var(--rail);
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.2rem, 4vw, 3.9rem);
+      line-height: 0.96;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      color: var(--rail);
+      font-size: 1.08rem;
+    }
+
+    p, li {
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    .metrics {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .metric {
+      background: var(--rail-soft);
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+    }
+
+    .line {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 18px;
+    }
+
+    .station {
+      position: relative;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+      min-width: 88px;
+      text-align: center;
+    }
+
+    .station.active {
+      background: var(--signal-soft);
+      border-color: rgba(184, 77, 63, 0.32);
+    }
+
+    .connector {
+      height: 3px;
+      width: 38px;
+      background: linear-gradient(90deg, var(--rail), var(--signal));
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      background: #172026;
+      color: #f5f5f0;
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 920px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+
+      .connector { width: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Shortest Transfer Line</div>
+        <h1>Word Ladder</h1>
+        <p>O grafo nao vem pronto. Voce precisa enxergar que cada palavra e uma estacao e cada troca de um caractere e uma conexao de custo uniforme. A BFS responde a menor quantidade de trocas.</p>
+        <div class="line" aria-hidden="true">
+          <div class="station">hit</div>
+          <div class="connector"></div>
+          <div class="station active">hot</div>
+          <div class="connector"></div>
+          <div class="station active">dot</div>
+          <div class="connector"></div>
+          <div class="station active">dog</div>
+          <div class="connector"></div>
+          <div class="station">cog</div>
+        </div>
+      </article>
+
+      <aside class="card metrics">
+        <div class="metric"><strong>Signal:</strong> fewest transformations</div>
+        <div class="metric"><strong>Graph:</strong> implicito e nao ponderado</div>
+        <div class="metric"><strong>Tempo:</strong> O(N * L^2)</div>
+        <div class="metric"><strong>Hint:</strong> patterns com `*`</div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Transforme `beginWord` em `endWord` mudando um caractere por vez. Toda palavra intermediaria precisa existir em `wordList`. Retorne o comprimento da menor sequencia; se nao houver, retorne `0`.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>O grafo pode ser construido implicitamente.</li>
+          <li>Comparar toda palavra com toda palavra funciona, mas custa caro.</li>
+          <li>Padroes como `h*t` e `*ot` agrupam vizinhos de forma eficiente.</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Construir todas as arestas comparando todos os pares de palavras leva a um preprocessamento quadraticamente pesado antes mesmo da busca comecar.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Indexe palavras por padroes intermediarios. A BFS percorre palavras em ordem de numero de transformacoes e o primeiro encontro com `endWord` fecha a menor sequencia.</p>
+      </article>
+
+      <article class="card">
+        <h2>Interview Note</h2>
+        <p>O diferencial aqui e verbalizar que o problema e shortest path em grafo nao ponderado, mas o grafo e implicito. A BFS entra junto com uma estrategia de geracao eficiente de vizinhos.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>from collections import defaultdict, deque
+
+
+def ladderLength(beginWord: str, endWord: str, wordList: list[str]) -&gt; int:
+    if endWord not in wordList:
+        return 0
+
+    pattern_map = defaultdict(list)
+    word_length = len(beginWord)
+
+    for word in wordList:
+        for index in range(word_length):
+            pattern = word[:index] + "*" + word[index + 1:]
+            pattern_map[pattern].append(word)
+
+    queue = deque([(beginWord, 1)])
+    visited = {beginWord}
+
+    while queue:
+        word, steps = queue.popleft()
+
+        if word == endWord:
+            return steps
+
+        for index in range(word_length):
+            pattern = word[:index] + "*" + word[index + 1:]
+
+            for neighbor in pattern_map[pattern]:
+                if neighbor in visited:
+                    continue
+
+                visited.add(neighbor)
+                queue.append((neighbor, steps + 1))
+
+            pattern_map[pattern] = []
+
+    return 0</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

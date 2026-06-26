@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subarray Sum Equals K - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #181611;
+      --muted: #5d584f;
+      --accent: #5d4f9e;
+      --accent-soft: rgba(93, 79, 158, 0.12);
+      --line: rgba(24, 22, 17, 0.12);
+      --card: rgba(255, 255, 255, 0.85);
+      --shadow: 0 24px 56px rgba(33, 26, 58, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(93, 79, 158, 0.14), transparent 30%),
+        repeating-linear-gradient(180deg, transparent 0 33px, rgba(24, 22, 17, 0.05) 33px 34px),
+        var(--paper);
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 44px 20px 80px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      font-size: clamp(2.3rem, 4vw, 4rem);
+      line-height: 0.95;
+      margin: 10px 0 14px;
+    }
+
+    h2 { margin-top: 0; font-size: 1.2rem; }
+    p, li { line-height: 1.75; }
+    ul, ol { margin: 0; padding-left: 20px; }
+
+    .deck { color: var(--muted); max-width: 56ch; }
+
+    .stats strong {
+      display: block;
+      font-size: 1.65rem;
+      margin-bottom: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    .tags span {
+      display: inline-block;
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      margin: 0 8px 8px 0;
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      border-radius: 10px;
+      background: #18142a;
+      color: #f2f0fb;
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Prefix Ledger</div>
+        <h1>Subarray Sum Equals K</h1>
+        <p class="deck">Este problema testa se voce enxerga o dicionario como historico de estados, nao apenas como tabela de membership. A pergunta decisiva e: quantas vezes ja apareceu um prefixo que complete a soma desejada?</p>
+        <div class="tags">
+          <span>prefix sum</span>
+          <span>hash map</span>
+          <span>counting states</span>
+        </div>
+      </article>
+      <aside class="card stats">
+        <div>
+          <strong>Naive</strong>
+          <div>O(n^2)</div>
+        </div>
+        <div>
+          <strong>Optimized</strong>
+          <div>O(n)</div>
+        </div>
+        <div>
+          <strong>Memory</strong>
+          <div>O(n)</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Prompt</h2>
+        <p>Dado um array de inteiros e um inteiro `k`, retorne quantos subarrays contiguos somam exatamente `k`.</p>
+      </article>
+
+      <article class="card">
+        <h2>Hints</h2>
+        <ol>
+          <li>Se eu conheco a soma acumulada ate agora, que informacao do passado me diz se existe um intervalo valido terminando aqui?</li>
+          <li>Como representar todos os prefixos anteriores sem voltar no array?</li>
+          <li>Por que faz sentido iniciar o mapa com `0: 1`?</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>Naive Path</h2>
+        <p>Fixe um inicio e expanda o fim calculando a soma de cada subarray. Mesmo aproveitando a soma incremental, ainda existem O(n^2) intervalos a examinar.</p>
+      </article>
+
+      <article class="card">
+        <h2>Optimized Path</h2>
+        <p>Mantenha o prefixo atual e um mapa de quantas vezes cada prefixo anterior apareceu. Sempre que `prefix - k` ja existir, cada ocorrencia dele define um subarray valido terminando na posicao atual.</p>
+      </article>
+
+      <article class="card">
+        <h2>Complexity</h2>
+        <ul>
+          <li><strong>Tempo:</strong> O(n), por um unico percurso com operacoes medias O(1) no mapa.</li>
+          <li><strong>Espaco:</strong> O(n), porque prefixos distintos podem crescer linearmente.</li>
+          <li><strong>Entrevista:</strong> explique que o mapa guarda contagem de prefixos, nao apenas presenca.</li>
+        </ul>
+      </article>
+
+      <article class="card wide">
+        <h2>Final Solution</h2>
+        <pre>def subarraySum(nums: list[int], k: int) -&gt; int:
+    prefix = 0
+    result = 0
+    count = {0: 1}
+
+    for value in nums:
+        prefix += value
+        result += count.get(prefix - k, 0)
+        count[prefix] = count.get(prefix, 0) + 1
+
+    return result</pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

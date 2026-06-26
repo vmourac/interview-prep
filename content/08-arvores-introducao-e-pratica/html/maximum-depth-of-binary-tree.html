@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maximum Depth of Binary Tree - Interview Prep</title>
+  <style>
+    :root {
+      --paper: #f6f0e4;
+      --paper-2: #fffaf0;
+      --ink: #2f241b;
+      --muted: #6d5c4e;
+      --accent: #a8572a;
+      --accent-soft: #f2d6bf;
+      --line: #d9c8b3;
+      --shadow: rgba(61, 42, 27, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(168, 87, 42, 0.14), transparent 22%),
+        linear-gradient(180deg, #ede1ce 0%, #f9f4eb 45%, #efe6d8 100%);
+    }
+
+    .page {
+      width: min(1120px, calc(100% - 28px));
+      margin: 24px auto 40px;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--paper-2), var(--paper));
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 40px var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: 30px;
+    }
+
+    .hero::before {
+      content: "tree notebook";
+      position: absolute;
+      right: -18px;
+      top: 26px;
+      transform: rotate(90deg);
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: rgba(168, 87, 42, 0.26);
+      font-size: 0.72rem;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      font-size: 0.78rem;
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2.3rem, 4.7vw, 4.4rem);
+      line-height: 0.92;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 1.05rem;
+    }
+
+    p, li {
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    .note {
+      padding: 14px 16px;
+      background: rgba(255, 250, 240, 0.72);
+      border-left: 4px solid var(--accent);
+      margin: 18px 0;
+    }
+
+    .tree {
+      margin-top: 22px;
+      padding: 18px;
+      border: 1px dashed var(--line);
+      background: rgba(255, 255, 255, 0.38);
+    }
+
+    .tree pre {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      font-size: 0.96rem;
+      color: var(--ink);
+      line-height: 1.45;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .panel {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.54);
+      border: 1px solid var(--line);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--accent-soft);
+      padding: 12px;
+      min-height: 76px;
+    }
+
+    pre.code {
+      margin: 0;
+      padding: 16px;
+      border-radius: 12px;
+      background: #2c221c;
+      color: #f7efe3;
+      overflow-x: auto;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 860px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="card hero">
+      <div class="eyebrow">Guia sintetizado de entrevista</div>
+      <h1>Maximum Depth<br />of Binary Tree</h1>
+      <div class="note">
+        A pergunta real e: como transformar a altura da arvore em uma funcao que cada no consegue responder a partir de suas duas subarvores?
+      </div>
+      <h2>Hints do entrevistador</h2>
+      <ul>
+        <li>Qual e o retorno certo quando o no e nulo?</li>
+        <li>O no atual precisa do que vem da esquerda e da direita.</li>
+        <li>Se a resposta depende do ramo mais profundo, o `max` ja esta sugerido.</li>
+      </ul>
+      <div class="tree">
+        <pre>        3
+      /   \
+     9    20
+         /  \
+        15   7
+
+Profundidade maxima = 3 nos</pre>
+      </div>
+    </section>
+
+    <section class="card stack">
+      <div class="panel">
+        <h2>Caminho ingenuo</h2>
+        <p>Fazer level order com fila e contar quantos niveis existem. Funciona, mas nao explora a simetria recursiva da estrutura tanto quanto a DFS.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Caminho otimizado</h2>
+        <p>Para cada no, calcule a profundidade da esquerda, calcule a profundidade da direita e retorne `1 + max(...)`.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Complexidade</h2>
+        <div class="metrics">
+          <div class="metric">Tempo BFS ingenua: O(n)</div>
+          <div class="metric">Espaco BFS ingenua: O(n)</div>
+          <div class="metric">Tempo DFS otimizada: O(n)</div>
+          <div class="metric">Espaco DFS otimizada: O(h)</div>
+        </div>
+        <p>O tempo continua linear porque todos os nos precisam ser observados. O ponto fino esta no espaco: a pilha recursiva cresce com a altura da arvore, nao com todos os nos ao mesmo tempo.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Solucao final</h2>
+        <pre class="code">def max_depth(root):
+    if root is None:
+        return 0
+
+    profundidade_esquerda = max_depth(root.left)
+    profundidade_direita = max_depth(root.right)
+
+    return 1 + max(profundidade_esquerda, profundidade_direita)</pre>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
