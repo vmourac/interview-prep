@@ -1,0 +1,2722 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cockpit autocontido para praticar uma entrevista de System Design sobre venda de ingressos.">
+  <title>Cockpit de entrevista — Venda de ingressos</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f2eadc;
+      --paper-deep: #e6d8c2;
+      --ink: #17211f;
+      --ink-soft: #40504b;
+      --night: #10221e;
+      --night-2: #17342d;
+      --line: #9b8c75;
+      --line-soft: rgba(23, 33, 31, .18);
+      --signal: #ef5b2a;
+      --signal-dark: #a92f0b;
+      --signal-on-dark: #ff9a75;
+      --mint: #8bd4b4;
+      --mint-dark: #236a54;
+      --gold: #e0b34f;
+      --gold-on-dark: #f7d486;
+      --muted-strong: #665a48;
+      --danger: #c92e37;
+      --white: #fffdf7;
+      --shadow: 0 18px 45px rgba(22, 32, 29, .14);
+      --radius: 18px;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      --sans: "Aptos", "Segoe UI", Tahoma, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--night);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(23, 33, 31, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 33, 31, .035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 28px 28px;
+      font-family: var(--sans);
+      line-height: 1.55;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .28;
+      background-image:
+        radial-gradient(circle at 10% 10%, rgba(255,255,255,.7) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 80% 20%, rgba(23,33,31,.13) 0 1px, transparent 1.5px);
+      background-size: 16px 16px, 21px 21px;
+      mix-blend-mode: multiply;
+      z-index: 20;
+    }
+
+    a {
+      color: var(--signal-dark);
+      text-underline-offset: .2em;
+      text-decoration-thickness: 1px;
+    }
+
+    a:hover {
+      color: var(--signal);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 4px;
+      box-shadow: 0 0 0 6px var(--night);
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 100;
+      transform: translateY(-180%);
+      padding: .75rem 1rem;
+      color: var(--white);
+      background: var(--night);
+      border: 2px solid var(--gold);
+      border-radius: 8px;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .masthead {
+      position: relative;
+      overflow: hidden;
+      min-height: 420px;
+      padding: 28px clamp(20px, 4vw, 68px) 54px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 78% 15%, rgba(139, 212, 180, .23), transparent 29%),
+        linear-gradient(145deg, var(--night) 0 68%, #0a1714 68%);
+      border-bottom: 8px solid var(--signal);
+    }
+
+    .masthead::after {
+      content: "ADMIT ONE  •  HOLD 10:00  •  ZERO OVERSELLING";
+      position: absolute;
+      right: -95px;
+      bottom: 74px;
+      padding: 10px 120px;
+      color: var(--night);
+      background: var(--gold);
+      font: 700 .72rem/1 var(--mono);
+      letter-spacing: .16em;
+      transform: rotate(-7deg);
+      box-shadow: 0 5px 0 rgba(0, 0, 0, .18);
+    }
+
+    .masthead-top {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1500px;
+      margin: 0 auto 52px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      margin: 0;
+      font: 700 .76rem/1.2 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .15em;
+    }
+
+    .eyebrow::before {
+      width: 10px;
+      height: 10px;
+      content: "";
+      border-radius: 50%;
+      background: var(--signal);
+      box-shadow: 0 0 0 5px rgba(239, 91, 42, .2);
+    }
+
+    .utility-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .utility-links a {
+      padding: 8px 12px;
+      color: var(--white);
+      border: 1px solid rgba(255, 255, 255, .34);
+      border-radius: 999px;
+      font: 650 .78rem/1 var(--mono);
+      text-decoration: none;
+    }
+
+    .utility-links a:hover {
+      border-color: var(--mint);
+      background: rgba(139, 212, 180, .1);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(300px, .55fr);
+      gap: clamp(30px, 6vw, 88px);
+      align-items: end;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    h1,
+    h2,
+    h3 {
+      text-wrap: balance;
+    }
+
+    h1 {
+      max-width: 920px;
+      margin: 0;
+      font: 700 clamp(3.5rem, 8vw, 8.2rem)/.83 var(--serif);
+      letter-spacing: -.055em;
+    }
+
+    h1 span {
+      display: block;
+      margin-top: .2em;
+      color: var(--mint);
+      font-size: .47em;
+      font-style: italic;
+      letter-spacing: -.02em;
+    }
+
+    .hero-summary {
+      max-width: 560px;
+      margin: 26px 0 0;
+      color: #d8e7df;
+      font-size: clamp(1rem, 1.5vw, 1.22rem);
+    }
+
+    .hero-ticket {
+      position: relative;
+      padding: 26px;
+      color: var(--ink);
+      background: var(--paper);
+      border-radius: 14px;
+      box-shadow: 11px 11px 0 var(--signal);
+    }
+
+    .hero-ticket::before,
+    .hero-ticket::after {
+      position: absolute;
+      top: 54%;
+      width: 24px;
+      height: 24px;
+      content: "";
+      background: var(--night);
+      border-radius: 50%;
+      transform: translateY(-50%);
+    }
+
+    .hero-ticket::before { left: -12px; }
+    .hero-ticket::after { right: -12px; }
+
+    .ticket-code {
+      margin: 0 0 16px;
+      color: var(--signal-dark);
+      font: 800 .72rem/1 var(--mono);
+      letter-spacing: .16em;
+    }
+
+    .ticket-rule {
+      padding: 14px 0;
+      border-block: 2px dashed var(--line);
+      font: 700 1.04rem/1.4 var(--serif);
+    }
+
+    .ticket-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 18px 0 0;
+    }
+
+    .ticket-meta span {
+      display: block;
+      color: var(--ink-soft);
+      font: 700 .67rem/1.2 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .ticket-meta strong {
+      display: block;
+      margin-top: 4px;
+      font-family: var(--serif);
+      font-size: 1.2rem;
+    }
+
+    .noscript-note {
+      margin: 0;
+      padding: 12px 20px;
+      color: var(--white);
+      background: var(--signal-dark);
+      border-bottom: 2px solid var(--night);
+      text-align: center;
+    }
+
+    .shell {
+      width: min(1500px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .stage-nav-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      margin-top: -28px;
+      padding-top: 12px;
+    }
+
+    .stage-nav {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      overflow: hidden;
+      background: var(--white);
+      border: 2px solid var(--ink);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .stage-tab {
+      min-height: 74px;
+      padding: 12px 8px;
+      color: var(--ink-soft);
+      background: transparent;
+      border: 0;
+      border-right: 1px solid var(--line-soft);
+      font: 800 .72rem/1.25 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .065em;
+    }
+
+    .stage-tab:last-child {
+      border-right: 0;
+    }
+
+    .stage-tab span {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted-strong);
+      font-size: .63rem;
+    }
+
+    .stage-tab[aria-selected="true"] {
+      color: var(--white);
+      background: var(--night);
+      box-shadow: inset 0 -6px 0 var(--signal);
+    }
+
+    .stage-tab[aria-selected="true"] span {
+      color: var(--gold-on-dark);
+    }
+
+    main {
+      padding: 54px 0 90px;
+    }
+
+    .stage-panel {
+      animation: panel-in .42s ease both;
+    }
+
+    .stage-panel + .stage-panel {
+      margin-top: 78px;
+      padding-top: 78px;
+      border-top: 2px dashed var(--line);
+    }
+
+    .js .stage-panel + .stage-panel {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .stage-kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 8px;
+      color: var(--signal-dark);
+      font: 800 .76rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .15em;
+    }
+
+    .stage-kicker::after {
+      flex: 1;
+      height: 1px;
+      content: "";
+      background: var(--line);
+    }
+
+    .stage-heading {
+      max-width: 1050px;
+      margin: 0;
+      font: 700 clamp(2.4rem, 5vw, 5.2rem)/.96 var(--serif);
+      letter-spacing: -.045em;
+    }
+
+    .stage-lede {
+      max-width: 830px;
+      margin: 18px 0 38px;
+      color: var(--ink-soft);
+      font-size: 1.08rem;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+      display: grid;
+      gap: 20px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      position: relative;
+      padding: 24px;
+      background: rgba(255, 253, 247, .86);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(23, 33, 31, .07);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font: 700 1.5rem/1.1 var(--serif);
+    }
+
+    .card p:last-child,
+    .card ul:last-child {
+      margin-bottom: 0;
+    }
+
+    .source-tag {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font: 800 .64rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .source-local {
+      color: #0e4739;
+      background: #c5ead9;
+      border: 1px solid #62ab8e;
+    }
+
+    .source-extra {
+      color: #77301b;
+      background: #ffd5c4;
+      border: 1px solid #ef8d68;
+    }
+
+    .source-hypothesis {
+      color: #61470a;
+      background: #f8e5a9;
+      border: 1px solid #d3ad43;
+    }
+
+    .scope-board {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 22px;
+      margin-bottom: 22px;
+    }
+
+    .scope-column {
+      padding: 28px;
+      border-radius: var(--radius);
+    }
+
+    .scope-in {
+      color: var(--white);
+      background: var(--night-2);
+      box-shadow: inset 0 0 0 1px rgba(139, 212, 180, .35);
+    }
+
+    .scope-out {
+      background: transparent;
+      border: 2px dashed var(--line);
+    }
+
+    .scope-column h3 {
+      margin: 0 0 18px;
+      font: 700 1.7rem/1 var(--serif);
+    }
+
+    .scope-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .scope-list li {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .scope-list li::before {
+      display: grid;
+      flex: 0 0 25px;
+      width: 25px;
+      height: 25px;
+      content: "✓";
+      place-items: center;
+      color: var(--night);
+      background: var(--mint);
+      border-radius: 50%;
+      font: 900 .74rem/1 var(--mono);
+    }
+
+    .scope-out .scope-list li::before {
+      content: "—";
+      color: var(--white);
+      background: var(--ink-soft);
+    }
+
+    .question-strip {
+      margin-top: 22px;
+      padding: 24px;
+      color: var(--white);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px),
+        var(--night);
+      background-size: 20px 20px;
+      border-left: 8px solid var(--signal);
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    .question-strip h3 {
+      margin: 0 0 12px;
+      font: 700 1.6rem/1 var(--serif);
+    }
+
+    .question-strip ol {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 28px;
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+
+    .metric {
+      padding: 24px;
+      background: var(--white);
+      border-top: 7px solid var(--ink);
+      border-radius: 4px 4px var(--radius) var(--radius);
+    }
+
+    .metric strong {
+      display: block;
+      margin: 8px 0 3px;
+      color: var(--signal-dark);
+      font: 700 clamp(2.2rem, 4vw, 4.5rem)/.9 var(--serif);
+      letter-spacing: -.04em;
+    }
+
+    .metric small {
+      color: var(--ink-soft);
+      font: 700 .68rem/1.2 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .metric p {
+      margin: 14px 0 0;
+      color: var(--ink-soft);
+      font-size: .92rem;
+    }
+
+    .hotspot-callout {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 28px;
+      align-items: center;
+      margin: 26px 0;
+      padding: 26px;
+      color: var(--white);
+      background: var(--signal-dark);
+      border-radius: var(--radius);
+    }
+
+    .hotspot-number {
+      font: 800 3rem/.9 var(--serif);
+      text-align: center;
+    }
+
+    .hotspot-number span {
+      display: block;
+      margin-top: 8px;
+      font: 700 .68rem/1.2 var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .hotspot-callout p {
+      margin: 0;
+      font-size: 1.04rem;
+    }
+
+    .decision-chain {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      margin: 30px 0;
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .decision-chain div {
+      position: relative;
+      min-height: 148px;
+      padding: 22px;
+      background: var(--white);
+      border-right: 1px solid var(--line);
+    }
+
+    .decision-chain div:last-child {
+      border-right: 0;
+    }
+
+    .decision-chain div:not(:last-child)::after {
+      position: absolute;
+      z-index: 2;
+      top: 50%;
+      right: -13px;
+      width: 24px;
+      height: 24px;
+      content: "→";
+      color: var(--white);
+      background: var(--signal);
+      border-radius: 50%;
+      font: 800 1rem/24px var(--mono);
+      text-align: center;
+      transform: translateY(-50%);
+    }
+
+    .decision-chain b {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--signal-dark);
+      font-family: var(--serif);
+      font-size: 1.28rem;
+    }
+
+    .api-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .api-row {
+      display: grid;
+      grid-template-columns: 78px minmax(180px, .8fr) 1.4fr;
+      gap: 18px;
+      align-items: center;
+      padding: 18px;
+      background: var(--night);
+      border-left: 5px solid var(--mint);
+      border-radius: 10px;
+      color: var(--white);
+    }
+
+    .api-method {
+      color: var(--mint);
+      font: 900 .78rem/1 var(--mono);
+    }
+
+    .api-path {
+      overflow-wrap: anywhere;
+      font: 700 .86rem/1.4 var(--mono);
+    }
+
+    .api-purpose {
+      color: #d3e3dd;
+      font-size: .92rem;
+    }
+
+    .data-model {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 15px;
+      margin-top: 24px;
+    }
+
+    .entity {
+      padding: 18px;
+      background: rgba(255, 253, 247, .85);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--signal);
+      border-radius: 10px;
+    }
+
+    .entity h3 {
+      margin: 0 0 10px;
+      font: 700 1.18rem/1 var(--mono);
+    }
+
+    .entity code {
+      display: block;
+      margin: 4px 0;
+      color: var(--ink-soft);
+      font: .76rem/1.5 var(--mono);
+    }
+
+    .invariant {
+      margin: 26px 0;
+      padding: 26px clamp(24px, 5vw, 54px);
+      color: var(--white);
+      background: var(--night);
+      border: 3px double var(--mint);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+
+    .invariant span {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--mint);
+      font: 800 .7rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .14em;
+    }
+
+    .invariant strong {
+      font: 700 clamp(1.45rem, 3vw, 2.5rem)/1.2 var(--serif);
+    }
+
+    .control-deck {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin: 24px 0 14px;
+      padding: 12px;
+      background: rgba(255, 253, 247, .75);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .control-label {
+      margin-right: 5px;
+      color: var(--ink-soft);
+      font: 800 .66rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .chip-button {
+      padding: 9px 12px;
+      color: var(--ink);
+      background: var(--white);
+      border: 1px solid var(--ink);
+      border-radius: 999px;
+      font: 800 .68rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .045em;
+    }
+
+    .chip-button[aria-pressed="true"] {
+      color: var(--white);
+      background: var(--night);
+      box-shadow: inset 0 -4px 0 var(--signal);
+    }
+
+    .architecture-panel {
+      margin-top: 14px;
+      padding: 18px;
+      overflow: auto;
+      color: var(--white);
+      background: var(--night);
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .architecture-panel h3 {
+      margin: 8px 8px 16px;
+      color: var(--mint);
+      font: 700 1.5rem/1 var(--serif);
+    }
+
+    .architecture-panel svg {
+      display: block;
+      min-width: 880px;
+      width: 100%;
+      height: auto;
+    }
+
+    .node rect {
+      fill: #f7f0e3;
+      stroke: #8bd4b4;
+      stroke-width: 2;
+      rx: 12;
+    }
+
+    .node text {
+      fill: #17211f;
+      font: 700 13px var(--mono);
+      text-anchor: middle;
+    }
+
+    .node .sub {
+      fill: #40504b;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .edge-read,
+    .edge-write,
+    .edge-async,
+    .edge-failure {
+      fill: none;
+      stroke-width: 3;
+    }
+
+    .edge-read { stroke: #8bd4b4; }
+    .edge-write { stroke: #ef5b2a; }
+    .edge-async { stroke: #e0b34f; stroke-dasharray: 9 7; }
+    .edge-failure { stroke: #ff6970; stroke-dasharray: 4 6; }
+
+    .edge-label {
+      fill: var(--white);
+      stroke: var(--night);
+      stroke-width: 4px;
+      paint-order: stroke fill;
+      font: 750 10px var(--mono);
+      letter-spacing: .02em;
+      text-anchor: middle;
+    }
+
+    .edge-label-async { fill: var(--gold-on-dark); }
+    .edge-label-failure { fill: #ff9fa4; }
+
+    [data-flow-kind] {
+      transition: opacity .2s ease, filter .2s ease;
+    }
+
+    [data-flow-kind].is-dimmed {
+      opacity: .11;
+      filter: grayscale(1);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 14px 8px 4px;
+      color: #d7e5df;
+      font: 700 .68rem/1 var(--mono);
+    }
+
+    .legend span::before {
+      display: inline-block;
+      width: 22px;
+      height: 3px;
+      margin-right: 7px;
+      content: "";
+      vertical-align: middle;
+      background: currentColor;
+    }
+
+    .legend .read { color: var(--mint); }
+    .legend .write { color: var(--signal); }
+    .legend .async { color: var(--gold); }
+    .legend .failure { color: #ff6970; }
+
+    .purchase-flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(120px, 1fr));
+      gap: 12px;
+      margin: 28px 0;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 170px;
+      padding: 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .flow-step:not(:last-child)::after {
+      position: absolute;
+      top: 36px;
+      right: -12px;
+      z-index: 2;
+      content: "→";
+      color: var(--signal-dark);
+      font: 900 1.3rem/1 var(--mono);
+    }
+
+    .flow-step span {
+      display: grid;
+      width: 31px;
+      height: 31px;
+      place-items: center;
+      color: var(--white);
+      background: var(--signal-dark);
+      border-radius: 50%;
+      font: 800 .72rem/1 var(--mono);
+    }
+
+    .flow-step h3 {
+      margin: 14px 0 8px;
+      font: 700 1.13rem/1.05 var(--serif);
+    }
+
+    .flow-step p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: .84rem;
+    }
+
+    .state-machine {
+      margin: 30px 0;
+      padding: 26px;
+      color: var(--white);
+      background: var(--night);
+      border-radius: var(--radius);
+    }
+
+    .state-machine h3 {
+      margin: 0 0 8px;
+      color: var(--mint);
+      font: 700 1.7rem/1 var(--serif);
+    }
+
+    .state-help {
+      max-width: 920px;
+      margin: 0 0 20px;
+      color: #cbdcd5;
+      font-size: .9rem;
+    }
+
+    .state-graph-wrap {
+      overflow-x: auto;
+      padding: 5px 3px 12px;
+    }
+
+    .state-graph {
+      display: grid;
+      grid-template-areas:
+        "held held-payment payment payment-confirmed confirmed"
+        "held-expired . payment-expired . ."
+        "expired held-cancelled . payment-cancelled cancelled";
+      grid-template-columns: 1fr .72fr 1.16fr .72fr 1fr;
+      grid-template-rows: minmax(92px, auto) 62px minmax(92px, auto);
+      gap: 10px;
+      min-width: 820px;
+      align-items: stretch;
+    }
+
+    .state-button {
+      min-width: 0;
+      min-height: 92px;
+      padding: 12px;
+      color: var(--white);
+      background: #1c3a33;
+      border: 1px solid #52766c;
+      border-radius: 10px;
+      font: 800 .72rem/1.25 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .state-button .state-code,
+    .state-button .state-name {
+      display: block;
+    }
+
+    .state-button .state-name {
+      margin-top: 7px;
+      color: #cbdcd5;
+      font-size: .64rem;
+      font-weight: 650;
+      letter-spacing: .02em;
+      text-transform: none;
+    }
+
+    .state-button[aria-pressed="true"] {
+      color: var(--night);
+      background: var(--mint);
+      border-color: var(--mint);
+      box-shadow: 0 0 0 4px rgba(139, 212, 180, .18);
+    }
+
+    .state-button[aria-pressed="true"] .state-name {
+      color: var(--night-2);
+    }
+
+    .state-button.is-next {
+      border-color: var(--gold-on-dark);
+      box-shadow: inset 0 0 0 2px rgba(244, 206, 120, .45);
+    }
+
+    .state-button.is-previous {
+      border-color: var(--mint);
+      box-shadow: inset 0 0 0 2px rgba(139, 212, 180, .32);
+    }
+
+    .state-held { grid-area: held; }
+    .state-payment { grid-area: payment; }
+    .state-confirmed { grid-area: confirmed; }
+    .state-expired { grid-area: expired; }
+    .state-cancelled { grid-area: cancelled; }
+
+    .edge-held-payment { grid-area: held-payment; }
+    .edge-payment-confirmed { grid-area: payment-confirmed; }
+    .edge-held-expired { grid-area: held-expired; }
+    .edge-payment-expired { grid-area: payment-expired; }
+    .edge-held-cancelled { grid-area: held-cancelled; }
+    .edge-payment-cancelled { grid-area: payment-cancelled; }
+
+    .transition-edge {
+      display: grid;
+      min-width: 0;
+      padding: 8px;
+      place-items: center;
+      align-content: center;
+      color: #cbdcd5;
+      background: rgba(255, 255, 255, .035);
+      border: 1px dashed #52766c;
+      border-radius: 9px;
+      text-align: center;
+      transition: color .2s ease, background-color .2s ease, border-color .2s ease, transform .2s ease;
+    }
+
+    .transition-edge span {
+      color: var(--gold-on-dark);
+      font: 900 1.1rem/1 var(--mono);
+    }
+
+    .transition-edge small {
+      margin-top: 4px;
+      font: 750 .59rem/1.25 var(--mono);
+      letter-spacing: .02em;
+    }
+
+    .transition-edge.is-outgoing {
+      color: var(--night);
+      background: var(--gold-on-dark);
+      border-color: var(--gold-on-dark);
+      transform: translateY(-2px);
+    }
+
+    .transition-edge.is-outgoing span {
+      color: var(--signal-dark);
+    }
+
+    .transition-edge.is-incoming {
+      color: var(--night);
+      background: var(--mint);
+      border-color: var(--mint);
+    }
+
+    .transition-edge.is-incoming span {
+      color: var(--night);
+    }
+
+    .state-detail {
+      min-height: 118px;
+      margin-top: 16px;
+      padding: 18px;
+      color: #d9e8e2;
+      background: rgba(255, 255, 255, .055);
+      border-left: 5px solid var(--signal);
+      border-radius: 0 10px 10px 0;
+    }
+
+    .state-detail strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--white);
+      font-family: var(--serif);
+      font-size: 1.28rem;
+    }
+
+    .state-transition-summary {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, .16);
+    }
+
+    .state-transition-summary b {
+      color: var(--gold-on-dark);
+    }
+
+    .state-transition-summary ul {
+      margin: 8px 0 0;
+      padding-left: 1.15rem;
+    }
+
+    .aggregate-effects {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .aggregate-effect {
+      padding: 16px;
+      color: #d9e8e2;
+      background: rgba(255, 255, 255, .055);
+      border: 1px solid #52766c;
+      border-radius: 10px;
+    }
+
+    .aggregate-effect h4 {
+      margin: 0 0 8px;
+      color: var(--gold-on-dark);
+      font: 800 .72rem/1.2 var(--mono);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    .aggregate-effect p {
+      margin: 0;
+      font-size: .84rem;
+    }
+
+    .aggregate-effect ul {
+      margin: 10px 0 0;
+      padding-left: 1.1rem;
+      font-size: .8rem;
+    }
+
+    .aggregate-effect li + li {
+      margin-top: 6px;
+    }
+
+    .transition-ledger {
+      margin-top: 14px;
+      color: #cbdcd5;
+      font-size: .8rem;
+    }
+
+    .transition-ledger summary {
+      cursor: pointer;
+      color: var(--white);
+      font: 800 .72rem/1.3 var(--mono);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .transition-ledger ul {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .transition-ledger li {
+      padding: 10px 12px;
+      border: 1px dashed #52766c;
+      border-radius: 8px;
+    }
+
+    .transition-ledger li.is-outgoing {
+      color: var(--night);
+      background: var(--gold-on-dark);
+      border-color: var(--gold-on-dark);
+    }
+
+    .transition-ledger li.is-incoming {
+      color: var(--night);
+      background: var(--mint);
+      border-color: var(--mint);
+    }
+
+    .deep-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .deep-card {
+      min-height: 238px;
+      padding: 24px;
+      color: var(--white);
+      background: var(--night-2);
+      border: 1px solid #53776c;
+      border-radius: var(--radius);
+    }
+
+    .deep-card:nth-child(3n + 2) {
+      color: var(--ink);
+      background: var(--white);
+      border-color: var(--line);
+    }
+
+    .deep-card h3 {
+      margin: 8px 0 10px;
+      font: 700 1.55rem/1.08 var(--serif);
+    }
+
+    .deep-card p,
+    .deep-card li {
+      font-size: .92rem;
+    }
+
+    .deep-card ul {
+      margin: 12px 0 0;
+      padding-left: 1.1rem;
+    }
+
+    .deep-number {
+      color: var(--signal-on-dark);
+      font: 800 .72rem/1 var(--mono);
+      letter-spacing: .13em;
+    }
+
+    .deep-card:nth-child(3n + 2) .deep-number {
+      color: var(--signal-dark);
+    }
+
+    .failure-table,
+    .tradeoff-table {
+      width: 100%;
+      margin: 28px 0;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow: hidden;
+      background: var(--white);
+      border: 1px solid var(--ink);
+      border-radius: 12px;
+    }
+
+    .failure-table th,
+    .failure-table td,
+    .tradeoff-table th,
+    .tradeoff-table td {
+      padding: 14px;
+      border-right: 1px solid var(--line-soft);
+      border-bottom: 1px solid var(--line-soft);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .failure-table th,
+    .tradeoff-table th {
+      color: var(--white);
+      background: var(--night);
+      font: 800 .7rem/1.2 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .failure-table caption,
+    .tradeoff-table caption {
+      padding: 12px 14px;
+      color: var(--ink);
+      background: var(--paper-deep);
+      border-bottom: 1px solid var(--ink);
+      font: 700 1rem/1.3 var(--serif);
+      text-align: left;
+    }
+
+    .failure-table tr:last-child td,
+    .tradeoff-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .failure-table th:last-child,
+    .failure-table td:last-child,
+    .tradeoff-table th:last-child,
+    .tradeoff-table td:last-child {
+      border-right: 0;
+    }
+
+    .tradeoff-picker {
+      margin: 30px 0;
+      padding: 24px;
+      background: var(--paper-deep);
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+    }
+
+    .tradeoff-picker h3 {
+      margin: 0 0 14px;
+      font: 700 1.65rem/1 var(--serif);
+    }
+
+    .tradeoff-result {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      min-height: 130px;
+      margin-top: 18px;
+      padding: 20px;
+      background: var(--white);
+      border-radius: 12px;
+    }
+
+    .tradeoff-result strong {
+      display: block;
+      color: var(--signal-dark);
+      font: 700 1.25rem/1 var(--serif);
+    }
+
+    .tradeoff-result p {
+      margin: 8px 0 0;
+      color: var(--ink-soft);
+    }
+
+    .interview-questions {
+      display: grid;
+      gap: 12px;
+      margin: 26px 0;
+    }
+
+    .interview-question {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .reveal-toggle {
+      display: flex;
+      width: 100%;
+      gap: 18px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px;
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      text-align: left;
+      font: 700 1.1rem/1.25 var(--serif);
+    }
+
+    .reveal-toggle::after {
+      flex: 0 0 auto;
+      content: attr(data-action-label);
+      color: var(--signal-dark);
+      font: 800 .62rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .question-answer {
+      margin: 0;
+      padding: 0 20px 20px;
+      color: var(--ink-soft);
+    }
+
+    .closing-grid {
+      display: grid;
+      grid-template-columns: .8fr 1.2fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .timer {
+      position: sticky;
+      top: 112px;
+      padding: 28px;
+      color: var(--white);
+      background: var(--signal-dark);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .timer h3 {
+      margin: 0 0 16px;
+      font: 700 1.8rem/1 var(--serif);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .time-slot {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 12px;
+      padding: 12px 0;
+      border-top: 1px solid rgba(255, 255, 255, .25);
+    }
+
+    .time-slot b {
+      color: var(--gold-on-dark);
+      font: 800 .72rem/1.3 var(--mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .time-slot span {
+      font-size: .9rem;
+    }
+
+    .checkpoint-panel {
+      padding: 28px;
+      background: var(--white);
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+    }
+
+    .checkpoint-panel h3 {
+      margin: 0;
+      font: 700 1.8rem/1 var(--serif);
+    }
+
+    .progress-wrap {
+      margin: 18px 0 24px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      font: 800 .68rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .progress-track {
+      height: 14px;
+      overflow: hidden;
+      background: var(--paper-deep);
+      border: 1px solid var(--ink);
+      border-radius: 999px;
+    }
+
+    .progress-bar {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--signal), var(--gold));
+      transition: width .25s ease;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 10px;
+      padding: 0;
+      border: 0;
+    }
+
+    .checklist legend {
+      margin-bottom: 12px;
+      font: 800 .7rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .checkpoint {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 12px;
+      background: var(--paper);
+      border: 1px solid var(--line-soft);
+      border-radius: 9px;
+    }
+
+    .checkpoint input {
+      width: 20px;
+      height: 20px;
+      margin: 1px 0 0;
+      accent-color: var(--signal-dark);
+    }
+
+    .checkpoint:has(input:checked) {
+      background: #d9eee4;
+      border-color: #6fa98f;
+    }
+
+    .reset-button {
+      margin-top: 16px;
+      padding: 10px 14px;
+      color: var(--white);
+      background: var(--ink);
+      border: 0;
+      border-radius: 8px;
+      font: 800 .68rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .closing-line {
+      margin-top: 30px;
+      padding: 30px;
+      color: var(--white);
+      background: var(--night);
+      border-left: 9px solid var(--mint);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font: 700 clamp(1.25rem, 2.5vw, 2rem)/1.3 var(--serif);
+    }
+
+    footer {
+      padding: 38px 20px;
+      color: #cbdad4;
+      background: var(--night);
+      border-top: 7px solid var(--signal);
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    footer p {
+      margin: 0;
+      max-width: 900px;
+      font-size: .88rem;
+    }
+
+    footer a {
+      color: var(--mint);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @keyframes panel-in {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1050px) {
+      .hero-grid,
+      .scope-board,
+      .closing-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-4,
+      .data-model {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .decision-chain {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .decision-chain div:nth-child(2) {
+        border-right: 0;
+      }
+
+      .decision-chain div:nth-child(-n + 2) {
+        border-bottom: 1px solid var(--line);
+      }
+
+      .timer {
+        position: static;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .masthead {
+        min-height: 0;
+        padding-inline: 20px;
+      }
+
+      .masthead-top {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 42px;
+      }
+
+      h1 {
+        font-size: clamp(3.15rem, 17vw, 5.8rem);
+      }
+
+      .hero-ticket {
+        margin-right: 14px;
+      }
+
+      .masthead::after {
+        display: none;
+      }
+
+      .shell {
+        width: min(100% - 20px, 1500px);
+      }
+
+      .stage-nav-wrap {
+        position: static;
+        margin-top: -20px;
+      }
+
+      .stage-nav {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .stage-tab {
+        min-height: 64px;
+        border-bottom: 1px solid var(--line-soft);
+      }
+
+      .grid-2,
+      .grid-3,
+      .grid-4,
+      .data-model,
+      .deep-grid,
+      .tradeoff-result,
+      .question-strip ol {
+        grid-template-columns: 1fr;
+      }
+
+      .hotspot-callout {
+        grid-template-columns: 1fr;
+      }
+
+      .decision-chain {
+        grid-template-columns: 1fr;
+      }
+
+      .decision-chain div,
+      .decision-chain div:nth-child(2) {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .decision-chain div:last-child {
+        border-bottom: 0;
+      }
+
+      .decision-chain div:not(:last-child)::after {
+        top: auto;
+        right: 20px;
+        bottom: -13px;
+        transform: rotate(90deg);
+      }
+
+      .api-row {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+
+      .transition-ledger ul {
+        grid-template-columns: 1fr;
+      }
+
+      .aggregate-effects {
+        grid-template-columns: 1fr;
+      }
+
+      .failure-table,
+      .tradeoff-table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+      }
+    }
+
+    @media print {
+      .stage-nav-wrap,
+      .control-deck,
+      .reset-button {
+        display: none;
+      }
+
+      .stage-panel,
+      .architecture-panel,
+      .question-answer {
+        display: block !important;
+      }
+
+      body {
+        background: white;
+      }
+
+      .masthead {
+        min-height: auto;
+        color: black;
+        background: white;
+        border: 2px solid black;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="masthead">
+    <div class="masthead-top">
+      <p class="eyebrow">System Design · cockpit de 45 minutos</p>
+      <div class="utility-links" aria-label="Documentos relacionados">
+        <a href="./README.md">Guia completo</a>
+        <a href="./deep-dives.md">Deep dives</a>
+      </div>
+    </div>
+    <div class="hero-grid">
+      <div>
+        <h1>Venda de<br>ingressos <span>sem vender a mesma cadeira duas vezes</span></h1>
+        <p class="hero-summary">
+          Um roteiro interativo para separar descoberta disponível de compra consistente,
+          controlar picos de abertura e recuperar pagamentos ambíguos.
+        </p>
+      </div>
+      <aside class="hero-ticket" aria-label="Contrato central da entrevista">
+        <p class="ticket-code">CONTRATO / EVENT-04</p>
+        <div class="ticket-rule">
+          Busca pode atrasar.<br>
+          Inventário não pode mentir.
+        </div>
+        <div class="ticket-meta">
+          <div><span>Escopo</span><strong>3 jornadas</strong></div>
+          <div><span>Janela</span><strong>45 min</strong></div>
+          <div><span>Pico</span><strong>por evento</strong></div>
+          <div><span>Prioridade</span><strong>consistência</strong></div>
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <noscript>
+    <p class="noscript-note">
+      JavaScript está desabilitado. Todo o conteúdo essencial, as seis etapas, respostas,
+      diagramas e checklists continuam visíveis; apenas alternâncias e persistência ficam inativas.
+    </p>
+  </noscript>
+
+  <div class="shell stage-nav-wrap">
+    <nav class="stage-nav" aria-label="Etapas da entrevista" role="tablist">
+      <button class="stage-tab" type="button" role="tab" id="tab-scope" aria-controls="stage-scope" aria-selected="true" tabindex="0" data-stage-target="stage-scope"><span>01</span>Escopo</button>
+      <button class="stage-tab" type="button" role="tab" id="tab-estimates" aria-controls="stage-estimates" aria-selected="false" tabindex="-1" data-stage-target="stage-estimates"><span>02</span>Estimativas</button>
+      <button class="stage-tab" type="button" role="tab" id="tab-api" aria-controls="stage-api" aria-selected="false" tabindex="-1" data-stage-target="stage-api"><span>03</span>API e dados</button>
+      <button class="stage-tab" type="button" role="tab" id="tab-architecture" aria-controls="stage-architecture" aria-selected="false" tabindex="-1" data-stage-target="stage-architecture"><span>04</span>Arquitetura</button>
+      <button class="stage-tab" type="button" role="tab" id="tab-deep" aria-controls="stage-deep" aria-selected="false" tabindex="-1" data-stage-target="stage-deep"><span>05</span>Deep dives</button>
+      <button class="stage-tab" type="button" role="tab" id="tab-close" aria-controls="stage-close" aria-selected="false" tabindex="-1" data-stage-target="stage-close"><span>06</span>Fechamento</button>
+    </nav>
+  </div>
+
+  <main id="conteudo" class="shell">
+    <section class="stage-panel" id="stage-scope" role="tabpanel" aria-labelledby="tab-scope" data-stage-panel="stage-scope">
+      <p class="stage-kicker">Etapa 01 · 0–5 minutos</p>
+      <h2 class="stage-heading">Feche o contrato antes de desenhar caixas.</h2>
+      <p class="stage-lede">
+        A pergunta decisiva é se estamos desenhando descoberta, transação ou ambas.
+        A resposta madura separa as prioridades sem transformar CAP em um rótulo único para o produto.
+      </p>
+
+      <div class="scope-board">
+        <article class="scope-column scope-in">
+          <h3>Dentro do escopo</h3>
+          <ul class="scope-list">
+            <li>Buscar eventos por texto, cidade, artista e data.</li>
+            <li>Abrir detalhes e consultar assentos/setores.</li>
+            <li>Reservar até 8 unidades de forma atômica.</li>
+            <li>Pagar por provedor externo e confirmar por webhook.</li>
+            <li>Expirar holds e devolver inventário.</li>
+            <li>Proteger eventos quentes com fila virtual.</li>
+          </ul>
+        </article>
+        <article class="scope-column scope-out">
+          <h3>Fora do primeiro corte</h3>
+          <ul class="scope-list">
+            <li>Cadastro de usuários e autenticação detalhada.</li>
+            <li>CRUD de eventos e portal do organizador.</li>
+            <li>Cancelamento pós-compra e reembolso voluntário.</li>
+            <li>Revenda, transferência e recomendação.</li>
+            <li>Contabilidade integral do organizador.</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="grid-3">
+        <article class="card">
+          <span class="source-tag source-local">Aula local</span>
+          <h3>Três jornadas</h3>
+          <p>Buscar, visualizar e comprar. A aula usa esses requisitos como contrato visível para o restante do desenho.</p>
+        </article>
+        <article class="card">
+          <span class="source-tag source-extra">Complemento</span>
+          <h3>Dois caminhos</h3>
+          <p>Descoberta aceita cache e atraso; a reserva só vence quando o armazenamento autoritativo aplica a transação.</p>
+        </article>
+        <article class="card">
+          <span class="source-tag source-hypothesis">Hipótese</span>
+          <h3>Hold de 10 minutos</h3>
+          <p>Assentos numerados e setores gerais, compra atômica, até 8 unidades, pagamento confirmado de forma assíncrona.</p>
+        </article>
+      </div>
+
+      <aside class="question-strip">
+        <h3>Perguntas que realmente mudam o desenho</h3>
+        <ol>
+          <li>Assento marcado, capacidade por setor ou ambos?</li>
+          <li>Compra de vários ingressos precisa ser tudo ou nada?</li>
+          <li>Qual o maior pico para um único evento?</li>
+          <li>Qual o TTL e a política para pagamento tardio?</li>
+          <li>Fila estritamente FIFO ou por coortes?</li>
+          <li>Pagamento síncrono, webhook ou ambos?</li>
+        </ol>
+      </aside>
+
+      <div class="invariant">
+        <span>Invariável central</span>
+        <strong>Para cada unidade, claims ativos + vendas confirmadas nunca excedem a capacidade.</strong>
+      </div>
+    </section>
+
+    <section class="stage-panel" id="stage-estimates" role="tabpanel" aria-labelledby="tab-estimates" data-stage-panel="stage-estimates">
+      <p class="stage-kicker">Etapa 02 · 5–9 minutos</p>
+      <h2 class="stage-heading">Use números para encontrar assimetria, não para encenar precisão.</h2>
+      <p class="stage-lede">
+        A média global parece confortável. O problema aparece quando uma única chave — um show com venda marcada —
+        concentra dezenas de milhares de tentativas por segundo.
+      </p>
+
+      <div class="grid-4">
+        <article class="metric">
+          <small>Aula local</small>
+          <strong>20M</strong>
+          usuários ativos diários, como ordem de grandeza ilustrativa.
+        </article>
+        <article class="metric">
+          <small>Aula local</small>
+          <strong>~100k</strong>
+          eventos como ordem de grandeza; tratá-los como ativos é hipótese pedagógica.
+        </article>
+        <article class="metric">
+          <small>Hipótese</small>
+          <strong>46k/s</strong>
+          pico comum estimado de busca, com cache e índice.
+        </article>
+        <article class="metric">
+          <small>Hipótese</small>
+          <strong>100k/s</strong>
+          tentativas em uma abertura quente para um único evento.
+        </article>
+      </div>
+
+      <div class="hotspot-callout">
+        <div class="hotspot-number">4,6/s<span>compras médias</span></div>
+        <p>
+          Uma média pequena de compras não elimina o problema: a demanda chega em rajadas e converge no mesmo inventário.
+          O desenho precisa controlar <strong>skew temporal e por chave</strong>, não apenas escalar serviços stateless.
+        </p>
+      </div>
+
+      <div class="decision-chain" aria-label="Estimativa levando a decisões arquiteturais">
+        <div><b>400M buscas/dia</b>20 buscas por DAU. Consequência: índice invertido, cache e paginação.</div>
+        <div><b>100M detalhes/dia</b>Separar metadado estático de disponibilidade volátil melhora o hit rate.</div>
+        <div><b>200M unidades</b>~100 mil eventos (aula) × 2 mil unidades ativas/evento (hipótese). Índices e arquivamento importam.</div>
+        <div><b>Hot event</b>Fila virtual limita a taxa entregue ao shard autoritativo.</div>
+      </div>
+
+      <div class="grid-2">
+        <article class="card">
+          <span class="source-tag source-extra">Decisão</span>
+          <h3>Particionar por evento</h3>
+          <p>Mantém inventário relacionado no mesmo shard e favorece transações locais. O custo é concentrar o evento mais popular.</p>
+        </article>
+        <article class="card">
+          <span class="source-tag source-extra">Mitigação</span>
+          <h3>Admitir no throughput seguro</h3>
+          <p>A fila não aumenta capacidade; ela impede que a rajada destrua banco, pools, cache e pagamento com retries.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="stage-panel" id="stage-api" role="tabpanel" aria-labelledby="tab-api" data-stage-panel="stage-api">
+      <p class="stage-kicker">Etapa 03 · 9–14 minutos</p>
+      <h2 class="stage-heading">Faça o contrato revelar intenção, prazo e repetição.</h2>
+      <p class="stage-lede">
+        A aula começa com REST e um endpoint de booking. O aprofundamento separa reserva de tentativa de pagamento
+        para deixar estados, idempotência e recuperação explícitos.
+      </p>
+
+      <div class="api-stack" aria-label="Endpoints principais">
+        <div class="api-row">
+          <span class="api-method">GET</span>
+          <code class="api-path">/v1/events?query=&amp;city=&amp;cursor=</code>
+          <span class="api-purpose">Busca eventual, resposta leve e paginada.</span>
+        </div>
+        <div class="api-row">
+          <span class="api-method">GET</span>
+          <code class="api-path">/v1/events/{eventId}</code>
+          <span class="api-purpose">Metadados e disponibilidade aproximada do evento.</span>
+        </div>
+        <div class="api-row">
+          <span class="api-method">POST</span>
+          <code class="api-path">/v1/events/{eventId}/reservations</code>
+          <span class="api-purpose">Claim atômico com Idempotency-Key e admission token.</span>
+        </div>
+        <div class="api-row">
+          <span class="api-method">POST</span>
+          <code class="api-path">/v1/reservations/{id}/payment-attempts</code>
+          <span class="api-purpose">Inicia cobrança sem segurar transação do inventário.</span>
+        </div>
+        <div class="api-row">
+          <span class="api-method">POST</span>
+          <code class="api-path">/v1/webhooks/payments/{provider}</code>
+          <span class="api-purpose">Aplica evento autenticado, deduplicado e fora de ordem com segurança.</span>
+        </div>
+      </div>
+
+      <div class="invariant">
+        <span>Regra de API</span>
+        <strong>Disponibilidade exibida é convite; somente uma reserva HELD é promessa temporária.</strong>
+      </div>
+
+      <div class="data-model" aria-label="Entidades principais">
+        <article class="entity">
+          <h3>Event</h3>
+          <code>event_id PK</code>
+          <code>venue_id</code>
+          <code>starts_at</code>
+          <code>sales_status</code>
+        </article>
+        <article class="entity">
+          <h3>InventoryUnit</h3>
+          <code>unit_id PK</code>
+          <code>event_id + section</code>
+          <code>state + version</code>
+          <code>hold_expires_at</code>
+        </article>
+        <article class="entity">
+          <h3>Reservation</h3>
+          <code>reservation_id PK</code>
+          <code>status + expires_at</code>
+          <code>idempotency_key</code>
+          <code>price_snapshot</code>
+        </article>
+        <article class="entity">
+          <h3>PaymentAttempt</h3>
+          <code>attempt_id PK</code>
+          <code>provider_reference</code>
+          <code>status</code>
+          <code>amount_cents</code>
+        </article>
+        <article class="entity">
+          <h3>ReservationItem</h3>
+          <code>reservation_id</code>
+          <code>inventory_unit_id</code>
+          <code>price_cents</code>
+          <code>claim único</code>
+        </article>
+        <article class="entity">
+          <h3>AdmissionToken</h3>
+          <code>event_id</code>
+          <code>subject + nonce</code>
+          <code>expires_at</code>
+          <code>max_quantity</code>
+        </article>
+        <article class="entity">
+          <h3>OutboxEvent</h3>
+          <code>event_id PK</code>
+          <code>aggregate_id</code>
+          <code>event_type</code>
+          <code>published_at</code>
+        </article>
+        <article class="entity">
+          <h3>IdempotencyRecord</h3>
+          <code>actor + key UNIQUE</code>
+          <code>payload_hash</code>
+          <code>resource_id</code>
+          <code>response_snapshot</code>
+        </article>
+      </div>
+
+      <div class="grid-2" style="margin-top: 24px">
+        <article class="card">
+          <span class="source-tag source-local">Aula local</span>
+          <h3>Modelo relacional</h3>
+          <p>Eventos, locais, artistas, tickets e bookings têm relações e se beneficiam de transação e joins consistentes.</p>
+        </article>
+        <article class="card">
+          <span class="source-tag source-extra">Complemento</span>
+          <h3>Update condicional</h3>
+          <p>Reserve com <code>WHERE state = AVAILABLE OR hold_expires_at &lt; now()</code>; se não alterar todas as linhas, rollback.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="stage-panel" id="stage-architecture" role="tabpanel" aria-labelledby="tab-architecture" data-stage-panel="stage-architecture">
+      <p class="stage-kicker">Etapa 04 · 14–23 minutos</p>
+      <h2 class="stage-heading">Desenhe o mínimo; depois torne o gargalo visível.</h2>
+      <p class="stage-lede">
+        Use os controles para alternar entre a arquitetura que cobre o produto e a arquitetura que sobrevive à abertura de venda.
+        Filtre os fluxos de leitura, escrita, assíncrono e falha.
+      </p>
+
+      <div class="control-deck" aria-label="Controles do diagrama">
+        <div class="control-group">
+          <span class="control-label">Visão</span>
+          <button class="chip-button" type="button" aria-pressed="true" data-architecture="minimum">Mínima</button>
+          <button class="chip-button" type="button" aria-pressed="false" data-architecture="scaled">Escalada</button>
+        </div>
+        <div class="control-group">
+          <span class="control-label">Fluxo</span>
+          <button class="chip-button" type="button" aria-pressed="true" data-flow="all">Todos</button>
+          <button class="chip-button" type="button" aria-pressed="false" data-flow="read">Leitura</button>
+          <button class="chip-button" type="button" aria-pressed="false" data-flow="write">Escrita</button>
+          <button class="chip-button" type="button" aria-pressed="false" data-flow="async">Assíncrono</button>
+          <button class="chip-button" type="button" aria-pressed="false" data-flow="failure">Falha</button>
+        </div>
+      </div>
+
+      <section class="architecture-panel" data-architecture-panel="minimum" aria-label="Arquitetura mínima">
+        <h3>Arquitetura mínima — cobre busca, detalhe e compra</h3>
+        <svg viewBox="0 0 1120 510" role="img" aria-labelledby="minimal-title minimal-desc">
+          <title id="minimal-title">Arquitetura mínima do site de ingressos</title>
+          <desc id="minimal-desc">Cliente acessa gateway, serviços de eventos, busca e booking, banco relacional e provedor de pagamento.</desc>
+          <defs>
+            <marker id="arrow-read-min" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#8bd4b4"></path></marker>
+            <marker id="arrow-write-min" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#ef5b2a"></path></marker>
+            <marker id="arrow-async-min" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#e0b34f"></path></marker>
+            <marker id="arrow-fail-min" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#ff6970"></path></marker>
+          </defs>
+          <g class="node"><rect x="30" y="205" width="150" height="76"></rect><text x="105" y="236">CLIENTE</text><text class="sub" x="105" y="257">web / app</text></g>
+          <g class="node"><rect x="245" y="205" width="160" height="76"></rect><text x="325" y="236">API GATEWAY</text><text class="sub" x="325" y="257">auth · rate limit</text></g>
+          <g class="node"><rect x="500" y="45" width="180" height="78"></rect><text x="590" y="77">SEARCH SERVICE</text><text class="sub" x="590" y="99">filtros iniciais</text></g>
+          <g class="node"><rect x="500" y="205" width="180" height="78"></rect><text x="590" y="237">EVENT SERVICE</text><text class="sub" x="590" y="259">detalhes + mapa</text></g>
+          <g class="node"><rect x="500" y="365" width="180" height="78"></rect><text x="590" y="397">BOOKING SERVICE</text><text class="sub" x="590" y="419">reserva + confirmação</text></g>
+          <g class="node"><rect x="785" y="205" width="180" height="88"></rect><text x="875" y="239">BANCO SQL</text><text class="sub" x="875" y="261">event · ticket · booking</text></g>
+          <g class="node"><rect x="785" y="365" width="180" height="78"></rect><text x="875" y="397">PAGAMENTO</text><text class="sub" x="875" y="419">provedor externo</text></g>
+
+          <g data-flow-kind="read"><path class="edge-read" marker-end="url(#arrow-read-min)" d="M180 228 H245"></path><path class="edge-read" marker-end="url(#arrow-read-min)" d="M405 228 C450 228 450 84 500 84"></path><path class="edge-read" marker-end="url(#arrow-read-min)" d="M405 242 H500"></path><path class="edge-read" marker-end="url(#arrow-read-min)" d="M680 84 C760 84 720 224 785 224"></path><path class="edge-read" marker-end="url(#arrow-read-min)" d="M680 244 H785"></path></g>
+          <g data-flow-kind="write"><path class="edge-write" marker-end="url(#arrow-write-min)" d="M180 266 H245"></path><path class="edge-write" marker-end="url(#arrow-write-min)" d="M405 266 C455 266 450 404 500 404"></path><path class="edge-write" marker-end="url(#arrow-write-min)" d="M680 392 C735 360 740 286 785 276"></path><path class="edge-write" marker-end="url(#arrow-write-min)" d="M680 412 H785"></path></g>
+          <g data-flow-kind="async"><path class="edge-async" marker-end="url(#arrow-async-min)" d="M875 365 C875 325 735 330 680 386"></path></g>
+          <g data-flow-kind="failure"><path class="edge-failure" marker-end="url(#arrow-fail-min)" d="M965 404 C1035 404 1035 482 875 480 C735 478 730 442 680 426"></path></g>
+        </svg>
+        <div class="legend"><span class="read">leitura</span><span class="write">escrita</span><span class="async">webhook/evento</span><span class="failure">retry/compensação</span></div>
+      </section>
+
+      <section class="architecture-panel" data-architecture-panel="scaled" aria-label="Arquitetura escalada">
+        <h3>Arquitetura escalada — isolamento entre descoberta e caminho crítico</h3>
+        <svg viewBox="0 0 1280 650" role="img" aria-labelledby="scaled-title scaled-desc">
+          <title id="scaled-title">Arquitetura escalada para venda de ingressos</title>
+          <desc id="scaled-desc">Inclui borda, fila virtual, caches, índice de busca, CDC, reserva como orquestrador, Redis, banco de inventário, pagamento com callback ou webhook, outbox e reconciliação. Falhas retornam ao orquestrador, que inicia a saga de compensação.</desc>
+          <defs>
+            <marker id="arrow-read-scale" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#8bd4b4"></path></marker>
+            <marker id="arrow-write-scale" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#ef5b2a"></path></marker>
+            <marker id="arrow-async-scale" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#e0b34f"></path></marker>
+            <marker id="arrow-fail-scale" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#ff6970"></path></marker>
+          </defs>
+
+          <g class="node"><rect x="20" y="285" width="135" height="76"></rect><text x="87" y="316">CLIENTE</text><text class="sub" x="87" y="338">web / app</text></g>
+          <g class="node"><rect x="205" y="285" width="155" height="76"></rect><text x="282" y="316">EDGE / WAF</text><text class="sub" x="282" y="338">CDN · rate limit</text></g>
+          <g class="node"><rect x="410" y="285" width="165" height="76"></rect><text x="492" y="316">API GATEWAY</text><text class="sub" x="492" y="338">routing · auth</text></g>
+
+          <g class="node"><rect x="650" y="25" width="170" height="76"></rect><text x="735" y="56">SEARCH</text><text class="sub" x="735" y="78">consulta textual</text></g>
+          <g class="node"><rect x="920" y="25" width="170" height="76"></rect><text x="1005" y="56">SEARCH INDEX</text><text class="sub" x="1005" y="78">eventual</text></g>
+          <g class="node"><rect x="650" y="145" width="170" height="76"></rect><text x="735" y="176">EVENT SERVICE</text><text class="sub" x="735" y="198">detalhe</text></g>
+          <g class="node"><rect x="920" y="145" width="170" height="76"></rect><text x="1005" y="176">EVENT CACHE</text><text class="sub" x="1005" y="198">stale permitido</text></g>
+
+          <g class="node"><rect x="630" y="285" width="180" height="76"></rect><text x="720" y="316">VIRTUAL QUEUE</text><text class="sub" x="720" y="338">coortes · SSE</text></g>
+          <g class="node"><rect x="870" y="285" width="190" height="76"></rect><text x="965" y="316">ADMISSION</text><text class="sub" x="965" y="338">token · taxa adaptativa</text></g>
+
+          <g class="node"><rect x="630" y="435" width="190" height="82"></rect><text x="725" y="468">RESERVATION</text><text class="sub" x="725" y="490">orquestrador · saga</text></g>
+          <g class="node"><rect x="905" y="415" width="175" height="76"></rect><text x="992" y="446">REDIS</text><text class="sub" x="992" y="468">contenção · TTL</text></g>
+          <g class="node"><rect x="905" y="535" width="175" height="76"></rect><text x="992" y="566">INVENTORY DB</text><text class="sub" x="992" y="588">autoridade forte</text></g>
+          <g class="node"><rect x="1130" y="415" width="135" height="76"></rect><text x="1197" y="446">PAYMENT</text><text class="sub" x="1197" y="468">provedor</text></g>
+          <g class="node"><rect x="1130" y="535" width="135" height="76"></rect><text x="1197" y="566">WORKERS</text><text class="sub" x="1197" y="588">outbox · reconcile</text></g>
+
+          <g data-flow-kind="read">
+            <path class="edge-read" marker-end="url(#arrow-read-scale)" d="M155 305 H205"></path>
+            <path class="edge-read" marker-end="url(#arrow-read-scale)" d="M360 305 H410"></path>
+            <path class="edge-read" marker-end="url(#arrow-read-scale)" d="M575 306 C610 250 610 64 650 64"></path>
+            <path class="edge-read" marker-end="url(#arrow-read-scale)" d="M820 64 H920"></path>
+            <path class="edge-read" marker-end="url(#arrow-read-scale)" d="M575 316 C610 280 610 184 650 184"></path>
+            <path class="edge-read" marker-end="url(#arrow-read-scale)" d="M820 184 H920"></path>
+          </g>
+          <g data-flow-kind="write">
+            <path class="edge-write" marker-end="url(#arrow-write-scale)" d="M155 342 H205"></path>
+            <path class="edge-write" marker-end="url(#arrow-write-scale)" d="M360 342 H410"></path>
+            <path class="edge-write" marker-end="url(#arrow-write-scale)" d="M575 342 C600 342 605 323 630 323"></path>
+            <path class="edge-write" marker-end="url(#arrow-write-scale)" d="M810 323 H870"></path>
+            <path class="edge-write" marker-end="url(#arrow-write-scale)" d="M965 361 C950 392 825 402 782 435"></path>
+            <path class="edge-write" marker-end="url(#arrow-write-scale)" d="M820 465 H905"></path>
+            <path class="edge-write" marker-end="url(#arrow-write-scale)" d="M820 493 C865 515 865 573 905 573"></path>
+            <path class="edge-write" marker-end="url(#arrow-write-scale)" d="M820 448 C965 370 1060 440 1130 452"></path>
+          </g>
+          <g data-flow-kind="async">
+            <path class="edge-async" marker-end="url(#arrow-async-scale)" d="M1080 573 H1130"></path>
+            <path class="edge-async" marker-end="url(#arrow-async-scale)" d="M1197 535 C1160 510 1095 505 1080 480"></path>
+            <path class="edge-async" marker-end="url(#arrow-async-scale)" d="M992 535 C995 325 1120 265 1090 96"></path>
+            <path class="edge-async" marker-end="url(#arrow-async-scale)" d="M992 535 C900 420 1120 335 1090 216"></path>
+            <path class="edge-async" marker-end="url(#arrow-async-scale)" d="M1197 415 C1197 370 875 370 790 435"></path>
+            <text class="edge-label edge-label-async" x="1002" y="365">callback / webhook</text>
+          </g>
+          <g data-flow-kind="failure">
+            <path class="edge-failure" marker-end="url(#arrow-fail-scale)" d="M1130 487 C1080 522 915 528 820 497"></path>
+            <text class="edge-label edge-label-failure" x="982" y="520">falha / timeout</text>
+            <path class="edge-failure" marker-end="url(#arrow-fail-scale)" d="M780 517 C820 628 1020 638 1130 585"></path>
+            <text class="edge-label edge-label-failure" x="910" y="632">saga / compensação</text>
+            <path class="edge-failure" marker-end="url(#arrow-fail-scale)" d="M905 447 C865 420 835 432 810 451"></path>
+            <path class="edge-failure" marker-end="url(#arrow-fail-scale)" d="M630 343 C600 380 570 385 540 360"></path>
+          </g>
+        </svg>
+        <div class="legend"><span class="read">leitura eventual</span><span class="write">claim/commit</span><span class="async">CDC/outbox/webhook</span><span class="failure">fallback/compensação</span></div>
+      </section>
+
+      <h3 style="font-family: var(--serif); font-size: 1.8rem; margin: 36px 0 14px">Fluxo de compra</h3>
+      <div class="purchase-flow" aria-label="Fluxo principal da compra">
+        <article class="flow-step"><span>1</span><h3>Admitir</h3><p>Validar token de fila, identidade, prazo e limite.</p></article>
+        <article class="flow-step"><span>2</span><h3>Reservar</h3><p>Claim atômico de todas as unidades no banco.</p></article>
+        <article class="flow-step"><span>3</span><h3>Persistir</h3><p>Reserva, itens, idempotência e outbox no mesmo commit.</p></article>
+        <article class="flow-step"><span>4</span><h3>Cobrar</h3><p>Chamar provedor com chave idempotente estável.</p></article>
+        <article class="flow-step"><span>5</span><h3>Confirmar</h3><p>Webhook monotônico muda hold para venda.</p></article>
+        <article class="flow-step"><span>6</span><h3>Emitir</h3><p>Workers geram ingresso, notificam e reconciliam.</p></article>
+      </div>
+
+      <section class="state-machine" aria-labelledby="state-title">
+        <h3 id="state-title">FSM de Reservation e efeitos coordenados</h3>
+        <p class="state-help" id="state-help">
+          Os botões abaixo pertencem somente ao agregado Reservation. Selecione um estado para realçar
+          entradas em verde e saídas em amarelo; inventário e pagamento aparecem separadamente como efeitos coordenados.
+        </p>
+        <div class="state-graph-wrap">
+          <div class="state-graph" role="group" aria-label="Grafo dirigido de estados de Reservation" aria-describedby="state-help">
+            <button class="state-button state-held" type="button" aria-pressed="true" aria-controls="state-detail" data-state="held"><span class="state-code">HELD</span><span class="state-name">reserva criada</span></button>
+            <div class="transition-edge edge-held-payment" aria-hidden="true" data-transition-from="held" data-transition-to="payment"><span>→</span><small>iniciar cobrança</small></div>
+            <button class="state-button state-payment" type="button" aria-pressed="false" aria-controls="state-detail" data-state="payment"><span class="state-code">PAYMENT_PENDING</span><span class="state-name">aguardando pagamento</span></button>
+            <div class="transition-edge edge-payment-confirmed" aria-hidden="true" data-transition-from="payment" data-transition-to="confirmed"><span>→</span><small>PaymentAttempt CAPTURED</small></div>
+            <button class="state-button state-confirmed" type="button" aria-pressed="false" aria-controls="state-detail" data-state="confirmed"><span class="state-code">CONFIRMED</span><span class="state-name">reserva confirmada</span></button>
+
+            <div class="transition-edge edge-held-expired" aria-hidden="true" data-transition-from="held" data-transition-to="expired"><span>↓</span><small>TTL antes da cobrança</small></div>
+            <div class="transition-edge edge-payment-expired" aria-hidden="true" data-transition-from="payment" data-transition-to="expired"><span>↙</span><small>TTL aguardando pagamento</small></div>
+
+            <button class="state-button state-expired" type="button" aria-pressed="false" aria-controls="state-detail" data-state="expired"><span class="state-code">EXPIRED</span><span class="state-name">prazo encerrado</span></button>
+            <div class="transition-edge edge-held-cancelled" aria-hidden="true" data-transition-from="held" data-transition-to="cancelled"><span>↘</span><small>cancelamento explícito</small></div>
+            <div class="transition-edge edge-payment-cancelled" aria-hidden="true" data-transition-from="payment" data-transition-to="cancelled"><span>↘</span><small>PaymentAttempt FAILED</small></div>
+            <button class="state-button state-cancelled" type="button" aria-pressed="false" aria-controls="state-detail" data-state="cancelled"><span class="state-code">CANCELLED</span><span class="state-name">reserva encerrada</span></button>
+          </div>
+        </div>
+        <div class="state-detail" id="state-detail" aria-live="polite" aria-atomic="true">
+          <strong data-state-title>HELD — reserva com prazo ativo</strong>
+          <span data-state-body>A Reservation nasce HELD depois que o claim atômico coloca as InventoryUnits em HELD.</span>
+          <div class="state-transition-summary">
+            <b>Transições relevantes</b>
+            <ul data-state-transitions>
+              <li>Saída: HELD → PAYMENT_PENDING ao criar uma PaymentAttempt.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="aggregate-effects" role="group" aria-label="Efeitos coordenados em outros agregados">
+          <article class="aggregate-effect">
+            <h4>InventoryUnit · máquina separada</h4>
+            <p><code>AVAILABLE → HELD → SOLD</code>, com retorno <code>HELD → AVAILABLE</code> quando a Reservation expira ou é cancelada.</p>
+            <ul>
+              <li>O claim cria <code>Reservation(HELD)</code> e coloca as unidades em <code>HELD</code> na transação autoritativa.</li>
+              <li><code>Reservation(CONFIRMED)</code> exige unidades ainda <code>HELD</code> e as promove para <code>SOLD</code>.</li>
+            </ul>
+          </article>
+          <article class="aggregate-effect">
+            <h4>PaymentAttempt · máquina separada</h4>
+            <p><code>CREATED → PENDING → FAILED | UNKNOWN | AUTHORIZED | CAPTURED</code>; depois, <code>AUTHORIZED → CAPTURED | VOIDED</code> e <code>CAPTURED → REFUNDED</code>.</p>
+            <ul>
+              <li>Falha sem autorização/captura apenas libera a Reservation e as InventoryUnits; não há operação financeira compensatória.</li>
+              <li>Void somente após autorização ainda não capturada.</li>
+              <li>Refund somente após captura.</li>
+            </ul>
+          </article>
+        </div>
+        <details class="transition-ledger" open>
+          <summary>Mapa textual completo das transições de Reservation</summary>
+          <ul>
+            <li data-transition-from="held" data-transition-to="payment"><code>HELD</code> → <code>PAYMENT_PENDING</code> — cobrança iniciada com chave idempotente.</li>
+            <li data-transition-from="held" data-transition-to="expired"><code>HELD</code> → <code>EXPIRED</code> — TTL vence antes de iniciar o pagamento.</li>
+            <li data-transition-from="held" data-transition-to="cancelled"><code>HELD</code> → <code>CANCELLED</code> — cancelamento explícito libera o inventário.</li>
+            <li data-transition-from="payment" data-transition-to="confirmed"><code>PAYMENT_PENDING</code> → <code>CONFIRMED</code> — <code>PaymentAttempt(CAPTURED)</code> chega antes do prazo e confirma a venda.</li>
+            <li data-transition-from="payment" data-transition-to="expired"><code>PAYMENT_PENDING</code> → <code>EXPIRED</code> — o TTL também vence enquanto se aguarda pagamento; o inventário é liberado.</li>
+            <li data-transition-from="payment" data-transition-to="cancelled"><code>PAYMENT_PENDING</code> → <code>CANCELLED</code> — <code>PaymentAttempt(FAILED)</code> sem autorização/captura encerra a reserva e libera o inventário.</li>
+          </ul>
+        </details>
+      </section>
+    </section>
+
+    <section class="stage-panel" id="stage-deep" role="tabpanel" aria-labelledby="tab-deep" data-stage-panel="stage-deep">
+      <p class="stage-kicker">Etapa 05 · 23–41 minutos</p>
+      <h2 class="stage-heading">Aprofunde invariantes, picos e falhas parciais.</h2>
+      <p class="stage-lede">
+        Escolha dois eixos para detalhar. Uma boa resposta percorre mecanismo, falha, recuperação e custo —
+        sem despejar tecnologias desconectadas.
+      </p>
+
+      <div class="deep-grid">
+        <article class="deep-card">
+          <span class="deep-number">01 / INVENTÁRIO</span>
+          <h3>Banco como última barreira</h3>
+          <p>Update condicional ou lock de linha altera exatamente N unidades. Redis rejeita cedo; se falhar, o banco ainda impede venda duplicada.</p>
+          <ul><li>Ordenar IDs reduz deadlock.</li><li>Reserva multiassento é tudo ou nada.</li></ul>
+        </article>
+        <article class="deep-card">
+          <span class="deep-number">02 / TTL</span>
+          <h3>Três relógios, três papéis</h3>
+          <p><code>expires_at</code> é prazo comercial; TTL do cache é operacional; sweeper faz higiene. Expiração preguiçosa evita depender do cron.</p>
+          <ul><li>Browser não decide o prazo.</li><li>Confirmação e expiração usam compare-and-set.</li></ul>
+        </article>
+        <article class="deep-card">
+          <span class="deep-number">03 / ADMISSÃO</span>
+          <h3>Fila virtual não cria throughput</h3>
+          <p>Ela entrega ao booking uma taxa segura. Token assinado impede bypass e carrega evento, sujeito, validade, nonce e limite.</p>
+          <ul><li>SSE para posição.</li><li>Taxa adaptativa pela saúde do shard.</li></ul>
+        </article>
+        <article class="deep-card">
+          <span class="deep-number">04 / IDEMPOTÊNCIA</span>
+          <h3>Retry repete intenção, não negócio</h3>
+          <p>Mesma chave + mesmo payload retorna o resultado original. Chave reutilizada com payload diferente é conflito.</p>
+          <ul><li>Reserva e registro idempotente no mesmo commit.</li><li>Webhook deduplicado e monotônico.</li></ul>
+        </article>
+        <article class="deep-card">
+          <span class="deep-number">05 / SAGA</span>
+          <h3>Timeout não significa falha</h3>
+          <p>Pagamento incerto vira <code>UNKNOWN</code>. Consulta, webhook e reconciliação resolvem. Após expiração, autorização é anulada com void; captura é devolvida com refund.</p>
+          <ul><li>Outbox evita dual write.</li><li>Compensação cria novo fato auditável.</li></ul>
+        </article>
+        <article class="deep-card">
+          <span class="deep-number">06 / HOTSPOT</span>
+          <h3>Um evento quebra a média</h3>
+          <p>Rate limit por evento, single-flight de cache, transações curtas, isolamento de shard e mapa por deltas contêm a chave quente.</p>
+          <ul><li>Hash distribui eventos, não o evento mais quente.</li><li>Subshard só se o produto aceitar a fronteira.</li></ul>
+        </article>
+        <article class="deep-card">
+          <span class="deep-number">07 / JUSTIÇA</span>
+          <h3>FIFO não é neutralidade</h3>
+          <p>Bots e baixa latência dominam T0. Uma coorte randomizada antes da abertura, seguida de FIFO, pode ser mais explicável.</p>
+          <ul><li>Limites no caminho autoritativo.</li><li>CAPTCHA adaptativo e acessível.</li></ul>
+        </article>
+        <article class="deep-card">
+          <span class="deep-number">08 / CONSISTÊNCIA</span>
+          <h3>Forte apenas no núcleo</h3>
+          <p>Claim, confirmação e idempotência usam o primário. Busca, cache, analytics, e-mail e posição aproximada aceitam eventualidade.</p>
+          <ul><li>Região líder por shard.</li><li>Sob incerteza, booking falha fechado.</li></ul>
+        </article>
+      </div>
+
+      <table class="failure-table">
+        <caption>Modos de falha, efeitos observáveis e resposta operacional</caption>
+        <thead>
+          <tr><th scope="col">Modo de falha</th><th scope="col">Efeito</th><th scope="col">Resposta</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Redis perde chaves</td><td>Rejeição rápida fica imprecisa</td><td>Banco revalida; reconstruir cache sem liberar venda duplicada.</td></tr>
+          <tr><td>Webhook duplicado/antigo</td><td>Risco de regressão de estado</td><td>Chave única, precedência monotônica e handler idempotente.</td></tr>
+          <tr><td>Timeout após commit</td><td>Cliente não sabe se reservou</td><td>Retry com a mesma Idempotency-Key devolve o resultado persistido.</td></tr>
+          <tr><td>Pagamento capturado após TTL</td><td>Dinheiro sem inventário</td><td>Não reabrir a reserva expirada; refund da captura e reconciliação.</td></tr>
+          <tr><td>Search index atrasado</td><td>Evento não aparece na busca</td><td>Detalhe por ID/cache continua; alertar lag de CDC.</td></tr>
+          <tr><td>Fila indisponível</td><td>Burst ameaça o booking</td><td>Edge fecha novas admissões e honra tokens já emitidos por janela curta.</td></tr>
+        </tbody>
+      </table>
+
+      <section class="tradeoff-picker" aria-labelledby="tradeoff-title">
+        <h3 id="tradeoff-title">Comparador de trade-offs</h3>
+        <div class="control-group">
+          <button class="chip-button" type="button" aria-pressed="true" data-tradeoff="lock">Lock SQL × update condicional</button>
+          <button class="chip-button" type="button" aria-pressed="false" data-tradeoff="expiry">Cron × TTL + sweeper</button>
+          <button class="chip-button" type="button" aria-pressed="false" data-tradeoff="stream">SSE × WebSocket</button>
+          <button class="chip-button" type="button" aria-pressed="false" data-tradeoff="fairness">FIFO × lote aleatório</button>
+        </div>
+        <div class="tradeoff-result" aria-live="polite" data-tradeoff-result>
+          <div><strong>Lock SQL</strong><p>Modelo direto e forte; pode criar espera e deadlock sob contenção alta.</p></div>
+          <div><strong>Update condicional</strong><p>Evita espera longa; conflito aparece como zero linhas e exige retry/rollback.</p></div>
+        </div>
+      </section>
+
+      <table class="tradeoff-table">
+        <caption>Trade-offs das principais decisões de inventário e escala</caption>
+        <thead>
+          <tr><th scope="col">Decisão</th><th scope="col">Ganho</th><th scope="col">Custo</th><th scope="col">Quando usar</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Ticket pré-gerado</td><td>Identidade e claim por unidade</td><td>Muitas linhas</td><td>Assento marcado</td></tr>
+          <tr><td>Contador agregado</td><td>Modelo compacto</td><td>Linha quente</td><td>Setor geral</td></tr>
+          <tr><td>Redis + banco</td><td>Rejeição rápida e TTL</td><td>Estado duplicado</td><td>Cache como otimização</td></tr>
+          <tr><td>Shard por evento</td><td>Transação local</td><td>Hot event concentrado</td><td>Com admission control</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-family: var(--serif); font-size: 1.9rem; margin: 34px 0 14px">Perguntas reveláveis do entrevistador</h3>
+      <div class="interview-questions">
+        <article class="interview-question">
+          <button class="reveal-toggle" type="button" aria-expanded="true" aria-controls="answer-1" data-action-label="ocultar resposta">Como impedir duas compras do mesmo assento?</button>
+          <p class="question-answer" id="answer-1">A transação altera a unidade apenas se estiver disponível ou com hold vencido. Para vários assentos, precisa alterar todos; caso contrário faz rollback. Redis reduz contenção, mas o banco preserva a invariável.</p>
+        </article>
+        <article class="interview-question">
+          <button class="reveal-toggle" type="button" aria-expanded="true" aria-controls="answer-2" data-action-label="ocultar resposta">E se o pagamento foi feito, mas a resposta se perdeu?</button>
+          <p class="question-answer" id="answer-2">A tentativa fica UNKNOWN. Consultamos o provedor pela referência idempotente, aguardamos webhook e reconciliamos. Se a reserva já expirou, fazemos void somente para autorização não capturada e refund somente após captura; falha sem autorização/captura apenas libera reserva e inventário.</p>
+        </article>
+        <article class="interview-question">
+          <button class="reveal-toggle" type="button" aria-expanded="true" aria-controls="answer-3" data-action-label="ocultar resposta">Por que não usar somente Redis para lock?</button>
+          <p class="question-answer" id="answer-3">Porque expiração, failover, partição e pausa do processo podem produzir donos obsoletos. Redis é excelente para rejeição rápida; a restrição durável continua no banco.</p>
+        </article>
+        <article class="interview-question">
+          <button class="reveal-toggle" type="button" aria-expanded="true" aria-controls="answer-4" data-action-label="ocultar resposta">Como escalar a abertura de um show popular?</button>
+          <p class="question-answer" id="answer-4">Fila virtual na borda, token assinado e taxa de admissão adaptativa pela latência/erro do shard. O objetivo é reduzir entrada ao throughput seguro, não prometer 100 mil reservas por segundo.</p>
+        </article>
+        <article class="interview-question">
+          <button class="reveal-toggle" type="button" aria-expanded="true" aria-controls="answer-5" data-action-label="ocultar resposta">Onde aceitar consistência eventual?</button>
+          <p class="question-answer" id="answer-5">Índice de busca, cache de descrição, contagem aproximada, posição estimada, analytics e notificações. Claim e confirmação sempre consultam o estado autoritativo.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="stage-panel" id="stage-close" role="tabpanel" aria-labelledby="tab-close" data-stage-panel="stage-close">
+      <p class="stage-kicker">Etapa 06 · 41–45 minutos</p>
+      <h2 class="stage-heading">Feche voltando ao contrato — e mostrando que sabe operar.</h2>
+      <p class="stage-lede">
+        Um bom final não adiciona mais caixas. Ele prova cobertura, nomeia riscos e deixa claro o próximo aprofundamento.
+      </p>
+
+      <div class="closing-grid">
+        <aside class="timer">
+          <h3>Roteiro de 45 minutos</h3>
+          <div class="timeline">
+            <div class="time-slot"><b>0–5</b><span>Escopo, assentos, TTL, pico, pagamento.</span></div>
+            <div class="time-slot"><b>5–9</b><span>Não funcionais, estimativas e hotspot.</span></div>
+            <div class="time-slot"><b>9–14</b><span>API, entidades e idempotência.</span></div>
+            <div class="time-slot"><b>14–23</b><span>Arquitetura mínima e fluxo feliz.</span></div>
+            <div class="time-slot"><b>23–35</b><span>Inventário, TTL e pagamento.</span></div>
+            <div class="time-slot"><b>35–41</b><span>Fila, falhas, saga e abuso.</span></div>
+            <div class="time-slot"><b>41–45</b><span>Trade-offs, métricas e checklist.</span></div>
+          </div>
+        </aside>
+
+        <section class="checkpoint-panel" aria-labelledby="checkpoint-title">
+          <h3 id="checkpoint-title">Checkpoints da resposta</h3>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>cobertura</span><span data-progress-text>0 / 12</span></div>
+            <div class="progress-track" role="progressbar" aria-label="Progresso dos checkpoints" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0">
+              <div class="progress-bar" data-progress-bar></div>
+            </div>
+          </div>
+          <fieldset class="checklist">
+            <legend>Marque enquanto pratica</legend>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="scope"><span>Fechei busca, detalhe, reserva e fora de escopo.</span></label>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="invariant"><span>Declare a invariável de não overselling.</span></label>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="estimate"><span>Separei média global do pico por evento.</span></label>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="api"><span>Mostrei Idempotency-Key e expires_at.</span></label>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="transaction"><span>Reserva multiassento é transacional e atômica.</span></label>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="authority"><span>Banco é autoridade; Redis é proteção operacional.</span></label>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="queue"><span>Fila e token protegem o booking de bypass/burst.</span></label>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="payment"><span>Timeout de pagamento vira UNKNOWN, não falha presumida.</span></label>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="saga"><span>Saga, compensação, outbox e reconciliação aparecem.</span></label>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="failure"><span>Expliquei TTL versus webhook e outros modos de falha.</span></label>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="abuse"><span>Justiça, bots, fraude e limites foram discutidos.</span></label>
+            <label class="checkpoint"><input type="checkbox" data-checkpoint="observe"><span>Métricas cobrem fila, conflito, UNKNOWN e reconciliação.</span></label>
+          </fieldset>
+          <button class="reset-button" type="button" data-reset-checkpoints>Limpar checkpoints</button>
+        </section>
+      </div>
+
+      <div class="grid-3" style="margin-top: 26px">
+        <article class="card">
+          <h3>Observabilidade</h3>
+          <p>Espere fila p95, taxa de admissão, conflito por evento, holds ativos, conversão, webhook lag, UNKNOWN e divergência financeira.</p>
+        </article>
+        <article class="card">
+          <h3>Segurança</h3>
+          <p>WAF, limite por identidade/dispositivo/cartão, token de fila, desafio adaptativo, tokenização e auditoria de ações manuais.</p>
+        </article>
+        <article class="card">
+          <h3>Próximo passo</h3>
+          <p>Com mais tempo, detalharia multi-região com líder por shard e fencing, ou o modelo de justiça da abertura.</p>
+        </article>
+      </div>
+
+      <p class="closing-line">
+        “O caminho de descoberta continua disponível com cache e índice; o caminho de compra falha fechado quando não consegue provar posse do inventário.”
+      </p>
+
+      <div class="grid-3">
+        <article class="card">
+          <span class="source-tag source-local">Aula local</span>
+          <h3>Base preservada</h3>
+          <p>Requisitos, REST, serviços, SQL, tickets pré-gerados, reserva, pagamento, cron, Redis/TTL, cache, busca e fila.</p>
+        </article>
+        <article class="card">
+          <span class="source-tag source-extra">Complementos</span>
+          <h3>Produção e entrevista</h3>
+          <p>Idempotência, saga, outbox, reconciliação, fencing, admission token, justiça, fraude, operação e multi-região.</p>
+        </article>
+        <article class="card">
+          <span class="source-tag source-hypothesis">Hipóteses</span>
+          <h3>Números negociáveis</h3>
+          <p>QPS, TTL, limite de 8 ingressos e objetivos de latência são exercícios, não dados reais de plataforma.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p>
+        Material de estudo em português. A fonte local é uma transcrição automática sem captions expostas;
+        complementos e hipóteses estão identificados para evitar falsa atribuição.
+      </p>
+      <div><a href="./README.md">Ler guia</a> · <a href="./deep-dives.md">Abrir deep dives</a></div>
+    </div>
+  </footer>
+
+  <script>
+    document.documentElement.classList.add("js");
+
+    (() => {
+      const stageTabs = Array.from(document.querySelectorAll("[data-stage-target]"));
+      const stagePanels = Array.from(document.querySelectorAll("[data-stage-panel]"));
+
+      function setStage(index, shouldFocus = false) {
+        stageTabs.forEach((tab, tabIndex) => {
+          const active = tabIndex === index;
+          tab.setAttribute("aria-selected", String(active));
+          tab.tabIndex = active ? 0 : -1;
+          if (shouldFocus && active) tab.focus();
+        });
+
+        stagePanels.forEach((panel, panelIndex) => {
+          panel.hidden = panelIndex !== index;
+        });
+      }
+
+      stageTabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => setStage(index));
+        tab.addEventListener("keydown", (event) => {
+          let nextIndex = null;
+          if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+            nextIndex = (index + 1) % stageTabs.length;
+          } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+            nextIndex = (index - 1 + stageTabs.length) % stageTabs.length;
+          } else if (event.key === "Home") {
+            nextIndex = 0;
+          } else if (event.key === "End") {
+            nextIndex = stageTabs.length - 1;
+          }
+          if (nextIndex !== null) {
+            event.preventDefault();
+            setStage(nextIndex, true);
+          }
+        });
+      });
+      setStage(0);
+
+      const architectureButtons = Array.from(document.querySelectorAll("[data-architecture]"));
+      const architecturePanels = Array.from(document.querySelectorAll("[data-architecture-panel]"));
+
+      function setArchitecture(view) {
+        architectureButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.architecture === view));
+        });
+        architecturePanels.forEach((panel) => {
+          panel.hidden = panel.dataset.architecturePanel !== view;
+        });
+      }
+
+      architectureButtons.forEach((button) => {
+        button.addEventListener("click", () => setArchitecture(button.dataset.architecture));
+      });
+      setArchitecture("minimum");
+
+      const flowButtons = Array.from(document.querySelectorAll("[data-flow]"));
+      const flowElements = Array.from(document.querySelectorAll("[data-flow-kind]"));
+
+      function setFlow(flow) {
+        flowButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.flow === flow));
+        });
+        flowElements.forEach((element) => {
+          const kinds = (element.dataset.flowKind || "").split(/\s+/);
+          element.classList.toggle("is-dimmed", flow !== "all" && !kinds.includes(flow));
+        });
+      }
+
+      flowButtons.forEach((button) => {
+        button.addEventListener("click", () => setFlow(button.dataset.flow));
+      });
+
+      const stateContent = {
+        held: {
+          code: "HELD",
+          title: "HELD — reserva com prazo ativo",
+          body: "A Reservation nasce HELD depois que o claim atômico coloca as InventoryUnits em HELD. Ela pode iniciar pagamento, expirar ou ser cancelada."
+        },
+        payment: {
+          code: "PAYMENT_PENDING",
+          title: "PAYMENT_PENDING — aguardando resultado",
+          body: "A Reservation aguarda uma PaymentAttempt sem segurar transação SQL. O TTL continua valendo durante a espera."
+        },
+        confirmed: {
+          code: "CONFIRMED",
+          title: "CONFIRMED — reserva concluída",
+          body: "Uma PaymentAttempt CAPTURED chegou antes do prazo; as InventoryUnits ainda HELD são promovidas para SOLD."
+        },
+        expired: {
+          code: "EXPIRED",
+          title: "EXPIRED — prazo comercial encerrado",
+          body: "O TTL venceu em HELD ou PAYMENT_PENDING. As InventoryUnits voltam a AVAILABLE; resultado financeiro tardio é reconciliado separadamente."
+        },
+        cancelled: {
+          code: "CANCELLED",
+          title: "CANCELLED — reserva encerrada",
+          body: "Cancelamento explícito ou PaymentAttempt FAILED sem autorização/captura libera a reserva e as InventoryUnits, sem compensação financeira."
+        }
+      };
+      const stateTransitions = [
+        { from: "held", to: "payment", trigger: "iniciar cobrança", effect: "persiste uma tentativa idempotente" },
+        { from: "held", to: "expired", trigger: "TTL antes da cobrança", effect: "libera as InventoryUnits" },
+        { from: "held", to: "cancelled", trigger: "cancelamento explícito", effect: "libera as InventoryUnits" },
+        { from: "payment", to: "confirmed", trigger: "PaymentAttempt CAPTURED antes do prazo", effect: "promove InventoryUnits HELD para SOLD" },
+        { from: "payment", to: "expired", trigger: "TTL aguardando pagamento", effect: "libera as InventoryUnits e reconcilia resultado tardio" },
+        { from: "payment", to: "cancelled", trigger: "PaymentAttempt FAILED sem autorização/captura", effect: "libera reserva e InventoryUnits sem compensação financeira" }
+      ];
+      const stateButtons = Array.from(document.querySelectorAll("[data-state]"));
+      const stateEdges = Array.from(document.querySelectorAll("[data-transition-from][data-transition-to]"));
+      const stateTitle = document.querySelector("[data-state-title]");
+      const stateBody = document.querySelector("[data-state-body]");
+      const stateTransitionList = document.querySelector("[data-state-transitions]");
+
+      function setState(state) {
+        const outgoing = stateTransitions.filter((transition) => transition.from === state);
+        const incoming = stateTransitions.filter((transition) => transition.to === state);
+
+        stateButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.state === state));
+          button.classList.toggle("is-next", outgoing.some((transition) => transition.to === button.dataset.state));
+          button.classList.toggle("is-previous", incoming.some((transition) => transition.from === button.dataset.state));
+        });
+
+        stateEdges.forEach((edge) => {
+          edge.classList.toggle("is-outgoing", edge.dataset.transitionFrom === state);
+          edge.classList.toggle("is-incoming", edge.dataset.transitionTo === state);
+        });
+
+        if (stateContent[state]) {
+          if (stateTitle) stateTitle.textContent = stateContent[state].title;
+          if (stateBody) stateBody.textContent = stateContent[state].body;
+        }
+
+        if (stateTransitionList) {
+          const items = [];
+          outgoing.forEach((transition) => {
+            const item = document.createElement("li");
+            item.textContent = "Saída: " + stateContent[transition.from].code + " → " + stateContent[transition.to].code +
+              " por " + transition.trigger + "; " + transition.effect + ".";
+            items.push(item);
+          });
+          incoming.forEach((transition) => {
+            const item = document.createElement("li");
+            item.textContent = "Entrada: " + stateContent[transition.from].code + " → " + stateContent[transition.to].code +
+              " por " + transition.trigger + ".";
+            items.push(item);
+          });
+          if (!items.length) {
+            const item = document.createElement("li");
+            item.textContent = "Estado terminal neste escopo.";
+            items.push(item);
+          }
+          stateTransitionList.replaceChildren(...items);
+        }
+      }
+
+      stateButtons.forEach((button, index) => {
+        button.addEventListener("click", () => setState(button.dataset.state));
+        button.addEventListener("keydown", (event) => {
+          let nextIndex = null;
+          if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+            nextIndex = (index + 1) % stateButtons.length;
+          } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+            nextIndex = (index - 1 + stateButtons.length) % stateButtons.length;
+          } else if (event.key === "Home") {
+            nextIndex = 0;
+          } else if (event.key === "End") {
+            nextIndex = stateButtons.length - 1;
+          }
+          if (nextIndex !== null) {
+            event.preventDefault();
+            stateButtons[nextIndex].focus();
+            setState(stateButtons[nextIndex].dataset.state);
+          }
+        });
+      });
+      setState("held");
+
+      const tradeoffs = {
+        lock: [
+          ["Lock SQL", "Modelo direto e forte; pode criar espera e deadlock sob contenção alta."],
+          ["Update condicional", "Evita espera longa; conflito aparece como zero linhas e exige retry/rollback."]
+        ],
+        expiry: [
+          ["Cron", "Simples para o primeiro desenho; atraso prende inventário além da janela."],
+          ["TTL + sweeper", "TTL libera rápido e o sweeper limpa/audita; adiciona coordenação de estados."]
+        ],
+        stream: [
+          ["SSE", "Ótimo para posição servidor→cliente e reconexão simples; é unidirecional."],
+          ["WebSocket", "Canal bidirecional flexível; custa mais para operar e manter conexões."]
+        ],
+        fairness: [
+          ["FIFO", "Fácil de explicar; premia latência, automação e corrida de milissegundos."],
+          ["Lote aleatório", "Reduz vantagem em T0; abandona a percepção de ordem estrita."]
+        ]
+      };
+      const tradeoffButtons = Array.from(document.querySelectorAll("[data-tradeoff]"));
+      const tradeoffResult = document.querySelector("[data-tradeoff-result]");
+
+      function setTradeoff(key) {
+        tradeoffButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.tradeoff === key));
+        });
+        const pair = tradeoffs[key];
+        if (tradeoffResult && pair) {
+          tradeoffResult.innerHTML = pair.map((item) =>
+            "<div><strong>" + item[0] + "</strong><p>" + item[1] + "</p></div>"
+          ).join("");
+        }
+      }
+
+      tradeoffButtons.forEach((button) => {
+        button.addEventListener("click", () => setTradeoff(button.dataset.tradeoff));
+      });
+
+      const revealButtons = Array.from(document.querySelectorAll(".reveal-toggle"));
+      revealButtons.forEach((button) => {
+        const answer = document.getElementById(button.getAttribute("aria-controls"));
+        if (!answer) return;
+        answer.hidden = true;
+        button.setAttribute("aria-expanded", "false");
+        button.dataset.actionLabel = "revelar resposta";
+        button.addEventListener("click", () => {
+          const expanded = button.getAttribute("aria-expanded") === "true";
+          button.setAttribute("aria-expanded", String(!expanded));
+          button.dataset.actionLabel = expanded ? "revelar resposta" : "ocultar resposta";
+          answer.hidden = expanded;
+        });
+      });
+
+      const checkpoints = Array.from(document.querySelectorAll("[data-checkpoint]"));
+      const progressText = document.querySelector("[data-progress-text]");
+      const progressBar = document.querySelector("[data-progress-bar]");
+      const progressTrack = document.querySelector('[role="progressbar"]');
+      const resetButton = document.querySelector("[data-reset-checkpoints]");
+      const storageKey = "ticketing-interview-checkpoints-v1";
+
+      function readSaved() {
+        try {
+          return JSON.parse(localStorage.getItem(storageKey) || "[]");
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function saveChecked() {
+        try {
+          const selected = checkpoints.filter((item) => item.checked).map((item) => item.dataset.checkpoint);
+          localStorage.setItem(storageKey, JSON.stringify(selected));
+        } catch (error) {
+          /* Persistência é opcional; o checklist continua funcional sem storage. */
+        }
+      }
+
+      function updateProgress() {
+        const completed = checkpoints.filter((item) => item.checked).length;
+        const total = checkpoints.length;
+        const percent = total ? (completed / total) * 100 : 0;
+        if (progressText) progressText.textContent = completed + " / " + total;
+        if (progressBar) progressBar.style.width = percent + "%";
+        if (progressTrack) {
+          progressTrack.setAttribute("aria-valuemax", String(total));
+          progressTrack.setAttribute("aria-valuenow", String(completed));
+          progressTrack.setAttribute("aria-valuetext", completed + " de " + total + " checkpoints");
+        }
+      }
+
+      const saved = new Set(readSaved());
+      checkpoints.forEach((checkpoint) => {
+        checkpoint.checked = saved.has(checkpoint.dataset.checkpoint);
+        checkpoint.addEventListener("change", () => {
+          saveChecked();
+          updateProgress();
+        });
+      });
+
+      if (resetButton) {
+        resetButton.addEventListener("click", () => {
+          checkpoints.forEach((checkpoint) => {
+            checkpoint.checked = false;
+          });
+          saveChecked();
+          updateProgress();
+        });
+      }
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

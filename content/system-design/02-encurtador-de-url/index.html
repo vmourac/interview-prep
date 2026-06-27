@@ -1,0 +1,1777 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cockpit autocontido para praticar uma entrevista de system design sobre encurtador de URL.">
+  <title>Cockpit de entrevista — Encurtador de URL</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #e9e7dc;
+      --muted: #9c9b91;
+      --paper: #111615;
+      --paper-2: #171d1b;
+      --paper-3: #202725;
+      --line: #39433f;
+      --cyan: #70e1d1;
+      --amber: #f1b85b;
+      --red: #ff776d;
+      --green: #a6d986;
+      --white: #fffef5;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .28);
+      --serif: Georgia, "Times New Roman", Times, serif;
+      --sans: "Trebuchet MS", Verdana, sans-serif;
+      --mono: "Courier New", Courier, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      min-width: 300px;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(112, 225, 209, .025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(112, 225, 209, .025) 1px, transparent 1px),
+        radial-gradient(circle at 90% 5%, rgba(241, 184, 91, .11), transparent 30rem),
+        radial-gradient(circle at 5% 40%, rgba(112, 225, 209, .07), transparent 28rem),
+        var(--paper);
+      background-size: 38px 38px, 38px 38px, auto, auto, auto;
+      font-family: var(--sans);
+      line-height: 1.62;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .22;
+      background-image:
+        repeating-linear-gradient(0deg, transparent 0 3px, rgba(255, 255, 255, .018) 3px 4px);
+      mix-blend-mode: soft-light;
+      z-index: 10;
+    }
+
+    a { color: var(--cyan); text-underline-offset: .2em; }
+    a:hover { color: var(--white); }
+
+    button, summary, a { -webkit-tap-highlight-color: transparent; }
+
+    button {
+      font: inherit;
+      color: inherit;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid var(--amber);
+      outline-offset: 4px;
+      border-radius: 2px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: .75rem;
+      left: .75rem;
+      z-index: 99;
+      padding: .7rem 1rem;
+      color: #111;
+      background: var(--amber);
+      transform: translateY(-160%);
+      transition: transform .18s ease;
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .shell {
+      width: min(1480px, calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    .masthead {
+      position: relative;
+      padding: clamp(2rem, 6vw, 5.5rem) 0 2rem;
+      border-bottom: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .masthead::after {
+      content: "62";
+      position: absolute;
+      right: -1.5rem;
+      top: -5.5rem;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(112, 225, 209, .15);
+      font: 900 clamp(12rem, 30vw, 30rem)/1 var(--serif);
+      letter-spacing: -.12em;
+      pointer-events: none;
+    }
+
+    .eyebrow,
+    .stage-index,
+    .stamp,
+    .source-tag,
+    .metric-label,
+    .kbd-hint {
+      font: 700 .72rem/1.3 var(--mono);
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      color: var(--cyan);
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 3.6rem;
+      height: 2px;
+      background: var(--cyan);
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 1rem 0 1.2rem;
+      color: var(--white);
+      font: 400 clamp(3.2rem, 8vw, 8.4rem)/.87 var(--serif);
+      letter-spacing: -.065em;
+    }
+
+    .dek {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+      margin-bottom: 1.7rem;
+      color: #c5c5ba;
+      font: 400 clamp(1.05rem, 2vw, 1.35rem)/1.55 var(--serif);
+    }
+
+    .mast-meta {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .7rem;
+      align-items: center;
+    }
+
+    .stamp {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.1rem;
+      padding: .45rem .65rem;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(17, 22, 21, .75);
+    }
+
+    .stamp strong { color: var(--amber); }
+
+    .progress-readout {
+      display: grid;
+      grid-template-columns: auto minmax(90px, 180px) auto;
+      gap: .65rem;
+      align-items: center;
+      margin-left: auto;
+      color: var(--muted);
+      font: 700 .72rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .progress-track {
+      height: 6px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #090c0b;
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--amber));
+      transition: width .28s ease;
+    }
+
+    .stage-nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: 0;
+      border-bottom: 1px solid var(--line);
+      background: rgba(17, 22, 21, .94);
+      backdrop-filter: blur(12px);
+    }
+
+    .stage-nav-inner {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+    }
+
+    .stage-tab {
+      min-height: 4.1rem;
+      padding: .7rem .8rem;
+      border: 0;
+      border-right: 1px solid var(--line);
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font: 700 .75rem/1.2 var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      transition: color .18s ease, background .18s ease;
+    }
+
+    .stage-tab:first-child { border-left: 1px solid var(--line); }
+    .stage-tab:hover { color: var(--white); background: rgba(112, 225, 209, .05); }
+    .stage-tab[aria-selected="true"] {
+      color: #0b1110;
+      background: var(--cyan);
+    }
+
+    main { min-height: 70vh; }
+
+    .stage-panel {
+      padding: clamp(2.4rem, 6vw, 5.6rem) 0 5rem;
+      animation: panel-in .32s ease both;
+    }
+
+    .stage-panel[hidden] { display: none; }
+
+    @keyframes panel-in {
+      from { opacity: 0; transform: translateY(9px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stage-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(240px, .5fr);
+      gap: 2rem;
+      align-items: end;
+      margin-bottom: 2.7rem;
+    }
+
+    .stage-index { color: var(--amber); }
+
+    h2 {
+      margin: .4rem 0 0;
+      color: var(--white);
+      font: 400 clamp(2.5rem, 6vw, 5rem)/.95 var(--serif);
+      letter-spacing: -.045em;
+    }
+
+    .stage-thesis {
+      margin: 0;
+      padding: 0 0 .2rem 1.2rem;
+      border-left: 2px solid var(--amber);
+      color: #c7c6bb;
+      font-family: var(--serif);
+      font-size: 1.02rem;
+    }
+
+    .grid-2,
+    .grid-3,
+    .api-grid,
+    .closing-grid {
+      display: grid;
+      gap: 1px;
+      border: 1px solid var(--line);
+      background: var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .api-grid { grid-template-columns: 1.05fr .95fr; }
+    .closing-grid { grid-template-columns: .75fr 1.25fr; }
+
+    .sheet {
+      min-width: 0;
+      padding: clamp(1.25rem, 3vw, 2.2rem);
+      background: var(--paper-2);
+    }
+
+    .sheet h3,
+    .standalone h3 {
+      margin: 0 0 .8rem;
+      color: var(--white);
+      font: 400 1.55rem/1.15 var(--serif);
+    }
+
+    .sheet p:last-child { margin-bottom: 0; }
+
+    .source-tag {
+      display: inline-flex;
+      margin-bottom: .8rem;
+      padding: .3rem .45rem;
+      border: 1px solid currentColor;
+      color: var(--cyan);
+    }
+
+    .source-tag.complement { color: var(--amber); }
+    .source-tag.hypothesis { color: var(--green); }
+
+    .clean-list,
+    .requirement-list,
+    .timeline {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .clean-list li {
+      position: relative;
+      padding: .55rem 0 .55rem 1.3rem;
+      border-top: 1px solid rgba(57, 67, 63, .72);
+    }
+
+    .clean-list li::before {
+      content: "↳";
+      position: absolute;
+      left: 0;
+      color: var(--cyan);
+    }
+
+    .clean-list li:first-child { border-top: 0; }
+
+    .requirement-list {
+      counter-reset: req;
+    }
+
+    .requirement-list li {
+      counter-increment: req;
+      display: grid;
+      grid-template-columns: 2.4rem 1fr;
+      gap: .8rem;
+      padding: .75rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .requirement-list li::before {
+      content: counter(req, decimal-leading-zero);
+      color: var(--amber);
+      font: 700 .72rem/2 var(--mono);
+    }
+
+    .checkpoint-bank {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .75rem;
+      margin-top: 2rem;
+    }
+
+    .checkpoint {
+      position: relative;
+      min-height: 4.4rem;
+      padding: .9rem 1rem .9rem 3.2rem;
+      border: 1px solid var(--line);
+      text-align: left;
+      color: #c9c8bd;
+      background: #101513;
+      cursor: pointer;
+      transition: border-color .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .checkpoint::before {
+      content: "";
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      width: 1.15rem;
+      height: 1.15rem;
+      border: 1px solid var(--muted);
+      transform: translateY(-50%) rotate(45deg);
+      transition: background .18s ease, border-color .18s ease;
+    }
+
+    .checkpoint:hover { transform: translateY(-2px); border-color: var(--cyan); }
+    .checkpoint[aria-pressed="true"] { color: var(--white); border-color: var(--green); }
+    .checkpoint[aria-pressed="true"]::before {
+      border-color: var(--green);
+      background: var(--green);
+      box-shadow: inset 0 0 0 3px #101513;
+    }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      margin-bottom: 2rem;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+
+    .metric {
+      padding: 1.35rem;
+      background: var(--paper-2);
+    }
+
+    .metric-label { color: var(--muted); }
+    .metric strong {
+      display: block;
+      margin-top: .5rem;
+      color: var(--white);
+      font: 400 clamp(1.6rem, 3vw, 2.6rem)/1 var(--serif);
+      letter-spacing: -.04em;
+    }
+
+    .metric small {
+      display: block;
+      margin-top: .5rem;
+      color: var(--green);
+      font-family: var(--mono);
+    }
+
+    .calculation {
+      margin: 1rem 0;
+      padding: 1rem;
+      overflow-x: auto;
+      border-left: 3px solid var(--cyan);
+      color: var(--white);
+      background: #0c100f;
+      font: 700 .9rem/1.7 var(--mono);
+    }
+
+    .decision {
+      margin-top: 1rem;
+      padding: .9rem 1rem;
+      border: 1px dashed var(--amber);
+      color: #ebd6b0;
+      background: rgba(241, 184, 91, .045);
+    }
+
+    .decision strong {
+      display: block;
+      color: var(--amber);
+      font: 700 .7rem/1.4 var(--mono);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    pre {
+      margin: 0;
+      padding: 1.1rem;
+      overflow: auto;
+      border: 1px solid var(--line);
+      color: #d9e5d8;
+      background: #0a0e0d;
+      font: .84rem/1.7 var(--mono);
+      tab-size: 2;
+    }
+
+    code { font-family: var(--mono); color: #d8eadf; }
+
+    .api-method {
+      display: inline-flex;
+      margin-bottom: .8rem;
+      padding: .34rem .55rem;
+      color: #07100e;
+      background: var(--cyan);
+      font: 700 .72rem/1 var(--mono);
+      letter-spacing: .08em;
+    }
+
+    .api-method.get { background: var(--amber); }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin-top: 1rem;
+    }
+
+    .status-code {
+      padding: .35rem .5rem;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font: 700 .7rem/1 var(--mono);
+    }
+
+    .data-table,
+    .trade-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .9rem;
+    }
+
+    .data-table th,
+    .data-table td,
+    .trade-table th,
+    .trade-table td {
+      padding: .72rem .65rem;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .data-table th,
+    .trade-table th {
+      color: var(--amber);
+      font: 700 .7rem/1.3 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .architecture-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .segmented {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 1px;
+      padding: 1px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+
+    .control-button {
+      min-height: 2.75rem;
+      padding: .65rem .9rem;
+      border: 0;
+      color: var(--muted);
+      background: #101513;
+      cursor: pointer;
+      font: 700 .72rem/1.2 var(--mono);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    .control-button:hover { color: var(--white); }
+    .control-button[aria-pressed="true"] {
+      color: #07100e;
+      background: var(--cyan);
+    }
+
+    .flow-button[data-flow="redirect"][aria-pressed="true"] { background: var(--amber); }
+    .flow-button[data-flow="async"][aria-pressed="true"] { background: var(--green); }
+    .flow-button[data-flow="failure"][aria-pressed="true"] { background: var(--red); }
+
+    .diagram-frame {
+      position: relative;
+      padding: clamp(.5rem, 2vw, 1.5rem);
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at center, rgba(112, 225, 209, .045), transparent 58%),
+        #0c100f;
+      box-shadow: var(--shadow);
+    }
+
+    .diagram-frame::before {
+      content: "ROTA / ESTADO";
+      position: absolute;
+      top: .8rem;
+      left: 1rem;
+      color: var(--muted);
+      font: 700 .62rem/1 var(--mono);
+      letter-spacing: .16em;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      min-height: 420px;
+    }
+
+    svg [hidden] { display: none !important; }
+
+    .node rect {
+      fill: #161d1a;
+      stroke: #52605a;
+      stroke-width: 1.5;
+      rx: 3;
+    }
+
+    .node text {
+      fill: var(--ink);
+      font: 700 13px var(--mono);
+      text-anchor: middle;
+    }
+
+    .node .sub {
+      fill: var(--muted);
+      font-size: 10px;
+      font-weight: 400;
+    }
+
+    .edge {
+      fill: none;
+      stroke: #56615d;
+      stroke-width: 2;
+      opacity: .2;
+      marker-end: url(#arrow);
+      transition: opacity .2s ease, stroke .2s ease, stroke-width .2s ease;
+    }
+
+    .edge[data-route~="async"] { stroke-dasharray: 6 7; }
+    .diagram-frame[data-active-flow="creation"] .edge[data-route~="creation"],
+    .diagram-frame[data-active-flow="redirect"] .edge[data-route~="redirect"],
+    .diagram-frame[data-active-flow="async"] .edge[data-route~="async"],
+    .diagram-frame[data-active-flow="failure"] .edge[data-route~="failure"] {
+      opacity: 1;
+      stroke-width: 3;
+      stroke-dasharray: 9 6;
+      animation: route-pulse 1.1s linear infinite;
+    }
+
+    .diagram-frame[data-active-flow="creation"] .edge[data-route~="creation"] { stroke: var(--cyan); }
+    .diagram-frame[data-active-flow="redirect"] .edge[data-route~="redirect"] { stroke: var(--amber); }
+    .diagram-frame[data-active-flow="async"] .edge[data-route~="async"] { stroke: var(--green); }
+    .diagram-frame[data-active-flow="failure"] .edge[data-route~="failure"] { stroke: var(--red); }
+
+    .diagram-frame[data-active-flow="creation"] .node[data-route~="creation"] rect { stroke: var(--cyan); }
+    .diagram-frame[data-active-flow="redirect"] .node[data-route~="redirect"] rect { stroke: var(--amber); }
+    .diagram-frame[data-active-flow="async"] .node[data-route~="async"] rect { stroke: var(--green); }
+    .diagram-frame[data-active-flow="failure"] .node[data-route~="failure"] rect { stroke: var(--red); }
+
+    .edge-label {
+      fill: var(--muted);
+      stroke: #0c100f;
+      stroke-width: 3px;
+      paint-order: stroke;
+      font: 700 8px var(--mono);
+      letter-spacing: .04em;
+      opacity: .45;
+      text-anchor: middle;
+    }
+
+    .diagram-frame[data-active-flow="async"] .edge-label[data-route~="async"] {
+      fill: var(--green);
+      opacity: 1;
+    }
+
+    @keyframes route-pulse {
+      to { stroke-dashoffset: -30; }
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: .9rem;
+      color: var(--muted);
+      font: .72rem/1.4 var(--mono);
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 1.8rem;
+      height: 2px;
+      margin: 0 .45rem .18rem 0;
+      background: currentColor;
+    }
+
+    .legend .creation { color: var(--cyan); }
+    .legend .redirect { color: var(--amber); }
+    .legend .async { color: var(--green); }
+    .legend .failure { color: var(--red); }
+
+    .flow-notes {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 1px;
+      background: var(--line);
+    }
+
+    .flow-note {
+      padding: 1.1rem;
+      background: var(--paper-2);
+    }
+
+    .flow-note strong {
+      display: block;
+      margin-bottom: .4rem;
+      color: var(--white);
+      font-family: var(--serif);
+      font-size: 1.2rem;
+    }
+
+    .strategy-controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin-bottom: 1px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+
+    .strategy-button {
+      min-height: 4.2rem;
+      padding: .85rem;
+      border: 0;
+      color: var(--muted);
+      background: #101513;
+      cursor: pointer;
+      font: 700 .75rem/1.25 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .strategy-button[aria-pressed="true"] {
+      color: #111;
+      background: var(--amber);
+    }
+
+    .strategy-panel {
+      padding: clamp(1.3rem, 3vw, 2.2rem);
+      border: 1px solid var(--line);
+      background: var(--paper-2);
+    }
+
+    .strategy-panel[hidden] { display: none; }
+
+    .verdict {
+      display: inline-flex;
+      margin-bottom: .8rem;
+      padding: .35rem .5rem;
+      color: #101513;
+      background: var(--green);
+      font: 700 .68rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .deep-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 2rem;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+
+    details {
+      border-bottom: 1px solid var(--line);
+      background: var(--paper-2);
+    }
+
+    details:last-child { border-bottom: 0; }
+
+    summary {
+      position: relative;
+      padding: 1.15rem 3.4rem 1.15rem 1.2rem;
+      color: var(--white);
+      cursor: pointer;
+      font-family: var(--serif);
+      font-size: 1.12rem;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+    summary::after {
+      content: "+";
+      position: absolute;
+      right: 1.2rem;
+      top: 50%;
+      color: var(--cyan);
+      font: 700 1.4rem/1 var(--mono);
+      transform: translateY(-50%);
+    }
+
+    details[open] summary::after { content: "−"; }
+
+    .answer {
+      padding: 0 1.2rem 1.2rem;
+      color: #c6c5ba;
+    }
+
+    .answer p:last-child { margin-bottom: 0; }
+
+    .timeline li {
+      position: relative;
+      display: grid;
+      grid-template-columns: 5rem 1fr;
+      gap: 1rem;
+      padding: 0 0 1.4rem;
+    }
+
+    .timeline li::before {
+      content: "";
+      position: absolute;
+      left: 4.3rem;
+      top: .4rem;
+      bottom: -.2rem;
+      width: 1px;
+      background: var(--line);
+    }
+
+    .timeline li:last-child::before { display: none; }
+
+    .timeline time {
+      color: var(--amber);
+      font: 700 .73rem/1.4 var(--mono);
+    }
+
+    .timeline strong {
+      display: block;
+      margin-bottom: .2rem;
+      color: var(--white);
+      font-family: var(--serif);
+    }
+
+    .reset-button {
+      width: 100%;
+      margin-top: 1rem;
+      padding: .85rem 1rem;
+      border: 1px solid var(--red);
+      color: var(--red);
+      background: transparent;
+      cursor: pointer;
+      font: 700 .72rem/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .reset-button:hover { color: #111; background: var(--red); }
+
+    .closing-line {
+      margin: 2.5rem 0 0;
+      padding: 1.3rem;
+      border: 1px solid var(--cyan);
+      color: var(--white);
+      background: rgba(112, 225, 209, .045);
+      font: 400 clamp(1.2rem, 2vw, 1.55rem)/1.45 var(--serif);
+    }
+
+    .page-footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: space-between;
+      padding: 1.4rem 0 2.6rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font: .72rem/1.5 var(--mono);
+    }
+
+    .live-region {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    .standalone {
+      margin-top: 2rem;
+      padding: clamp(1.25rem, 3vw, 2rem);
+      border: 1px solid var(--line);
+      background: var(--paper-2);
+    }
+
+    noscript {
+      display: block;
+      padding: 1rem;
+      color: #17120a;
+      background: var(--amber);
+      font-family: var(--serif);
+    }
+
+    @media (max-width: 940px) {
+      .stage-heading,
+      .grid-2,
+      .grid-3,
+      .api-grid,
+      .closing-grid,
+      .deep-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-strip { grid-template-columns: repeat(2, 1fr); }
+      .checkpoint-bank { grid-template-columns: repeat(2, 1fr); }
+      .progress-readout { margin-left: 0; }
+      .mast-meta { align-items: flex-start; flex-direction: column; }
+      .flow-notes { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 660px) {
+      .shell { width: min(100% - 1.1rem, 1480px); }
+      .masthead { padding-top: 3rem; }
+      .stage-nav { position: relative; }
+      .stage-nav-inner { grid-template-columns: repeat(2, 1fr); }
+      .stage-tab { min-height: 3.4rem; border-bottom: 1px solid var(--line); }
+      .stage-heading { gap: 1rem; }
+      .checkpoint-bank,
+      .metric-strip,
+      .strategy-controls { grid-template-columns: 1fr; }
+      .architecture-toolbar { align-items: stretch; flex-direction: column; }
+      .segmented { display: grid; grid-template-columns: repeat(2, 1fr); }
+      .architecture-toolbar .segmented:first-child { grid-template-columns: repeat(2, 1fr); }
+      svg { min-height: 300px; }
+
+      .trade-table,
+      .trade-table tbody,
+      .trade-table tr,
+      .trade-table td {
+        display: block;
+        width: 100%;
+      }
+
+      .trade-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      .trade-table tr {
+        padding: .35rem 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .trade-table tr:last-child { border-bottom: 0; }
+
+      .trade-table td {
+        display: grid;
+        grid-template-columns: minmax(5.8rem, .42fr) minmax(0, 1fr);
+        gap: .75rem;
+        padding: .55rem 0;
+        border-bottom: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .trade-table td::before {
+        content: attr(data-label);
+        color: var(--amber);
+        font: 700 .66rem/1.4 var(--mono);
+        letter-spacing: .06em;
+        text-transform: uppercase;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+    @media print {
+      :root { color-scheme: light; }
+      body { color: #111; background: #fff; }
+      body::before, .stage-nav, .architecture-toolbar, .checkpoint-bank, .reset-button { display: none; }
+      .stage-panel[hidden], .strategy-panel[hidden] { display: block !important; }
+      .sheet, .standalone, .strategy-panel, details { color: #111; background: #fff; box-shadow: none; }
+      h1, h2, h3, .sheet h3, summary { color: #111; }
+      .masthead { padding-top: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="masthead">
+    <div class="shell">
+      <div class="eyebrow">System design / prática guiada</div>
+      <h1>Encurtador<br>de URL</h1>
+      <p class="dek">Um cockpit de 45 minutos para conduzir escopo, números, contratos, arquitetura e falhas sem perder o fio da entrevista.</p>
+      <div class="mast-meta">
+        <span class="stamp"><strong>Fonte</strong>&nbsp; aula local + complementos marcados</span>
+        <span class="stamp"><strong>Perfil</strong>&nbsp; leitura dominante</span>
+        <span class="stamp"><strong>Invariante</strong>&nbsp; código único</span>
+        <div class="progress-readout" aria-label="Progresso dos checkpoints">
+          <span>checkpoints</span>
+          <span class="progress-track" aria-hidden="true"><span class="progress-fill" id="progress-fill"></span></span>
+          <span id="progress-count">0/11</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <noscript>
+    JavaScript está desabilitado. Todo o conteúdo essencial permanece abaixo em sequência; apenas a navegação por abas, os destaques do diagrama e os checkpoints ficam sem automação.
+  </noscript>
+
+  <nav class="stage-nav" aria-label="Etapas da entrevista">
+    <div class="shell stage-nav-inner" role="tablist" aria-label="Cockpit em seis etapas">
+      <button class="stage-tab" id="tab-escopo" type="button" role="tab" aria-selected="true" aria-controls="escopo" data-stage-target="escopo">01 Escopo</button>
+      <button class="stage-tab" id="tab-estimativas" type="button" role="tab" aria-selected="false" aria-controls="estimativas" data-stage-target="estimativas">02 Estimativas</button>
+      <button class="stage-tab" id="tab-api" type="button" role="tab" aria-selected="false" aria-controls="api-dados" data-stage-target="api-dados">03 API e dados</button>
+      <button class="stage-tab" id="tab-arquitetura" type="button" role="tab" aria-selected="false" aria-controls="arquitetura" data-stage-target="arquitetura">04 Arquitetura</button>
+      <button class="stage-tab" id="tab-deep" type="button" role="tab" aria-selected="false" aria-controls="deep-dives" data-stage-target="deep-dives">05 Deep dives</button>
+      <button class="stage-tab" id="tab-fechamento" type="button" role="tab" aria-selected="false" aria-controls="fechamento" data-stage-target="fechamento">06 Fechamento</button>
+    </div>
+  </nav>
+
+  <main id="conteudo" tabindex="-1">
+    <section class="stage-panel shell" id="escopo" role="tabpanel" aria-labelledby="tab-escopo">
+      <div class="stage-heading">
+        <div>
+          <div class="stage-index">Etapa 01 / contrato</div>
+          <h2>Escopo antes das caixas</h2>
+        </div>
+        <p class="stage-thesis">“Vou separar quem cria de quem consome, confirmar expiração e negociar o que fica fora. Só depois desenho.”</p>
+      </div>
+
+      <div class="grid-2">
+        <article class="sheet">
+          <span class="source-tag">Aula local</span>
+          <h3>Dois usuários, dois caminhos</h3>
+          <ul class="requirement-list">
+            <li><span><strong>Criador:</strong> envia uma URL longa e recebe um código curto.</span></li>
+            <li><span><strong>Visitante:</strong> acessa o código e é redirecionado ao destino.</span></li>
+            <li><span><strong>Alias:</strong> pode ser customizado, desde que não esteja reservado.</span></li>
+            <li><span><strong>Expiração:</strong> pode limitar a validade do mapeamento.</span></li>
+          </ul>
+        </article>
+        <article class="sheet">
+          <span class="source-tag">Aula local</span>
+          <span class="source-tag complement">Perguntas adicionais</span>
+          <h3>O que perguntar em voz alta</h3>
+          <ul class="clean-list">
+            <li>Criação anônima ou autenticada?</li>
+            <li>A mesma URL longa pode gerar vários códigos?</li>
+            <li>Precisamos editar, apagar ou revogar?</li>
+            <li>Analytics de cliques está no escopo?</li>
+            <li>Qual latência p99 e disponibilidade por caminho?</li>
+            <li>Regional ou global? Read-after-write imediato?</li>
+          </ul>
+        </article>
+        <article class="sheet">
+          <span class="source-tag">Aula local</span>
+          <h3>Contrato funcional</h3>
+          <ul class="clean-list">
+            <li>Criar link automático.</li>
+            <li>Reservar alias opcional ou retornar conflito.</li>
+            <li>Aceitar expiração opcional.</li>
+            <li>Redirecionar código ativo.</li>
+            <li>Recusar código inexistente ou expirado.</li>
+          </ul>
+        </article>
+        <article class="sheet">
+          <span class="source-tag">Aula local · fora do escopo</span>
+          <h3>Disciplina de entrevista</h3>
+          <p>A aula discute autenticação, analytics e bots/fraude/abuso, mas os retira do caminho principal. Os mecanismos detalhados de segurança usados nos deep dives são complementos.</p>
+          <div class="decision">
+            <strong>Fecho sugerido</strong>
+            “Cobrirei criação, alias, expiração e redirect. Tratarei identidade e analytics como externos; depois volto a abuso como deep dive.”
+          </div>
+        </article>
+      </div>
+
+      <div class="checkpoint-bank" aria-label="Checkpoints de escopo">
+        <button class="checkpoint" type="button" aria-pressed="false" data-checkpoint="usuarios">Distingui criador e visitante</button>
+        <button class="checkpoint" type="button" aria-pressed="false" data-checkpoint="funcionais">Fechei requisitos funcionais</button>
+        <button class="checkpoint" type="button" aria-pressed="false" data-checkpoint="fora">Negociei o fora de escopo</button>
+      </div>
+    </section>
+
+    <section class="stage-panel shell" id="estimativas" role="tabpanel" aria-labelledby="tab-estimativas">
+      <div class="stage-heading">
+        <div>
+          <div class="stage-index">Etapa 02 / ordens de grandeza</div>
+          <h2>Números que compram decisões</h2>
+        </div>
+        <p class="stage-thesis">Estimativa útil termina em consequência: replicar, cachear, particionar — ou conscientemente não fazê-lo.</p>
+      </div>
+
+      <div class="metric-strip">
+        <div class="metric">
+          <span class="metric-label">URLs totais</span>
+          <strong>1 bi</strong>
+          <small>aula local</small>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Usuários ativos/dia</span>
+          <strong>100 mi</strong>
+          <small>aula local</small>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Redirects/dia</span>
+          <strong>500 mi</strong>
+          <small>5 por usuário</small>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Dados lógicos</span>
+          <strong>≈ 700 GB</strong>
+          <small>700 B por registro</small>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <article class="sheet">
+          <span class="source-tag hypothesis">Hipótese pedagógica</span>
+          <h3>Redirect médio e pico</h3>
+          <div class="calculation">500.000.000 ÷ 86.400<br>≈ 5.800 req/s médios<br>pico 10× ≈ 58.000 req/s</div>
+          <p>A ordem de grandeza da aula é cerca de 5 mil/s. O pico de 10× é complemento hipotético.</p>
+          <div class="decision"><strong>Decisão</strong>Múltiplas instâncias, cache e isolamento do read path.</div>
+        </article>
+        <article class="sheet">
+          <span class="source-tag">Aula local</span>
+          <h3>Armazenamento</h3>
+          <div class="calculation">1.000.000.000 × 700 B<br>≈ 700 GB lógicos</div>
+          <p>Índices, WAL, versões, backups e réplicas ampliam o footprint físico, mas volume bruto isolado não obriga sharding.</p>
+          <div class="decision"><strong>Decisão</strong>Postergar sharding até throughput, recuperação ou crescimento justificarem.</div>
+        </article>
+        <article class="sheet">
+          <span class="source-tag complement">Espaço de códigos</span>
+          <h3>Base62 em escala</h3>
+          <div class="calculation">62⁶ ≈ 56,8 bilhões<br>62⁷ ≈ 3,52 trilhões</div>
+          <p>Sete caracteres dão ampla capacidade para um bilhão. Aleatoriedade ainda exige margem e colisão controlada.</p>
+          <div class="decision"><strong>Decisão</strong>Base62 é encoding; a fonte do ID define unicidade.</div>
+        </article>
+      </div>
+
+      <div class="standalone">
+        <span class="source-tag hypothesis">Taxa de criação não fornecida</span>
+        <h3>Declare a lacuna, não invente como fato</h3>
+        <p>Se adotarmos 5 milhões de criações/dia apenas para exercitar a conta, obtemos cerca de 58/s em média e 580/s em pico 10×. A assimetria permanece: podemos pagar uma escrita condicional por criação, mas não uma consulta durável por redirect.</p>
+      </div>
+
+      <div class="checkpoint-bank" aria-label="Checkpoints de estimativas">
+        <button class="checkpoint" type="button" aria-pressed="false" data-checkpoint="media-pico">Calculei média e pico</button>
+        <button class="checkpoint" type="button" aria-pressed="false" data-checkpoint="storage">Conectei storage à decisão</button>
+      </div>
+    </section>
+
+    <section class="stage-panel shell" id="api-dados" role="tabpanel" aria-labelledby="tab-api">
+      <div class="stage-heading">
+        <div>
+          <div class="stage-index">Etapa 03 / contrato executável</div>
+          <h2>API e dados</h2>
+        </div>
+        <p class="stage-thesis">A API deve carregar os requisitos; o modelo deve proteger a invariante de unicidade sem depender de timing.</p>
+      </div>
+
+      <div class="api-grid">
+        <article class="sheet">
+          <span class="api-method">POST</span>
+          <h3>/v1/links</h3>
+          <pre aria-label="Exemplo de requisição de criação"><code>{
+  "originalUrl": "exemplo.com/artigo",
+  "customAlias": "guia-sd",
+  "expiresAt": "2026-07-31T23:59:59Z"
+}</code></pre>
+          <div class="status-row" aria-label="Status possíveis">
+            <span class="status-code">201 criado</span>
+            <span class="status-code">400 inválido</span>
+            <span class="status-code">409 conflito</span>
+            <span class="status-code">422 política</span>
+            <span class="status-code">429 limite</span>
+          </div>
+          <p class="decision"><strong>Complemento</strong><code>Idempotency-Key</code> evita duplicação quando o cliente repete uma criação após timeout.</p>
+        </article>
+        <article class="sheet">
+          <span class="api-method get">GET</span>
+          <h3>/{code}</h3>
+          <pre aria-label="Exemplo de resposta de redirect"><code>HTTP/1.1 302 Found
+Location: destino
+Cache-Control: no-store</code></pre>
+          <div class="status-row" aria-label="Status possíveis">
+            <span class="status-code">302 ativo</span>
+            <span class="status-code">404 ausente</span>
+            <span class="status-code">410 expirado</span>
+            <span class="status-code">429 abuso</span>
+          </div>
+          <p class="decision"><strong>Aula local</strong><code>302</code> mantém expiração e bloqueio sob controle do serviço; <code>301</code> reduz carga, mas pode escapar para caches.</p>
+        </article>
+      </div>
+
+      <div class="grid-2" style="margin-top: 1px;">
+        <article class="sheet">
+          <span class="source-tag">Modelo mínimo</span>
+          <h3>ShortLink</h3>
+          <table class="data-table">
+            <thead><tr><th>Campo</th><th>Uso</th></tr></thead>
+            <tbody>
+              <tr><td><code>code</code></td><td>Chave primária e única</td></tr>
+              <tr><td><code>original_url</code></td><td>Destino validado</td></tr>
+              <tr><td><code>owner_id</code></td><td>Opcional, conforme escopo</td></tr>
+              <tr><td><code>status</code></td><td>Ativo, suspeito, bloqueado</td></tr>
+              <tr><td><code>created_at</code></td><td>Auditoria e operação</td></tr>
+              <tr><td><code>expires_at</code></td><td>Semântica de validade</td></tr>
+              <tr><td><code>version</code></td><td>Invalidação ordenada</td></tr>
+            </tbody>
+          </table>
+        </article>
+        <article class="sheet">
+          <span class="source-tag complement">Invariantes</span>
+          <h3>O banco decide o vencedor</h3>
+          <ul class="clean-list">
+            <li><code>code</code> tem restrição única ou conditional put.</li>
+            <li>Alias customizado não usa “SELECT e depois INSERT” sem atomicidade.</li>
+            <li>Expiração é verificada no request, não apenas no cleanup.</li>
+            <li>Código antigo não é reciclado cedo.</li>
+            <li>Cache nunca é source of truth.</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="checkpoint-bank" aria-label="Checkpoints de API e dados">
+        <button class="checkpoint" type="button" aria-pressed="false" data-checkpoint="api">Mapeei status e contratos</button>
+        <button class="checkpoint" type="button" aria-pressed="false" data-checkpoint="unicidade">Protegi unicidade atomicamente</button>
+      </div>
+    </section>
+
+    <section class="stage-panel shell" id="arquitetura" role="tabpanel" aria-labelledby="tab-arquitetura">
+      <div class="stage-heading">
+        <div>
+          <div class="stage-index">Etapa 04 / evolução controlada</div>
+          <h2>Arquitetura</h2>
+        </div>
+        <p class="stage-thesis">Alterne a visão e acenda um fluxo. Narre cada seta, inclusive o comportamento sob falha.</p>
+      </div>
+
+      <div class="architecture-toolbar">
+        <div class="segmented" aria-label="Nível da arquitetura">
+          <button class="control-button arch-button" type="button" aria-pressed="true" data-arch="minimal">Mínima</button>
+          <button class="control-button arch-button" type="button" aria-pressed="false" data-arch="scaled">Escalada</button>
+        </div>
+        <div class="segmented" aria-label="Fluxo destacado">
+          <button class="control-button flow-button" type="button" aria-pressed="true" data-flow="creation">Criação</button>
+          <button class="control-button flow-button" type="button" aria-pressed="false" data-flow="redirect">Redirect</button>
+          <button class="control-button flow-button" type="button" aria-pressed="false" data-flow="async">Assíncrono</button>
+          <button class="control-button flow-button" type="button" aria-pressed="false" data-flow="failure">Falha</button>
+        </div>
+      </div>
+
+      <div class="diagram-frame" id="diagram-frame" data-active-flow="creation" data-diagram="url-shortener">
+        <svg viewBox="0 0 1120 560" role="img" aria-labelledby="diagram-title diagram-desc">
+          <title id="diagram-title">Arquitetura do encurtador de URL</title>
+          <desc id="diagram-desc">Visões mínima e escalada com fluxos de criação, redirect, processamento assíncrono e falha.</desc>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"></path>
+            </marker>
+          </defs>
+
+          <g id="arch-minimal">
+            <g class="node" data-route="creation redirect failure" transform="translate(80 210)">
+              <rect width="210" height="92"></rect>
+              <text x="105" y="40">CLIENTE</text>
+              <text class="sub" x="105" y="62">POST / GET</text>
+            </g>
+            <g class="node" data-route="creation redirect failure" transform="translate(455 210)">
+              <rect width="210" height="92"></rect>
+              <text x="105" y="40">URL SERVICE</text>
+              <text class="sub" x="105" y="62">gera + resolve + expira</text>
+            </g>
+            <g class="node" data-route="creation redirect failure" transform="translate(830 210)">
+              <rect width="210" height="92"></rect>
+              <text x="105" y="40">BANCO</text>
+              <text class="sub" x="105" y="62">code → destination</text>
+            </g>
+            <path class="edge" data-route="creation redirect failure" d="M 290 240 C 350 240 390 240 455 240"></path>
+            <path class="edge" data-route="creation redirect failure" d="M 665 240 C 730 240 770 240 830 240"></path>
+            <path class="edge" data-route="redirect" d="M 830 280 C 770 360 720 360 665 280"></path>
+            <path class="edge" data-route="redirect" d="M 455 280 C 390 360 350 360 290 280"></path>
+            <text x="560" y="112" fill="#9c9b91" text-anchor="middle" font-family="Courier New" font-size="13">FUNCIONAL PRIMEIRO — ESCALA DEPOIS</text>
+          </g>
+
+          <g id="arch-scaled" hidden>
+            <g class="node" data-route="creation redirect failure" transform="translate(30 220)">
+              <rect width="150" height="82"></rect>
+              <text x="75" y="35">CLIENTE</text>
+              <text class="sub" x="75" y="57">global</text>
+            </g>
+            <g class="node" data-route="creation redirect failure" transform="translate(235 220)">
+              <rect width="170" height="82"></rect>
+              <text x="85" y="35">API GATEWAY</text>
+              <text class="sub" x="85" y="57">TLS + balanceamento</text>
+            </g>
+            <g class="node" data-route="creation failure" transform="translate(475 70)">
+              <rect width="190" height="82"></rect>
+              <text x="95" y="35">CREATION</text>
+              <text class="sub" x="95" y="57">valida + persiste</text>
+            </g>
+            <g class="node" data-route="redirect async failure" transform="translate(475 370)">
+              <rect width="190" height="82"></rect>
+              <text x="95" y="35">REDIRECT</text>
+              <text class="sub" x="95" y="57">lookup + 302</text>
+            </g>
+            <g class="node" data-route="creation failure" transform="translate(760 30)">
+              <rect width="190" height="82"></rect>
+              <text x="95" y="35">ID ALLOCATOR</text>
+              <text class="sub" x="95" y="57">faixas de contadores</text>
+            </g>
+            <g class="node" data-route="redirect async failure" transform="translate(760 330)">
+              <rect width="190" height="82"></rect>
+              <text x="95" y="35">CACHE</text>
+              <text class="sub" x="95" y="57">TTL + LRU</text>
+            </g>
+            <g class="node" data-route="creation redirect async failure" transform="translate(930 205)">
+              <rect width="160" height="82"></rect>
+              <text x="80" y="35">STORAGE</text>
+              <text class="sub" x="80" y="57">shards + réplicas</text>
+            </g>
+            <g class="node" data-route="async failure" transform="translate(690 470)">
+              <rect width="170" height="64"></rect>
+              <text x="85" y="28">CLEANUP WORKER</text>
+              <text class="sub" x="85" y="47">expira + arquiva</text>
+            </g>
+            <g class="node" data-route="async failure" transform="translate(900 470)">
+              <rect width="190" height="64"></rect>
+              <text x="95" y="28">ABUSE PIPELINE</text>
+              <text class="sub" x="95" y="47">reanálise + bloqueio</text>
+            </g>
+
+            <path class="edge" data-route="creation redirect failure" d="M 180 260 L 235 260"></path>
+            <path class="edge" data-route="creation" d="M 405 245 C 435 210 445 140 475 115"></path>
+            <path class="edge" data-route="redirect failure" d="M 405 278 C 435 310 445 385 475 410"></path>
+            <path class="edge" data-route="creation failure" d="M 665 104 L 760 78"></path>
+            <path class="edge" data-route="creation failure" d="M 665 130 C 760 150 850 190 930 230"></path>
+            <path class="edge" data-route="redirect failure" d="M 665 405 L 760 372"></path>
+            <path class="edge" data-route="redirect failure" d="M 950 372 C 1000 350 1020 315 1015 287"></path>
+            <path class="edge" data-route="redirect" d="M 760 390 C 705 465 685 465 665 430"></path>
+            <path class="edge" data-route="redirect" d="M 475 430 C 400 500 300 430 320 302"></path>
+            <path class="edge" data-route="async" d="M 990 287 C 960 365 835 420 785 470"></path>
+            <path class="edge" data-route="async" d="M 1045 287 C 1085 360 1070 430 1010 470"></path>
+            <path class="edge" data-route="async failure" d="M 985 470 C 955 415 970 345 1015 287"></path>
+            <path class="edge" data-route="async failure" d="M 930 470 C 905 445 885 430 870 412"></path>
+            <path class="edge" data-route="async failure" d="M 900 490 C 820 445 740 435 665 420"></path>
+            <path class="edge" data-route="failure" d="M 930 246 C 850 245 780 260 665 390"></path>
+            <text class="edge-label" data-route="async" x="840" y="410">EXPIRADOS</text>
+            <text class="edge-label" data-route="async" x="1080" y="390">ANALISA</text>
+            <text class="edge-label" data-route="async failure" x="965" y="380">BLOCKED + VERSION</text>
+            <text class="edge-label" data-route="async failure" x="910" y="438">INVALIDA CACHE</text>
+            <text class="edge-label" data-route="async failure" x="770" y="449">DENYLIST</text>
+          </g>
+        </svg>
+        <noscript>
+          Visão escalada: cliente → gateway → serviços separados de criação e redirect; criação usa allocator e storage, redirect usa cache e réplicas. Cleanup arquiva expirados; o pipeline de abuso persiste o bloqueio, invalida cache e alimenta a proteção do redirect.
+        </noscript>
+        <div class="legend" aria-hidden="true">
+          <span class="creation">criação / escrita</span>
+          <span class="redirect">redirect / leitura</span>
+          <span class="async">processamento assíncrono</span>
+          <span class="failure">degradação / recuperação</span>
+        </div>
+      </div>
+
+      <div class="flow-notes">
+        <article class="flow-note">
+          <strong>Criação</strong>
+          Valida → reserva código → commit durável → preenche/invalida cache → responde. Com blocos, o allocator não participa de toda request.
+        </article>
+        <article class="flow-note">
+          <strong>Redirect</strong>
+          Gateway → serviço → cache hit ou miss → banco/réplica → valida expiração → `302`. O caminho deve ser curto e replicável.
+        </article>
+        <article class="flow-note">
+          <strong>Assíncrono</strong>
+          Storage alimenta cleanup e análise de abuso. Um bloqueio grava estado/version, invalida o cache e chega ao redirect por denylist rápida.
+        </article>
+        <article class="flow-note">
+          <strong>Falha</strong>
+          Cache vazio pressiona storage; allocator fora só afeta criadores sem faixa; banco primário fora pausa criação; redirect quente pode sobreviver dentro do TTL.
+        </article>
+      </div>
+
+      <div class="checkpoint-bank" aria-label="Checkpoints de arquitetura">
+        <button class="checkpoint" type="button" aria-pressed="false" data-checkpoint="minima">Provei a arquitetura mínima</button>
+        <button class="checkpoint" type="button" aria-pressed="false" data-checkpoint="fluxos">Narrei criação, redirect, assíncrono e falha</button>
+      </div>
+    </section>
+
+    <section class="stage-panel shell" id="deep-dives" role="tabpanel" aria-labelledby="tab-deep">
+      <div class="stage-heading">
+        <div>
+          <div class="stage-index">Etapa 05 / escolha do entrevistador</div>
+          <h2>Deep dives</h2>
+        </div>
+        <p class="stage-thesis">Compare mecanismos pela invariante, pelo modo de falha e pelo custo operacional — não por preferência pessoal.</p>
+      </div>
+
+      <div class="strategy-controls" aria-label="Comparação de estratégias de ID">
+        <button class="strategy-button" type="button" aria-pressed="true" aria-controls="strategy-counter" data-strategy="counter">Contador + Base62</button>
+        <button class="strategy-button" type="button" aria-pressed="false" aria-controls="strategy-random" data-strategy="random">Aleatório</button>
+        <button class="strategy-button" type="button" aria-pressed="false" aria-controls="strategy-hash" data-strategy="hash">Hash da URL</button>
+      </div>
+
+      <article class="strategy-panel" id="strategy-counter" data-strategy-panel="counter">
+        <span class="verdict">Recomendação da aula</span>
+        <h3>Contador distribuído por faixas</h3>
+        <table class="trade-table">
+          <caption class="sr-only">Trade-offs do contador distribuído por faixas</caption>
+          <thead><tr><th>Ganho</th><th>Custo</th><th>Falha</th><th>Quando usar</th></tr></thead>
+          <tbody><tr><td data-label="Ganho">Unicidade determinística e código curto.</td><td data-label="Custo">Coordenação e enumeração.</td><td data-label="Falha">Allocator indisponível; instâncias com bloco continuam.</td><td data-label="Quando usar">Quando simplicidade e eficiência vencem privacidade do namespace.</td></tr></tbody>
+        </table>
+        <p class="decision"><strong>Ponto fino</strong>Blocos perdidos geram buracos aceitáveis. Não reutilize sem fencing: a instância antiga pode retornar.</p>
+      </article>
+
+      <article class="strategy-panel" id="strategy-random" data-strategy-panel="random">
+        <span class="verdict">Coordenação mínima</span>
+        <h3>ID aleatório com conditional insert</h3>
+        <table class="trade-table">
+          <caption class="sr-only">Trade-offs do identificador aleatório</caption>
+          <thead><tr><th>Ganho</th><th>Custo</th><th>Falha</th><th>Quando usar</th></tr></thead>
+          <tbody><tr><td data-label="Ganho">Geração local, distribuição uniforme, menos enumerável.</td><td data-label="Custo">Mais caracteres, colisões e retries.</td><td data-label="Falha">Entropia ruim ou espaço saturado eleva conflitos.</td><td data-label="Quando usar">Criação multirregional e namespace menos previsível.</td></tr></tbody>
+        </table>
+        <p class="decision"><strong>Ponto fino</strong>Insira diretamente com unicidade. “Consultar antes” não remove a corrida.</p>
+      </article>
+
+      <article class="strategy-panel" id="strategy-hash" data-strategy-panel="hash">
+        <span class="verdict">Somente com semântica explícita</span>
+        <h3>Hash truncado da URL</h3>
+        <table class="trade-table">
+          <caption class="sr-only">Trade-offs do hash truncado da URL</caption>
+          <thead><tr><th>Ganho</th><th>Custo</th><th>Falha</th><th>Quando usar</th></tr></thead>
+          <tbody><tr><td data-label="Ganho">Pode deduplicar o mesmo destino.</td><td data-label="Custo">Canonicalização e colisão truncada.</td><td data-label="Falha">URLs equivalentes divergem; destinos distintos colidem.</td><td data-label="Quando usar">Quando deduplicação é requisito, não apenas conveniência.</td></tr></tbody>
+        </table>
+        <p class="decision"><strong>Ponto fino</strong>A aula permite vários links para a mesma URL; nesse contrato, hash determinístico é menos natural.</p>
+      </article>
+
+      <div class="deep-grid">
+        <article class="sheet">
+          <span class="source-tag">Aula local</span>
+          <span class="source-tag complement">Detalhes complementares</span>
+          <h3>Hit rápido, miss controlado</h3>
+          <ul class="clean-list">
+            <li>Cache-aside com destino, estado, versão e expiração.</li>
+            <li>TTL = mínimo entre política e validade restante.</li>
+            <li>Single-flight e jitter contra stampede.</li>
+            <li>Negative caching curto contra scanners.</li>
+            <li>L1/CDN apenas para hot keys justificadas.</li>
+          </ul>
+        </article>
+        <article class="sheet">
+          <span class="source-tag">Aula local · cleanup</span>
+          <span class="source-tag complement">Detalhes complementares</span>
+          <h3>Três relógios diferentes</h3>
+          <ul class="clean-list">
+            <li>Produto: link deixa de funcionar em <code>expires_at</code>.</li>
+            <li>Cache: cópia não ultrapassa a validade.</li>
+            <li>Storage: cleanup remove ou arquiva depois.</li>
+            <li>Job atrasado não pode reativar link expirado.</li>
+            <li>Código não é reciclado imediatamente.</li>
+          </ul>
+        </article>
+        <article class="sheet">
+          <span class="source-tag">Aula local · réplica do redirect</span>
+          <span class="source-tag complement">Estratégia detalhada</span>
+          <h3>Hash do código</h3>
+          <ul class="clean-list">
+            <li>Distribui contador e alias customizado.</li>
+            <li>Evita hotspot de inserts sequenciais.</li>
+            <li>Réplicas escalam miss e failover.</li>
+            <li>Lag exige cache pós-write ou read-primary.</li>
+            <li>Sharding entra por throughput e recuperação, não por susto.</li>
+          </ul>
+        </article>
+        <article class="sheet">
+          <span class="source-tag">Aula local · bots/fraude/abuso</span>
+          <span class="source-tag complement">Controles detalhados</span>
+          <h3>O destino está escondido, não confiável</h3>
+          <ul class="clean-list">
+            <li>Validar esquemas, tamanho e reputação.</li>
+            <li>Rate limit por identidade, IP e domínio.</li>
+            <li>Bloquear SSRF em preview/crawler.</li>
+            <li>Kill switch + invalidação para link viral malicioso.</li>
+            <li>Contador previsível não serve como segredo.</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="standalone">
+        <span class="source-tag complement">Assimetria operacional</span>
+        <h3>Criação pode degradar; redirect deve resistir</h3>
+        <table class="trade-table">
+          <caption class="sr-only">Comparação operacional entre criação e redirect</caption>
+          <thead><tr><th>Dimensão</th><th>Criação</th><th>Redirect</th></tr></thead>
+          <tbody>
+            <tr><td data-label="Dimensão">Volume</td><td data-label="Criação">Baixo, escrita</td><td data-label="Redirect">Alto, leitura</td></tr>
+            <tr><td data-label="Dimensão">Consistência</td><td data-label="Criação">Unicidade forte</td><td data-label="Redirect">Eventual pode bastar</td></tr>
+            <tr><td data-label="Dimensão">Falha segura</td><td data-label="Criação">Recusar sem confirmar</td><td data-label="Redirect">Servir conhecido válido</td></tr>
+            <tr><td data-label="Dimensão">Escala</td><td data-label="Criação">Moderada</td><td data-label="Redirect">Agressiva e global</td></tr>
+            <tr><td data-label="Dimensão">Dependências</td><td data-label="Criação">Allocator, política, primário</td><td data-label="Redirect">Cache, réplica, storage</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="checkpoint-bank" aria-label="Checkpoints de deep dives">
+        <button class="checkpoint" type="button" aria-pressed="false" data-checkpoint="id">Comparei estratégias de ID</button>
+        <button class="checkpoint" type="button" aria-pressed="false" data-checkpoint="cache-falha">Expliquei cache, TTL e falha</button>
+      </div>
+    </section>
+
+    <section class="stage-panel shell" id="fechamento" role="tabpanel" aria-labelledby="tab-fechamento">
+      <div class="stage-heading">
+        <div>
+          <div class="stage-index">Etapa 06 / síntese</div>
+          <h2>Fechamento</h2>
+        </div>
+        <p class="stage-thesis">Revise o contrato, declare o gargalo residual e ofereça um aprofundamento. Não termine no meio de uma caixa.</p>
+      </div>
+
+      <div class="closing-grid">
+        <article class="sheet">
+          <span class="source-tag">Roteiro de 45 minutos</span>
+          <h3>Relógio de entrevista</h3>
+          <ol class="timeline">
+            <li><time>00–05</time><span><strong>Escopo</strong>Papéis, criação, expiração, redirect e exclusões.</span></li>
+            <li><time>05–10</time><span><strong>Estimativas</strong>QPS, pico, storage e espaço de códigos.</span></li>
+            <li><time>10–15</time><span><strong>API e dados</strong>Contratos, status e invariante.</span></li>
+            <li><time>15–22</time><span><strong>Mínimo</strong>Cliente, serviço, banco; dois fluxos.</span></li>
+            <li><time>22–35</time><span><strong>Escala</strong>Separação, cache, IDs, réplicas e shards.</span></li>
+            <li><time>35–41</time><span><strong>Falhas</strong>TTL, abuso, lag e recuperação.</span></li>
+            <li><time>41–45</time><span><strong>Síntese</strong>Checklist, trade-offs e convite a deep dive.</span></li>
+          </ol>
+        </article>
+        <article class="sheet">
+          <span class="source-tag complement">Respostas reveláveis</span>
+          <h3>Perguntas do entrevistador</h3>
+          <details>
+            <summary>Base62 garante unicidade?</summary>
+            <div class="answer"><p>Não. Base62 representa um número. Contador único gera saída única; ID aleatório ou hash truncado ainda pode colidir. A garantia final vem de reserva atômica no storage.</p></div>
+          </details>
+          <details>
+            <summary>O contador não é um single point of failure?</summary>
+            <div class="answer"><p>Seria se chamado por request. O allocator concede blocos duráveis; instâncias continuam com faixas locais. Replicação e high-water mark preservam recuperação.</p></div>
+          </details>
+          <details>
+            <summary>Como um link recém-criado funciona na réplica?</summary>
+            <div class="answer"><p>Após commit, posso preencher cache e usar read-primary por uma janela. Se o contrato aceitar atraso, outras regiões convergem eventualmente. Alias customizado continua com reserva forte.</p></div>
+          </details>
+          <details>
+            <summary>O que ocorre se cache e banco falharem?</summary>
+            <div class="answer"><p>Posso servir somente valor ainda válido e não bloqueado dentro do hard TTL. Misses falham explicitamente; não invento destino nem sirvo expirado indefinidamente.</p></div>
+          </details>
+          <details>
+            <summary>Como derruba um link malicioso viral?</summary>
+            <div class="answer"><p>Persiste estado bloqueado, publica invalidação versionada, remove cache/CDN e usa denylist rápida no redirect. A métrica central é tempo de propagação global.</p></div>
+          </details>
+          <details>
+            <summary>Por que não shardear desde o início?</summary>
+            <div class="answer"><p>Porque 700 GB lógicos podem caber em um nó. Sharding entra quando throughput, índice, recuperação, região ou crescimento exigem; antes disso, cobra complexidade sem benefício demonstrado.</p></div>
+          </details>
+        </article>
+      </div>
+
+      <div class="grid-2" style="margin-top: 1px;">
+        <article class="sheet">
+          <span class="source-tag complement">Falhas e recuperação</span>
+          <h3>Matriz verbal de fechamento</h3>
+          <ul class="clean-list">
+            <li>Cache fora: limitar misses, proteger banco, reconstruir.</li>
+            <li>Primário fora: pausar criação, promover réplica, reconciliar.</li>
+            <li>Allocator fora: consumir blocos, preservar high-water mark.</li>
+            <li>Lag: cache pós-write ou leitura no primário.</li>
+            <li>Invalidação perdida: outbox, versão e replay.</li>
+          </ul>
+        </article>
+        <article class="sheet">
+          <span class="source-tag">Última revisão</span>
+          <h3>Checklist oral</h3>
+          <ul class="clean-list">
+            <li>Requisitos funcionais cobertos por fluxos.</li>
+            <li>Latência e disponibilidade mensuráveis.</li>
+            <li>Unicidade e expiração protegidas.</li>
+            <li>Escala de leitura separada da escrita.</li>
+            <li>Trade-offs, abuso, métricas e recuperação citados.</li>
+          </ul>
+          <button class="reset-button" id="reset-progress" type="button">Zerar checkpoints</button>
+        </article>
+      </div>
+
+      <p class="closing-line">“O sistema preserva unicidade na criação, mantém o redirect curto e disponível, aplica expiração no request e isola falhas entre leitura e escrita. O próximo deep dive pode ser IDs, cache ou multirregião.”</p>
+    </section>
+  </main>
+
+  <footer class="page-footer shell">
+    <span>Encurtador de URL / cockpit autocontido / sem dependências externas</span>
+    <span><a href="README.md">Guia completo</a> · <a href="deep-dives.md">Deep dives</a></span>
+    <span class="kbd-hint">Teclado: ← → nas etapas · Tab nos controles</span>
+  </footer>
+
+  <div class="live-region" id="live-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const tabs = Array.from(document.querySelectorAll("[data-stage-target]"));
+      const panels = Array.from(document.querySelectorAll(".stage-panel"));
+      const liveRegion = document.getElementById("live-region");
+      const checkpointButtons = Array.from(document.querySelectorAll("[data-checkpoint]"));
+      const progressFill = document.getElementById("progress-fill");
+      const progressCount = document.getElementById("progress-count");
+      const storageKey = "url-shortener-cockpit-checkpoints";
+
+      document.documentElement.classList.add("js");
+
+      function announce(message) {
+        liveRegion.textContent = "";
+        window.setTimeout(() => { liveRegion.textContent = message; }, 10);
+      }
+
+      function activateStage(stageId, moveFocus = false) {
+        tabs.forEach((tab) => {
+          const active = tab.dataset.stageTarget === stageId;
+          tab.setAttribute("aria-selected", String(active));
+          tab.tabIndex = active ? 0 : -1;
+          if (active && moveFocus) tab.focus();
+        });
+
+        panels.forEach((panel) => {
+          panel.hidden = panel.id !== stageId;
+        });
+
+        const activeTab = tabs.find((tab) => tab.dataset.stageTarget === stageId);
+        if (activeTab) announce(`Etapa ativa: ${activeTab.textContent.trim()}`);
+      }
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => activateStage(tab.dataset.stageTarget));
+        tab.addEventListener("keydown", (event) => {
+          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+          event.preventDefault();
+          let nextIndex = index;
+          if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+          if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+          if (event.key === "Home") nextIndex = 0;
+          if (event.key === "End") nextIndex = tabs.length - 1;
+          activateStage(tabs[nextIndex].dataset.stageTarget, true);
+        });
+      });
+
+      function readProgress() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+          return new Set(Array.isArray(saved) ? saved : []);
+        } catch {
+          return new Set();
+        }
+      }
+
+      let completed = readProgress();
+
+      function renderProgress() {
+        checkpointButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(completed.has(button.dataset.checkpoint)));
+        });
+        const total = checkpointButtons.length;
+        const current = completed.size;
+        progressCount.textContent = `${current}/${total}`;
+        progressFill.style.width = `${total ? (current / total) * 100 : 0}%`;
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(Array.from(completed)));
+        } catch {
+          /* O cockpit continua funcional sem persistência local. */
+        }
+      }
+
+      checkpointButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const key = button.dataset.checkpoint;
+          if (completed.has(key)) completed.delete(key);
+          else completed.add(key);
+          renderProgress();
+          announce(`${button.textContent.trim()}: ${completed.has(key) ? "concluído" : "pendente"}`);
+        });
+      });
+
+      document.getElementById("reset-progress").addEventListener("click", () => {
+        completed = new Set();
+        renderProgress();
+        announce("Todos os checkpoints foram zerados.");
+      });
+
+      const archButtons = Array.from(document.querySelectorAll("[data-arch]"));
+      const minimalArch = document.getElementById("arch-minimal");
+      const scaledArch = document.getElementById("arch-scaled");
+      const flowButtons = Array.from(document.querySelectorAll("[data-flow]"));
+      const diagramFrame = document.getElementById("diagram-frame");
+
+      function setActiveFlow(flow) {
+        diagramFrame.dataset.activeFlow = flow;
+        flowButtons.forEach((candidate) => {
+          candidate.setAttribute("aria-pressed", String(candidate.dataset.flow === flow));
+        });
+      }
+
+      function setArchitecture(scaled) {
+        minimalArch.toggleAttribute("hidden", scaled);
+        scaledArch.toggleAttribute("hidden", !scaled);
+        archButtons.forEach((candidate) => {
+          candidate.setAttribute("aria-pressed", String(candidate.dataset.arch === (scaled ? "scaled" : "minimal")));
+        });
+        if (!scaled && diagramFrame.dataset.activeFlow === "async") {
+          setActiveFlow("all");
+          return true;
+        }
+        return false;
+      }
+
+      archButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const scaled = button.dataset.arch === "scaled";
+          const flowReset = setArchitecture(scaled);
+          announce(flowReset
+            ? "Arquitetura mínima exibida; todos os fluxos estão visíveis."
+            : `Arquitetura ${scaled ? "escalada" : "mínima"} exibida.`);
+        });
+      });
+
+      flowButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          if (button.dataset.flow === "async") setArchitecture(true);
+          setActiveFlow(button.dataset.flow);
+          announce(`Fluxo de ${button.textContent.trim()} destacado.`);
+        });
+      });
+
+      const strategyButtons = Array.from(document.querySelectorAll("[data-strategy]"));
+      const strategyPanels = Array.from(document.querySelectorAll("[data-strategy-panel]"));
+
+      strategyButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const selected = button.dataset.strategy;
+          strategyButtons.forEach((candidate) => {
+            candidate.setAttribute("aria-pressed", String(candidate === button));
+          });
+          strategyPanels.forEach((panel) => {
+            panel.hidden = panel.dataset.strategyPanel !== selected;
+          });
+          announce(`Estratégia selecionada: ${button.textContent.trim()}`);
+        });
+      });
+
+      activateStage("escopo");
+      strategyPanels.forEach((panel) => {
+        panel.hidden = panel.dataset.strategyPanel !== "counter";
+      });
+      renderProgress();
+    })();
+  </script>
+</body>
+</html>
