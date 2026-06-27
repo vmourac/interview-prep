@@ -1,111 +1,67 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>16 Recursion and Sorting - Permutations</title>
-  <style>
-    :root {
-      --paper: #f5efe4;
-      --ink: #241d18;
-      --muted: #6d5c4f;
-      --accent: #92472e;
-      --soft: #ebcfbe;
-      --line: #d8c5b5;
-      --panel: rgba(255, 251, 245, 0.92);
-      --shadow: 0 22px 46px rgba(88, 57, 42, 0.16);
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Laboratório interativo para Permutations com backtracking."><title>Permutations — Laboratório Interativo</title><style>
+:root{color-scheme:dark;--bg:#11100e;--panel:#1b1915;--ink:#f4eadb;--muted:#b7aa99;--line:#514838;--a:#f2b35d;--b:#8dd7ad;--c:#8ec8e8;--r:#ef715f;--mono:"SFMono-Regular",Consolas,monospace;--serif:Georgia,serif;--sans:"Trebuchet MS",sans-serif}*{box-sizing:border-box}body{margin:0;min-width:320px;color:var(--ink);font-family:var(--sans);line-height:1.58;background:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),radial-gradient(circle at 10% 5%,rgba(242,179,93,.16),transparent 28rem),var(--bg);background-size:34px 34px,34px 34px,auto}button{font:inherit;border:1px solid var(--line);padding:.68rem .78rem;color:var(--ink);background:var(--panel);cursor:pointer}button:hover,button[aria-pressed=true]{border-color:var(--a);background:#322615}.primary{color:#15110d;background:var(--b);font-weight:800}button:disabled{opacity:.45}.shell{width:min(1240px,calc(100% - 32px));margin:0 auto}.hero{padding:clamp(2rem,6vw,5rem) 0 1.4rem;border-bottom:1px solid var(--line)}.eyebrow,.chip,.metric span,.control-label,.code-tabs button,.step-counter{font:.73rem var(--mono);letter-spacing:.12em;text-transform:uppercase}.eyebrow{color:var(--a)}h1{max-width:920px;margin:.35rem 0 1rem;font:clamp(3rem,8vw,6.4rem)/.9 var(--serif);letter-spacing:-.065em}.lead{max-width:840px;color:var(--muted);font-size:1.1rem}.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.2rem 0}.chip{border:1px solid var(--line);padding:.28rem .48rem;color:var(--a);background:rgba(242,179,93,.08)}.lab{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:1rem;padding:1.2rem 0 2rem}.panel,.study-card{border:1px solid var(--line);background:linear-gradient(145deg,rgba(255,255,255,.035),transparent),rgba(27,25,21,.96);box-shadow:0 24px 80px rgba(0,0,0,.34)}.panel-header{display:flex;justify-content:space-between;gap:1rem;align-items:center;border-bottom:1px solid var(--line);padding:1rem}.panel-header h2,.panel h3,.study-card h2{margin:0;font-family:var(--serif)}.panel-body,.study-card{padding:1rem}.control-row{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0}.progress{height:.7rem;border:1px solid var(--line);background:#0d0c0b;overflow:hidden}.progress>div{height:100%;background:linear-gradient(90deg,var(--a),var(--b),var(--c))}#visualizer{min-height:420px;border:1px solid var(--line);background:#12100e;padding:1rem;overflow:auto}.lane{margin:0 0 1rem;padding:.85rem;border:1px solid #40382d;background:rgba(255,255,255,.025)}.lane-title{display:flex;justify-content:space-between;color:var(--muted);font:.78rem var(--mono);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem}.row{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}.cell{min-width:3.1rem;padding:.75rem;border:2px solid #6c604f;background:#1d1a15;text-align:center;font:1.25rem var(--serif)}.cell.active{border-color:var(--a);box-shadow:0 0 0 4px rgba(242,179,93,.15)}.cell.used{border-color:var(--b)}.results{display:flex;flex-wrap:wrap;gap:.45rem}.pill{border:1px solid var(--line);padding:.45rem .6rem;background:rgba(255,255,255,.04);font-family:var(--mono)}#step-explanation{min-height:10rem;border-left:4px solid var(--a);padding:1rem;background:rgba(242,179,93,.08)}#step-explanation p,.study-card p,.study-card li{color:var(--muted)}.warning{margin-top:.8rem;border-left:4px solid var(--r);padding:.75rem;color:#f1c5bd;background:rgba(239,113,95,.08)}.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem;margin-top:1rem}.metric{border:1px solid var(--line);padding:.85rem;background:rgba(255,255,255,.03)}.metric strong{display:block;color:var(--b);font:1.12rem var(--serif)}.study-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;padding:0 0 2rem}.callout{border-left:4px solid var(--b);padding-left:.9rem}.code-panel{margin-bottom:3rem}.code-tabs{display:flex;gap:.4rem;padding:1rem 1rem 0}pre{margin:0;overflow:auto;padding:1rem;background:#0d0c0b;color:#f5eadc;font:.88rem/1.55 var(--mono)}pre[hidden]{display:none}code{font-family:var(--mono);color:#ffe0ad}@media(max-width:920px){.lab,.study-grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr}}
+  /* Contain wide interactive content without widening the document. */
+  html, body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
+  .shell, .lab, .panel, .panel-body, #visualizer { min-width: 0; max-width: 100%; }
+  #visualizer { overflow-x: auto; overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+      scroll-behavior: auto !important;
     }
+  }
+</style></head><body>
+<header class="hero"><div class="shell"><div class="eyebrow">16 Recursion and Sorting · backtracking</div><h1>Permutations</h1><p class="lead">Cada nível escolhe um número ainda não usado; ao voltar, desfaz a escolha para que outro ramo comece limpo.</p><div class="chips"><span class="chip">path</span><span class="chip">used</span><span class="chip">O(n × n!)</span></div></div></header><main class="shell">
+<section class="lab"><article class="panel"><div class="panel-header"><h2>Visualização passo a passo</h2><span class="step-counter" id="step-counter">passo 1</span></div><div class="panel-body"><div class="control-label">Controles da simulação</div><div class="control-row"><button data-action="prev">◀ Passo anterior</button><button class="primary" data-action="next">Próximo passo ▶</button><button data-action="run">Executar</button><button data-action="pause">Pausar</button><button data-action="reset">Reiniciar</button></div><div class="progress"><div id="progress-bar"></div></div><div id="visualizer" aria-live="polite"></div></div></article><aside class="panel"><div class="panel-header"><h2>Raciocínio atual</h2></div><div class="panel-body"><div id="step-explanation" aria-live="polite"></div><div class="warning"><strong>Backtracking:</strong> escolher, explorar e desfazer. Sem desfazer, um ramo contamina o próximo.</div><div class="metrics"><div class="metric"><span>ingênua</span><strong>gera inválidos · muitas cópias</strong></div><div class="metric"><span>otimizada</span><strong>O(n × n!) tempo · O(n) aux.</strong></div></div></div></aside></section>
+<section class="study-grid"><article class="study-card" data-section="naive"><h2>Solução ingênua</h2><p>Gerar sequências e filtrar repetições faz trabalho inútil. Outra versão copia subarrays a cada chamada, funcionando com alocação extra desnecessária.</p></article><article class="study-card" data-section="optimized"><h2>Solução otimizada</h2><p>Use <code>path</code> e <code>used</code>. Escolha um item livre, recurse, depois remova o item e marque livre de novo.</p><p class="callout">A folha acontece quando <code>path.length === nums.length</code>.</p></article><article class="study-card" data-section="complexity"><h2>Big O</h2><p><strong>Tempo:</strong> <code>O(n × n!)</code>, pois há <code>n!</code> respostas e copiar cada uma custa <code>O(n)</code>.</p><p><strong>Espaço auxiliar:</strong> <code>O(n)</code>, sem contar a saída.</p></article><article class="study-card" data-section="interview"><h2>Como falar em entrevista</h2><ul><li>Separe estado parcial de resposta final.</li><li>Mostre o ponto exato do undo.</li><li>Diga que swaps in-place reduzem estruturas, mas não o número de respostas.</li></ul></article></section>
+<section class="panel code-panel"><div class="panel-header"><h2>Código de referência</h2></div><div class="code-tabs" role="group" aria-label="Linguagem do código"><button data-code-tab="javascript" aria-pressed="true">JavaScript</button><button data-code-tab="typescript" aria-pressed="false">TypeScript</button></div><pre data-language="javascript"><code>function permute(nums) {
+  const result = [];
+  const path = [];
+  const used = Array(nums.length).fill(false);
 
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      color: var(--ink);
-      font-family: "Palatino Linotype", Georgia, serif;
-      background:
-        linear-gradient(135deg, rgba(146, 71, 46, 0.1), transparent 28%),
-        radial-gradient(circle at top right, rgba(146, 71, 46, 0.14), transparent 24%),
-        repeating-linear-gradient(0deg, #f7f2e8 0, #f7f2e8 31px, #efe7da 31px, #efe7da 32px);
+  function backtrack() {
+    if (path.length === nums.length) {
+      result.push([...path]);
+      return;
     }
-
-    .page {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 42px 20px 70px;
+    for (let i = 0; i < nums.length; i++) {
+      if (used[i]) continue;
+      used[i] = true;
+      path.push(nums[i]);
+      backtrack();
+      path.pop();
+      used[i] = false;
     }
+  }
 
-    .hero, .panel { background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); }
-    .hero { padding: 30px; margin-bottom: 20px; }
-    .panel { padding: 22px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
-    .eyebrow { text-transform: uppercase; letter-spacing: 0.16em; font-size: 0.77rem; color: var(--accent); margin-bottom: 10px; }
-    .tag { display: inline-block; padding: 4px 10px; background: var(--soft); color: var(--accent); font-size: 0.82rem; margin-bottom: 12px; }
-    h1 { margin: 0 0 10px; font-size: clamp(2rem, 4vw, 3.1rem); }
-    h2 { margin-top: 0; color: var(--accent); font-size: 1.15rem; }
-    p, li { line-height: 1.7; }
-    pre { margin: 0; padding: 18px; background: #1f1a17; color: #fff6ef; overflow: auto; white-space: pre-wrap; }
-    ul { margin: 0; padding-left: 20px; }
-  </style>
-</head>
-<body>
-  <main class="page">
-    <section class="hero">
-      <div class="eyebrow">Topico 16 - Roteiro de entrevista</div>
-      <h1>Permutations</h1>
-      <p>Problema classico para testar backtracking. A fonte do curso nao tem captions; esta pagina reconstroi o treino esperado em entrevistas a partir do tema da aula.</p>
-      <p><strong>Prompt:</strong> Dado um array com valores distintos, retorne todas as permutacoes possiveis.</p>
-    </section>
+  backtrack();
+  return result;
+}</code></pre><pre data-language="typescript" hidden><code>function permute(nums: number[]): number[][] {
+  const result: number[][] = [];
+  const path: number[] = [];
+  const used = Array(nums.length).fill(false);
 
-    <section class="grid">
-      <article class="panel">
-        <div class="tag">O que o entrevistador mede</div>
-        <ul>
-          <li>Se voce identifica estado parcial e resposta final.</li>
-          <li>Se sabe desfazer escolhas ao voltar na recursao.</li>
-          <li>Se justifica por que o custo explode para n!.</li>
-        </ul>
-      </article>
+  function backtrack(): void {
+    if (path.length === nums.length) {
+      result.push([...path]);
+      return;
+    }
+    for (let i = 0; i < nums.length; i++) {
+      if (used[i]) continue;
+      used[i] = true;
+      path.push(nums[i]);
+      backtrack();
+      path.pop();
+      used[i] = false;
+    }
+  }
 
-      <article class="panel">
-        <div class="tag">Hint de ouro</div>
-        <p>Em cada profundidade, escolha um elemento ainda nao usado, avance e depois restaure o estado antes de tentar o proximo.</p>
-      </article>
-
-      <article class="panel">
-        <div class="tag">Complexidade</div>
-        <p><strong>Tempo:</strong> O(n x n!)</p>
-        <p><strong>Espaco auxiliar:</strong> O(n)</p>
-        <p>Se contar a saida, o armazenamento total sobe para O(n x n!).</p>
-      </article>
-    </section>
-
-    <section class="panel" style="margin-top: 20px;">
-      <h2>Implementacao de referencia</h2>
-      <pre>def permute(nums):
-    result = []
-    path = []
-    used = [False] * len(nums)
-
-    def backtrack():
-        if len(path) == len(nums):
-            result.append(path[:])
-            return
-
-        for i in range(len(nums)):
-            if used[i]:
-                continue
-
-            used[i] = True
-            path.append(nums[i])
-
-            backtrack()
-
-            path.pop()
-            used[i] = False
-
-    backtrack()
-    return result</pre>
-    </section>
-  </main>
-</body>
-</html>
+  backtrack();
+  return result;
+}</code></pre></section></main><script>
+const steps = [{title:"Estado inicial",text:"nums = [1, 2, 3], path vazio e nenhum índice usado.",path:[],used:[],results:[]},{title:"Escolha 1",text:"Marque 1 como usado e coloque no path.",path:[1],used:[1],results:[]},{title:"Escolha 2",text:"Dentro desse ramo, escolha 2. O path agora tem duas posições preenchidas.",path:[1,2],used:[1,2],results:[]},{title:"Complete com 3",text:"O path tem tamanho n: copie [1, 2, 3] para a resposta.",path:[1,2,3],used:[1,2,3],results:["[1,2,3]"]},{title:"Desfaça e tente outro ramo",text:"Remova 3, depois 2, e tente 3 como segunda escolha após o 1.",path:[1,3],used:[1,3],results:["[1,2,3]"]},{title:"Todas as folhas",text:"Repetindo escolher/explorar/desfazer, obtemos as 6 permutações.",path:[],used:[],results:["[1,2,3]","[1,3,2]","[2,1,3]","[2,3,1]","[3,1,2]","[3,2,1]"]}];let current=0,timer=null;const nums=[1,2,3],visualizer=document.getElementById("visualizer"),explanation=document.getElementById("step-explanation"),counter=document.getElementById("step-counter"),progress=document.getElementById("progress-bar");function render(){const s=steps[current];visualizer.innerHTML=`<div class="lane"><div class="lane-title"><span>nums</span><span>usados destacados</span></div><div class="row">${nums.map(n=>`<div class="cell ${s.used.includes(n)?"used":""}">${n}</div>`).join("")}</div></div><div class="lane"><div class="lane-title"><span>path atual</span><span>profundidade ${s.path.length}</span></div><div class="row">${(s.path.length?s.path:["∅"]).map(v=>`<div class="cell active">${v}</div>`).join("")}</div></div><div class="lane"><div class="lane-title"><span>respostas copiadas</span><span>${s.results.length}</span></div><div class="results">${(s.results.length?s.results:["nenhuma ainda"]).map(v=>`<span class="pill">${v}</span>`).join("")}</div></div>`;explanation.innerHTML=`<h3>${s.title}</h3><p>${s.text}</p>`;counter.textContent=`passo ${current+1}`;progress.style.width=`${(current+1)/steps.length*100}%`;document.querySelector('[data-action="prev"]').disabled=current===0;document.querySelector('[data-action="next"]').disabled=current===steps.length-1}function pause(){if(timer){clearInterval(timer);timer=null}}document.querySelectorAll("[data-action]").forEach(b=>b.addEventListener("click",()=>{const a=b.dataset.action;if(a==="prev"){pause();current=Math.max(0,current-1);render()}if(a==="next"){pause();current=Math.min(steps.length-1,current+1);render()}if(a==="reset"){pause();current=0;render()}if(a==="pause")pause();if(a==="run"){pause();timer=setInterval(()=>{if(current===steps.length-1){pause();return}current++;render()},1100)}}));document.querySelectorAll("[data-code-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-code-tab]").forEach(t=>t.setAttribute("aria-pressed",String(t===b)));document.querySelectorAll("pre[data-language]").forEach(p=>p.hidden=p.dataset.language!==b.dataset.codeTab)}));render();
+</script></body></html>

@@ -1,161 +1,656 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Swim in Rising Water - Interview Prep</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Laboratório interativo para entender Swim in Rising Water passo a passo em JavaScript e TypeScript.">
+  <title>Swim in Rising Water — Laboratório Interativo</title>
   <style>
+
     :root {
-      --bg: #061219;
-      --panel: rgba(8, 20, 30, 0.86);
-      --panel-2: rgba(6, 27, 39, 0.95);
-      --line: rgba(106, 240, 255, 0.18);
-      --text: #e3fcff;
-      --muted: #92c9d2;
-      --accent: #6af0ff;
-      --accent-2: #a6ffea;
-      --shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+      color-scheme: dark;
+      --bg: #11131a;
+      --panel: #191d29;
+      --panel-2: #222839;
+      --ink: #f2f5ff;
+      --muted: #aeb7cb;
+      --line: #3d475d;
+      --accent: #8bd3ff;
+      --accent-2: #f2c66d;
+      --accent-3: #94dfb8;
+      --danger: #ef806f;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .34);
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --serif: Georgia, Cambria, "Times New Roman", serif;
+      --sans: "Trebuchet MS", "Gill Sans", sans-serif;
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
     body {
       margin: 0;
-      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-      color: var(--text);
+      min-width: 320px;
+      color: var(--ink);
       background:
-        radial-gradient(circle at 18% 18%, rgba(106, 240, 255, 0.14), transparent 24%),
-        radial-gradient(circle at 78% 14%, rgba(166, 255, 234, 0.11), transparent 17%),
-        linear-gradient(180deg, #061219, #09202a 58%, #061219);
+        linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px),
+        radial-gradient(circle at 80% 8%, rgba(139,211,255,.14), transparent 28rem),
+        radial-gradient(circle at 10% 28%, rgba(148,223,184,.10), transparent 30rem),
+        var(--bg);
+      background-size: 36px 36px, 36px 36px, auto, auto, auto;
+      font-family: var(--sans);
+      line-height: 1.6;
     }
-    .page { max-width: 1180px; margin: 0 auto; padding: 34px 18px 72px; }
-    .hero, .grid { display: grid; gap: 22px; }
-    .hero { grid-template-columns: 1.08fr 0.92fr; margin-bottom: 22px; }
-    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .card { background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 24px; backdrop-filter: blur(8px); }
-    .eyebrow { text-transform: uppercase; letter-spacing: 0.24em; font-size: 12px; color: var(--accent); }
-    h1 { margin: 10px 0 14px; font-size: clamp(2.3rem, 4vw, 4rem); line-height: 0.95; }
-    h2 { margin: 0 0 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.05rem; }
-    p, li { color: var(--muted); line-height: 1.7; }
-    ul, ol { margin: 0; padding-left: 20px; }
-    .metrics { display: grid; gap: 12px; }
-    .metric { background: var(--panel-2); border: 1px solid var(--line); padding: 12px 14px; }
-    .wide { grid-column: 1 / -1; }
-    .gridmap {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .gridmap span {
-      text-align: center;
-      padding: 13px 10px;
+    button { font: inherit; }
+    button {
       border: 1px solid var(--line);
-      background: rgba(106, 240, 255, 0.08);
+      padding: .68rem .78rem;
+      color: var(--ink);
+      background: var(--panel);
+      cursor: pointer;
     }
-    pre {
-      margin: 0;
-      padding: 18px;
-      overflow-x: auto;
-      background: #031017;
-      border: 1px solid rgba(106, 240, 255, 0.14);
-      color: #dffaff;
-      line-height: 1.55;
-      font-size: 0.92rem;
+    button:hover, button[aria-pressed="true"] { border-color: var(--accent); background: #17283a; }
+    button.primary { color: #0d131b; border-color: var(--accent); background: var(--accent); font-weight: 800; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    :focus-visible { outline: 3px solid var(--accent-2); outline-offset: 3px; }
+    .shell { width: min(1240px, calc(100% - 32px)); margin: 0 auto; }
+    .hero { padding: clamp(2rem, 6vw, 5rem) 0 1.4rem; border-bottom: 1px solid var(--line); }
+    .eyebrow, .chip, .metric span, .control-label, .code-tabs button, .step-counter, .mini-label {
+      font: .73rem var(--mono);
+      letter-spacing: .12em;
+      text-transform: uppercase;
     }
-    @media (max-width: 900px) {
-      .hero, .grid { grid-template-columns: 1fr; }
+    .eyebrow { color: var(--accent); }
+    h1 { max-width: 940px; margin: .35rem 0 1rem; font: clamp(2.8rem, 7vw, 6.2rem)/.92 var(--serif); letter-spacing: -.055em; }
+    .lead { max-width: 860px; color: var(--muted); font-size: 1.1rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.2rem 0; }
+    .chip { border: 1px solid var(--line); padding: .28rem .48rem; color: var(--accent); background: rgba(139,211,255,.08); }
+    .lab { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(320px, .82fr); gap: 1rem; padding: 1.2rem 0 2rem; }
+    .panel { border: 1px solid var(--line); background: linear-gradient(145deg, rgba(255,255,255,.035), transparent), rgba(25,29,41,.96); box-shadow: var(--shadow); }
+    .panel-header { display: flex; justify-content: space-between; gap: 1rem; align-items: center; border-bottom: 1px solid var(--line); padding: 1rem; }
+    .panel-header h2, .panel h3 { margin: 0; font-family: var(--serif); }
+    .panel-body { padding: 1rem; }
+    .control-row { display: flex; flex-wrap: wrap; gap: .5rem; margin: .8rem 0 0; }
+    .control-label { display: block; color: var(--muted); margin-bottom: .35rem; }
+    .progress { height: .7rem; border: 1px solid var(--line); background: #0a0d13; overflow: hidden; margin: .8rem 0 1rem; }
+    .progress > div { width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3)); transition: width .2s ease; }
+    #visualizer { min-height: 440px; border: 1px solid var(--line); background: radial-gradient(circle at 25% 18%, rgba(139,211,255,.08), transparent 16rem), #0b0f17; overflow: auto; padding: 1rem; }
+    .viz-title { display:flex; justify-content:space-between; gap:1rem; color:var(--muted); margin-bottom:1rem; }
+    .graph-board, .grid-board, .uf-board, .mst-board { display:grid; gap:.75rem; }
+    .graph-canvas { position: relative; min-height: 250px; border: 1px solid #344158; background: rgba(255,255,255,.025); overflow:hidden; }
+    .vnode { position:absolute; width:3.2rem; height:3.2rem; border:2px solid #66758f; border-radius:50%; display:grid; place-items:center; background:#172131; color:var(--ink); font:1rem var(--mono); box-shadow:0 14px 28px rgba(0,0,0,.28); }
+    .vnode.current { border-color:var(--accent-2); box-shadow:0 0 0 5px rgba(242,198,109,.16); }
+    .vnode.done { border-color:var(--accent-3); }
+    .vnode.target { border-color:var(--danger); }
+    .edge-list, .state-row, .queue-row, .parents-row { display:flex; flex-wrap:wrap; gap:.45rem; }
+    .pill { border:1px solid var(--line); padding:.42rem .55rem; background:rgba(255,255,255,.035); font:.86rem var(--mono); color:var(--muted); }
+    .pill.hot { color:#111827; background:var(--accent-2); border-color:var(--accent-2); }
+    .pill.good { color:#102017; background:var(--accent-3); border-color:var(--accent-3); }
+    .cell-grid { display:grid; gap:.35rem; width:max-content; }
+    .cell { width:4rem; height:4rem; border:2px solid #52617a; display:grid; place-items:center; background:#151d2a; font:1rem var(--mono); position:relative; }
+    .cell small { position:absolute; bottom:.2rem; right:.28rem; color:var(--muted); font:.62rem var(--mono); }
+    .cell.current { border-color:var(--accent-2); box-shadow:0 0 0 4px rgba(242,198,109,.16); }
+    .cell.done { border-color:var(--accent-3); }
+    .cell.target { border-color:var(--danger); }
+    .topo-track { display:flex; flex-wrap:wrap; gap:.55rem; align-items:center; min-height:4rem; }
+    .course { min-width:3.4rem; min-height:3.4rem; border:2px solid #63718d; display:grid; place-items:center; background:#151f2f; font:1rem var(--mono); }
+    .course.ready { border-color:var(--accent); }
+    .course.done { border-color:var(--accent-3); background:#14281f; }
+    .course.blocked { opacity:.55; }
+    .point-plane { position:relative; min-height:280px; border:1px solid #344158; background:rgba(255,255,255,.025); }
+    .point { position:absolute; width:3rem; height:3rem; margin:-1.5rem 0 0 -1.5rem; border:2px solid #66758f; border-radius:50%; display:grid; place-items:center; background:#172131; font:.9rem var(--mono); }
+    .point.in { border-color:var(--accent-3); }
+    .point.current { border-color:var(--accent-2); box-shadow:0 0 0 5px rgba(242,198,109,.16); }
+    .union-card { border:1px solid var(--line); padding:.75rem; background:rgba(255,255,255,.03); }
+    #step-explanation { min-height: 10rem; border-left: 4px solid var(--accent); padding: 1rem; background: rgba(139,211,255,.08); }
+    #step-explanation h3 { margin: 0 0 .45rem; font-size: 1.35rem; }
+    #step-explanation p { margin: 0; color: var(--muted); }
+    .warning { margin-top: .8rem; border-left: 4px solid var(--accent-2); padding: .75rem; color: #ffe1a3; background: rgba(242,198,109,.08); }
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: 1rem; }
+    .metric { border: 1px solid var(--line); padding: .85rem; background: rgba(255,255,255,.03); }
+    .metric span { color: var(--muted); }
+    .metric strong { display: block; margin-top: .25rem; font: 1.13rem var(--serif); color: var(--accent-3); }
+    .study-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding: 0 0 2rem; }
+    .study-card { border: 1px solid var(--line); padding: 1rem; background: rgba(25,29,41,.96); box-shadow: var(--shadow); }
+    .study-card h2 { margin: 0 0 .6rem; font-family: var(--serif); }
+    .study-card p, .study-card li { color: var(--muted); }
+    .study-card ul { padding-left: 1.2rem; }
+    .callout { border-left: 4px solid var(--accent-3); padding-left: .9rem; }
+    .code-panel { margin-bottom: 3rem; }
+    .code-tabs { display: flex; flex-wrap: wrap; gap: .4rem; padding: 1rem 1rem 0; }
+    .code-tabs button { padding: .55rem .7rem; }
+    pre { margin: 0; overflow: auto; padding: 1rem; background: #080b10; color: #f2f5ff; font: .88rem/1.55 var(--mono); }
+    pre[hidden] { display: none; }
+    code { font-family: var(--mono); color: #dce8ff; }
+    @media (max-width: 920px) { .lab, .study-grid { grid-template-columns: 1fr; } .metrics { grid-template-columns: 1fr; } }
+
+
+  /* Contain wide interactive content without widening the document. */
+  html, body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
+  .shell, .lab, .panel, .panel-body, #visualizer { min-width: 0; max-width: 100%; }
+  #visualizer { overflow-x: auto; overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+      scroll-behavior: auto !important;
     }
-  </style>
+  }
+</style>
 </head>
 <body>
-  <main class="page">
-    <section class="hero">
-      <article class="card">
-        <div class="eyebrow">Flood Navigation</div>
-        <h1>Swim in Rising Water</h1>
-        <p>O tempo minimo equivale ao menor gargalo possivel no caminho. Em outras palavras, queremos o trajeto cujo maior nivel de agua exigido seja o menor entre todos.</p>
-        <div class="gridmap" aria-hidden="true">
-          <span>0</span>
-          <span>2</span>
-          <span>5</span>
-          <span>1</span>
-          <span>7</span>
-          <span>6</span>
-          <span>3</span>
-          <span>4</span>
-          <span>8</span>
+  <header class="hero">
+    <div class="shell">
+      <div class="eyebrow">13 Grafos · Dijkstra por tempo</div>
+      <h1>Swim in Rising Water</h1>
+      <p class="lead">O tempo mínimo é a menor elevação máxima necessária ao longo de algum caminho da origem ao destino.</p>
+      <div class="chips"><span class="chip">grid</span><span class="chip">gargalo</span><span class="chip">max(current, elevation)</span><span class="chip">menor tempo</span></div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="lab" aria-label="Laboratório interativo">
+      <article class="panel">
+        <div class="panel-header">
+          <h2>Visualização passo a passo</h2>
+          <span class="step-counter" id="step-counter">passo 1</span>
+        </div>
+        <div class="panel-body">
+          <div class="control-label">Controles da simulação</div>
+          <div class="control-row" aria-label="Controles">
+            <button type="button" data-action="prev">◀ Passo anterior</button>
+            <button type="button" class="primary" data-action="next">Próximo passo ▶</button>
+            <button type="button" data-action="run">Executar</button>
+            <button type="button" data-action="pause">Pausar</button>
+            <button type="button" data-action="reset">Reiniciar</button>
+          </div>
+          <div class="progress" aria-hidden="true"><div id="progress-bar"></div></div>
+          <div id="visualizer" aria-live="polite"></div>
         </div>
       </article>
-      <aside class="card metrics">
-        <div class="metric"><strong>Signal:</strong> minimize o maior nivel requerido</div>
-        <div class="metric"><strong>State:</strong> (time, row, col)</div>
-        <div class="metric"><strong>Relax:</strong> max(current, next cell)</div>
-        <div class="metric"><strong>Tempo:</strong> O(R * C * log(R * C))</div>
+
+      <aside class="panel">
+        <div class="panel-header"><h2>Raciocínio atual</h2></div>
+        <div class="panel-body">
+          <div id="step-explanation" aria-live="polite"></div>
+          <div class="warning"><strong>Foco da entrevista:</strong> O custo inicial já é grid[0][0], pois nem a origem é acessível antes desse tempo.</div>
+          <div class="metrics">
+            <div class="metric"><span>ingênua</span><strong>múltiplas buscas · O(valor·R·C)</strong></div>
+            <div class="metric"><span>otimizada</span><strong>O(R·C log(R·C)) tempo · O(R·C) espaço</strong></div>
+          </div>
+        </div>
       </aside>
     </section>
 
-    <section class="grid">
-      <article class="card">
-        <h2>Prompt</h2>
-        <p>Voce so entra em uma celula quando a agua ja subiu o bastante para cobrir sua elevacao. Descubra o menor tempo que torna possivel sair da origem e chegar ao destino.</p>
+    <section class="study-grid" aria-label="Explicações didáticas">
+      <article class="study-card" data-section="naive">
+        <h2>Solução ingênua</h2>
+        <p>Aumentar t e rodar BFS/DFS de conectividade repetidas vezes recalcula a grade do zero.</p>
       </article>
-      <article class="card">
-        <h2>Hints</h2>
-        <ol>
-          <li>O custo do caminho e o maximo das elevacoes visitadas.</li>
-          <li>O custo inicial ja e a elevacao da origem.</li>
-          <li>A melhor proxima celula e a que exige o menor tempo acumulado.</li>
-        </ol>
+      <article class="study-card" data-section="optimized">
+        <h2>Solução otimizada</h2>
+        <p>Use best[r][c] como menor tempo conhecido e nextTime = max(currentTime, grid[nr][nc]).</p>
       </article>
-      <article class="card">
-        <h2>Naive Path</h2>
-        <p>Subir o tempo aos poucos e repetir testes de conectividade recalcula demais a mesma grade para tempos diferentes.</p>
+      <article class="study-card" data-section="complexity">
+        <h2>Big O</h2>
+        <p>Cada célula entra na fronteira com custo de heap; espaço linear para best e heap.</p>
       </article>
-      <article class="card">
-        <h2>Optimized Path</h2>
-        <p>Use Dijkstra com custo minimax. Ao mover, o novo tempo necessario vira o maximo entre o tempo atual e a elevacao da proxima celula.</p>
-      </article>
-      <article class="card">
-        <h2>Interview Note</h2>
-        <p>Este problema e praticamente irmao de Path With Minimum Effort. A mudanca central esta apenas no significado do custo local.</p>
-      </article>
-      <article class="card wide">
-        <h2>Final Solution</h2>
-        <pre>import heapq
-
-
-def swimInWater(grid: list[list[int]]) -&gt; int:
-    n = len(grid)
-    inf = float("inf")
-    best = [[inf] * n for _ in range(n)]
-    best[0][0] = grid[0][0]
-    heap = [(grid[0][0], 0, 0)]
-    directions = ((1, 0), (-1, 0), (0, 1), (0, -1))
-
-    while heap:
-        current_time, row, col = heapq.heappop(heap)
-
-        if row == n - 1 and col == n - 1:
-            return current_time
-
-        if current_time &gt; best[row][col]:
-            continue
-
-        for delta_row, delta_col in directions:
-            next_row = row + delta_row
-            next_col = col + delta_col
-
-            if not (0 &lt;= next_row &lt; n and 0 &lt;= next_col &lt; n):
-                continue
-
-            next_time = max(current_time, grid[next_row][next_col])
-
-            if next_time &lt; best[next_row][next_col]:
-                best[next_row][next_col] = next_time
-                heapq.heappush(heap, (next_time, next_row, next_col))
-
-    return -1</pre>
+      <article class="study-card" data-section="interview">
+        <h2>Como falar em entrevista</h2>
+        <ul><li>Compare com Path With Minimum Effort.</li><li>Diga que a resposta é maior elevação no caminho, não soma.</li><li>Retorne quando o destino sai como menor estado válido.</li></ul>
       </article>
     </section>
+
+    <section class="panel code-panel" aria-label="Soluções em código">
+      <div class="panel-header"><h2>Código de referência</h2></div>
+      <div class="code-tabs" role="group" aria-label="Linguagens">
+        <button type="button" data-code-tab="javascript" aria-pressed="true">JavaScript</button>
+        <button type="button" data-code-tab="typescript" aria-pressed="false">TypeScript</button>
+      </div>
+      <pre data-language="javascript"><code>class MinHeap {
+  constructor(compare) {
+    this.items = [];
+    this.compare = compare;
+  }
+  get size() { return this.items.length; }
+  push(value) {
+    this.items.push(value);
+    let index = this.items.length - 1;
+    while (index &gt; 0) {
+      const parent = Math.floor((index - 1) / 2);
+      if (this.compare(this.items[parent], value) &lt;= 0) break;
+      this.items[index] = this.items[parent];
+      index = parent;
+    }
+    this.items[index] = value;
+  }
+  pop() {
+    if (this.items.length === 0) return undefined;
+    const root = this.items[0];
+    const last = this.items.pop();
+    if (this.items.length &gt; 0) {
+      let index = 0;
+      while (true) {
+        const left = index * 2 + 1;
+        const right = left + 1;
+        if (left &gt;= this.items.length) break;
+        let child = left;
+        if (right &lt; this.items.length &amp;&amp;
+            this.compare(this.items[right], this.items[left]) &lt; 0) child = right;
+        if (this.compare(last, this.items[child]) &lt;= 0) break;
+        this.items[index] = this.items[child];
+        index = child;
+      }
+      this.items[index] = last;
+    }
+    return root;
+  }
+}
+
+function swimInWater(grid) {
+  const n = grid.length;
+  const best = Array.from({ length: n }, () =&gt; Array(n).fill(Infinity));
+  best[0][0] = grid[0][0];
+  const heap = new MinHeap((a, b) =&gt; a[0] - b[0]);
+  heap.push([grid[0][0], 0, 0]);
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+
+  while (heap.size &gt; 0) {
+    const [time, row, col] = heap.pop();
+    if (time &gt; best[row][col]) continue;
+    if (row === n - 1 &amp;&amp; col === n - 1) return time;
+    for (const [dr, dc] of dirs) {
+      const nr = row + dr, nc = col + dc;
+      if (nr &lt; 0 || nr &gt;= n || nc &lt; 0 || nc &gt;= n) continue;
+      const nextTime = Math.max(time, grid[nr][nc]);
+      if (nextTime &lt; best[nr][nc]) {
+        best[nr][nc] = nextTime;
+        heap.push([nextTime, nr, nc]);
+      }
+    }
+  }
+  return -1;
+}</code></pre>
+      <pre data-language="typescript" hidden><code>class MinHeap&lt;T&gt; {
+  private readonly items: T[] = [];
+  constructor(private readonly compare: (a: T, b: T) =&gt; number) {}
+  get size(): number { return this.items.length; }
+  push(value: T): void {
+    this.items.push(value);
+    let index = this.items.length - 1;
+    while (index &gt; 0) {
+      const parent = Math.floor((index - 1) / 2);
+      if (this.compare(this.items[parent], value) &lt;= 0) break;
+      this.items[index] = this.items[parent];
+      index = parent;
+    }
+    this.items[index] = value;
+  }
+  pop(): T | undefined {
+    if (this.items.length === 0) return undefined;
+    const root = this.items[0];
+    const last = this.items.pop()!;
+    if (this.items.length &gt; 0) {
+      let index = 0;
+      while (true) {
+        const left = index * 2 + 1;
+        const right = left + 1;
+        if (left &gt;= this.items.length) break;
+        let child = left;
+        if (right &lt; this.items.length &amp;&amp;
+            this.compare(this.items[right], this.items[left]) &lt; 0) child = right;
+        if (this.compare(last, this.items[child]) &lt;= 0) break;
+        this.items[index] = this.items[child];
+        index = child;
+      }
+      this.items[index] = last;
+    }
+    return root;
+  }
+}
+
+type HeapEntry = [number, number, number];
+
+function swimInWater(grid: number[][]): number {
+  const n = grid.length;
+  const best: number[][] = Array.from({ length: n }, () =&gt; Array(n).fill(Infinity));
+  best[0][0] = grid[0][0];
+  const heap = new MinHeap&lt;HeapEntry&gt;((a, b) =&gt; a[0] - b[0]);
+  heap.push([grid[0][0], 0, 0]);
+  const dirs: Array&lt;[number, number]&gt; = [[1,0],[-1,0],[0,1],[0,-1]];
+
+  while (heap.size &gt; 0) {
+    const [time, row, col] = heap.pop()!;
+    if (time &gt; best[row][col]) continue;
+    if (row === n - 1 &amp;&amp; col === n - 1) return time;
+    for (const [dr, dc] of dirs) {
+      const nr = row + dr, nc = col + dc;
+      if (nr &lt; 0 || nr &gt;= n || nc &lt; 0 || nc &gt;= n) continue;
+      const nextTime = Math.max(time, grid[nr][nc]);
+      if (nextTime &lt; best[nr][nc]) {
+        best[nr][nc] = nextTime;
+        heap.push([nextTime, nr, nc]);
+      }
+    }
+  }
+  return -1;
+}</code></pre>
+    </section>
   </main>
+
+  <script>
+    const steps = [
+      {
+            "mode": "grid",
+            "label": "Esperar a origem",
+            "phase": "setup",
+            "grid": [
+                  [
+                        0,
+                        2,
+                        5
+                  ],
+                  [
+                        1,
+                        3,
+                        6
+                  ],
+                  [
+                        4,
+                        7,
+                        8
+                  ]
+            ],
+            "current": "0,0",
+            "target": "2,2",
+            "dist": [
+                  "0,0=0"
+            ],
+            "queue": [
+                  "(0,0,0)"
+            ],
+            "explain": "Como a origem tem elevação 0, podemos começar no tempo 0."
+      },
+      {
+            "mode": "grid",
+            "label": "Expandir células liberadas cedo",
+            "phase": "relax",
+            "grid": [
+                  [
+                        0,
+                        2,
+                        5
+                  ],
+                  [
+                        1,
+                        3,
+                        6
+                  ],
+                  [
+                        4,
+                        7,
+                        8
+                  ]
+            ],
+            "done": [
+                  "0,0"
+            ],
+            "current": "0,0",
+            "target": "2,2",
+            "labels": {
+                  "1,0": "1",
+                  "0,1": "2"
+            },
+            "dist": [
+                  "1,0=1",
+                  "0,1=2"
+            ],
+            "queue": [
+                  "(1,1,0)",
+                  "(2,0,1)"
+            ],
+            "explain": "Entrar em uma célula exige esperar até sua elevação. O novo custo é max(tempo atual, elevação do vizinho)."
+      },
+      {
+            "mode": "grid",
+            "label": "A fronteira escolhe menor tempo",
+            "phase": "heap",
+            "grid": [
+                  [
+                        0,
+                        2,
+                        5
+                  ],
+                  [
+                        1,
+                        3,
+                        6
+                  ],
+                  [
+                        4,
+                        7,
+                        8
+                  ]
+            ],
+            "done": [
+                  "0,0",
+                  "1,0",
+                  "0,1",
+                  "1,1"
+            ],
+            "current": "1,1",
+            "target": "2,2",
+            "labels": {
+                  "2,0": "4",
+                  "1,2": "6"
+            },
+            "dist": [
+                  "2,0=4",
+                  "1,2=6"
+            ],
+            "queue": [
+                  "(4,2,0)",
+                  "(5,0,2)",
+                  "(6,1,2)"
+            ],
+            "explain": "A heap processa primeiro o caminho que exige menor nível de água até agora."
+      },
+      {
+            "mode": "grid",
+            "label": "Destino no menor tempo",
+            "phase": "resultado",
+            "grid": [
+                  [
+                        0,
+                        2,
+                        5
+                  ],
+                  [
+                        1,
+                        3,
+                        6
+                  ],
+                  [
+                        4,
+                        7,
+                        8
+                  ]
+            ],
+            "done": [
+                  "0,0",
+                  "1,0",
+                  "0,1",
+                  "1,1",
+                  "2,0",
+                  "0,2",
+                  "1,2",
+                  "2,1",
+                  "2,2"
+            ],
+            "current": "2,2",
+            "target": "2,2",
+            "labels": {
+                  "2,2": "8"
+            },
+            "dist": [
+                  "destino=8"
+            ],
+            "queue": [
+                  "(8,2,2)"
+            ],
+            "explain": "Quando o destino sai da heap, 8 é o menor tempo capaz de conectar origem e destino."
+      }
+];
+
+    const visualizer = document.getElementById("visualizer");
+    const explanation = document.getElementById("step-explanation");
+    const counter = document.getElementById("step-counter");
+    const progress = document.getElementById("progress-bar");
+    let index = 0;
+    let timer = null;
+
+    function esc(value) {
+      return String(value).replace(/[&<>"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
+    }
+
+    function pillList(items = [], hot = []) {
+      const hotSet = new Set(hot.map(String));
+      return items.map(item => `<span class="pill ${hotSet.has(String(item)) ? "hot" : ""}">${esc(item)}</span>`).join("") || '<span class="pill">vazio</span>';
+    }
+
+    function renderGraph(step) {
+      const nodes = step.nodes || [];
+      const positions = step.positions || {};
+      const done = new Set((step.done || []).map(String));
+      const current = String(step.current ?? "");
+      const target = String(step.target ?? "");
+      const nodeHtml = nodes.map(node => {
+        const key = String(node);
+        const pos = positions[key] || [50, 50];
+        const cls = ["vnode", done.has(key) ? "done" : "", key === current ? "current" : "", key === target ? "target" : ""].join(" ");
+        return `<div class="${cls}" style="left:${pos[0]}%;top:${pos[1]}%">${esc(node)}</div>`;
+      }).join("");
+      return `<div class="graph-board">
+        <div class="graph-canvas">${nodeHtml}</div>
+        <div><div class="mini-label">arestas observadas</div><div class="edge-list">${pillList(step.edges || [], step.hotEdges || [])}</div></div>
+        <div><div class="mini-label">distâncias / custos</div><div class="state-row">${pillList(step.dist || [], step.hotDist || [])}</div></div>
+        <div><div class="mini-label">heap / fila</div><div class="queue-row">${pillList(step.queue || [], step.hotQueue || [])}</div></div>
+      </div>`;
+    }
+
+    function renderGrid(step) {
+      const grid = step.grid || [];
+      const done = new Set((step.done || []).map(String));
+      const current = String(step.current ?? "");
+      const target = String(step.target ?? "");
+      const cols = grid[0] ? grid[0].length : 0;
+      const cells = [];
+      for (let r = 0; r < grid.length; r += 1) {
+        for (let c = 0; c < grid[r].length; c += 1) {
+          const key = `${r},${c}`;
+          const cls = ["cell", done.has(key) ? "done" : "", key === current ? "current" : "", key === target ? "target" : ""].join(" ");
+          const label = step.labels && step.labels[key] ? `<small>${esc(step.labels[key])}</small>` : "";
+          cells.push(`<div class="${cls}">${esc(grid[r][c])}${label}</div>`);
+        }
+      }
+      return `<div class="grid-board">
+        <div class="cell-grid" style="grid-template-columns:repeat(${cols}, 4rem)">${cells.join("")}</div>
+        <div><div class="mini-label">fronteira</div><div class="queue-row">${pillList(step.queue || [], step.hotQueue || [])}</div></div>
+        <div><div class="mini-label">melhores custos</div><div class="state-row">${pillList(step.dist || [], step.hotDist || [])}</div></div>
+      </div>`;
+    }
+
+    function renderTopo(step) {
+      const done = new Set((step.done || []).map(String));
+      const ready = new Set((step.ready || []).map(String));
+      const nodes = step.nodes || [];
+      const courses = nodes.map(node => {
+        const key = String(node);
+        const cls = ["course", done.has(key) ? "done" : "", ready.has(key) ? "ready" : "", !done.has(key) && !ready.has(key) ? "blocked" : ""].join(" ");
+        return `<div class="${cls}">${esc(node)}</div>`;
+      }).join("");
+      return `<div class="graph-board">
+        <div><div class="mini-label">nós / letras</div><div class="topo-track">${courses}</div></div>
+        <div><div class="mini-label">arestas</div><div class="edge-list">${pillList(step.edges || [], step.hotEdges || [])}</div></div>
+        <div><div class="mini-label">indegree</div><div class="state-row">${pillList(step.indegree || [], step.hotIndegree || [])}</div></div>
+        <div><div class="mini-label">fila / camada atual</div><div class="queue-row">${pillList(step.queue || [], step.hotQueue || [])}</div></div>
+        <div><div class="mini-label">resultado parcial</div><div class="parents-row">${pillList(step.order || [])}</div></div>
+      </div>`;
+    }
+
+    function renderUnion(step) {
+      return `<div class="uf-board">
+        <div><div class="mini-label">arestas processadas</div><div class="edge-list">${pillList(step.edges || [], step.hotEdges || [])}</div></div>
+        <div><div class="mini-label">parent</div><div class="parents-row">${pillList(step.parent || [], step.hotParent || [])}</div></div>
+        <div><div class="mini-label">rank / custo</div><div class="state-row">${pillList(step.rank || [], step.hotRank || [])}</div></div>
+        <div class="union-card"><strong>${esc(step.verdict || "")}</strong></div>
+      </div>`;
+    }
+
+    function renderMst(step) {
+      const inSet = new Set((step.inMst || []).map(String));
+      const current = String(step.current ?? "");
+      const points = step.points || [];
+      const pointHtml = points.map((point, i) => {
+        const cls = ["point", inSet.has(String(i)) ? "in" : "", String(i) === current ? "current" : ""].join(" ");
+        return `<div class="${cls}" style="left:${point[0]}%;top:${point[1]}%">${i}</div>`;
+      }).join("");
+      return `<div class="mst-board">
+        <div class="point-plane">${pointHtml}</div>
+        <div><div class="mini-label">melhor conexão por ponto</div><div class="state-row">${pillList(step.minDist || [], step.hotDist || [])}</div></div>
+        <div><div class="mini-label">MST parcial</div><div class="edge-list">${pillList(step.edges || [], step.hotEdges || [])}</div></div>
+        <div><div class="mini-label">custo acumulado</div><div class="queue-row">${pillList([step.total || 0], [step.total || 0])}</div></div>
+      </div>`;
+    }
+
+    function renderStep() {
+      const step = steps[index];
+      const renderer = step.mode === "grid" ? renderGrid : step.mode === "topo" ? renderTopo : step.mode === "union" ? renderUnion : step.mode === "mst" ? renderMst : renderGraph;
+      visualizer.innerHTML = `<div class="viz-title"><strong>${esc(step.label)}</strong><span>${esc(step.phase || "")}</span></div>${renderer(step)}`;
+      explanation.innerHTML = `<h3>${esc(step.label)}</h3><p>${esc(step.explain)}</p>`;
+      counter.textContent = `passo ${index + 1} de ${steps.length}`;
+      progress.style.width = `${((index + 1) / steps.length) * 100}%`;
+      document.querySelector('[data-action="prev"]').disabled = index === 0;
+      document.querySelector('[data-action="next"]').disabled = index === steps.length - 1;
+    }
+
+    function pause() {
+      if (timer !== null) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    document.querySelectorAll("[data-action]").forEach(button => {
+      button.addEventListener("click", () => {
+        const action = button.dataset.action;
+        if (action === "prev") { pause(); index = Math.max(0, index - 1); renderStep(); }
+        if (action === "next") { pause(); index = Math.min(steps.length - 1, index + 1); renderStep(); }
+        if (action === "reset") { pause(); index = 0; renderStep(); }
+        if (action === "pause") { pause(); }
+        if (action === "run") {
+          pause();
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) { pause(); return; }
+            index += 1;
+            renderStep();
+          }, 1300);
+        }
+      });
+    });
+
+    document.querySelectorAll("[data-code-tab]").forEach(button => {
+      button.addEventListener("click", () => {
+        const language = button.dataset.codeTab;
+        document.querySelectorAll("[data-code-tab]").forEach(tab => tab.setAttribute("aria-pressed", String(tab === button)));
+        document.querySelectorAll("pre[data-language]").forEach(pre => { pre.hidden = pre.dataset.language !== language; });
+      });
+    });
+
+    renderStep();
+
+  </script>
 </body>
 </html>

@@ -1,212 +1,315 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Maximum Depth of Binary Tree - Interview Prep</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Laboratório interativo para entender Maximum Depth of Binary Tree passo a passo em JavaScript e TypeScript.">
+  <title>Maximum Depth of Binary Tree — Laboratório Interativo</title>
   <style>
+
     :root {
-      --paper: #f6f0e4;
-      --paper-2: #fffaf0;
-      --ink: #2f241b;
-      --muted: #6d5c4e;
-      --accent: #a8572a;
-      --accent-soft: #f2d6bf;
-      --line: #d9c8b3;
-      --shadow: rgba(61, 42, 27, 0.14);
+      color-scheme: dark;
+      --bg: #10131a;
+      --panel: #171c26;
+      --panel-2: #202736;
+      --ink: #eef3ff;
+      --muted: #aeb8cb;
+      --line: #3f4b62;
+      --accent: #8dbbff;
+      --accent-2: #f0c36a;
+      --good: #88d9bd;
+      --hot: #ef806f;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .34);
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --serif: Georgia, Cambria, "Times New Roman", serif;
+      --sans: "Trebuchet MS", "Gill Sans", sans-serif;
     }
-
     * { box-sizing: border-box; }
-
+    html { scroll-behavior: smooth; background: var(--bg); }
     body {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      color: var(--ink);
+      margin: 0; min-width: 320px; color: var(--ink);
       background:
-        radial-gradient(circle at top left, rgba(168, 87, 42, 0.14), transparent 22%),
-        linear-gradient(180deg, #ede1ce 0%, #f9f4eb 45%, #efe6d8 100%);
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+        radial-gradient(circle at 82% 8%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 28rem),
+        radial-gradient(circle at 12% 32%, color-mix(in srgb, var(--good) 12%, transparent), transparent 30rem),
+        var(--bg);
+      background-size: 36px 36px, 36px 36px, auto, auto, auto;
+      font-family: var(--sans); line-height: 1.6;
     }
+    button { font: inherit; }
+    button { border: 1px solid var(--line); padding: .68rem .78rem; color: var(--ink); background: var(--panel); cursor: pointer; }
+    button:hover, button[aria-pressed="true"] { border-color: var(--accent); background: var(--panel-2); }
+    button.primary { color: #0f131a; border-color: var(--accent); background: var(--accent); font-weight: 800; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    :focus-visible { outline: 3px solid var(--accent-2); outline-offset: 3px; }
+    .shell { width: min(1240px, calc(100% - 32px)); margin: 0 auto; }
+    .hero { padding: clamp(2rem, 6vw, 5rem) 0 1.4rem; border-bottom: 1px solid var(--line); }
+    .eyebrow, .chip, .metric span, .control-label, .code-tabs button, .step-counter, .lane-title { font: .73rem var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .eyebrow { color: var(--accent); }
+    h1 { max-width: 960px; margin: .35rem 0 1rem; font: clamp(3rem, 8vw, 6.2rem)/.9 var(--serif); letter-spacing: -.065em; }
+    .lead { max-width: 860px; color: var(--muted); font-size: 1.1rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.2rem 0; }
+    .chip { border: 1px solid var(--line); padding: .28rem .48rem; color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+    .lab { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); gap: 1rem; padding: 1.2rem 0 2rem; }
+    .panel { border: 1px solid var(--line); background: linear-gradient(145deg, rgba(255,255,255,.035), transparent), color-mix(in srgb, var(--panel) 96%, black); box-shadow: var(--shadow); }
+    .panel-header { display: flex; justify-content: space-between; gap: 1rem; align-items: center; border-bottom: 1px solid var(--line); padding: 1rem; }
+    .panel-header h2, .panel h3 { margin: 0; font-family: var(--serif); }
+    .panel-body { padding: 1rem; }
+    .control-row { display: flex; flex-wrap: wrap; gap: .5rem; margin: .8rem 0 0; }
+    .control-label { display: block; color: var(--muted); margin-bottom: .35rem; }
+    .progress { height: .7rem; border: 1px solid var(--line); background: #0a0c12; overflow: hidden; margin: .8rem 0; }
+    .progress > div { width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), var(--good), var(--accent-2)); transition: width .2s ease; }
+    #visualizer { min-height: 430px; border: 1px solid var(--line); background: radial-gradient(circle at 70% 25%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 16rem), #0b0f17; overflow: auto; padding: 1rem; }
+    .lane { margin: 0 0 1rem; padding: .85rem; border: 1px solid color-mix(in srgb, var(--line) 76%, white); background: rgba(255,255,255,.025); }
+    .lane-title { display: flex; justify-content: space-between; gap: .8rem; color: var(--muted); margin-bottom: .75rem; }
+    .token-row { display: flex; align-items: center; gap: .45rem; min-height: 4.2rem; flex-wrap: wrap; }
+    .token { min-width: 3.4rem; border: 2px solid #657493; background: #172131; box-shadow: 0 12px 26px rgba(0,0,0,.22); padding: .55rem .7rem; text-align: center; font: 1.02rem var(--mono); }
+    .token.hot { border-color: var(--hot); box-shadow: 0 0 0 4px color-mix(in srgb, var(--hot) 18%, transparent); }
+    .token.good { border-color: var(--good); }
+    .token.accent { border-color: var(--accent); }
+    .token.muted { color: var(--muted); border-style: dashed; }
+    .arrow { color: var(--accent-2); font: 1.3rem var(--mono); }
+    .snapshot { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin-top: .8rem; }
+    .snapshot div { border: 1px solid var(--line); padding: .75rem; background: rgba(255,255,255,.03); }
+    .snapshot strong { display: block; font: .78rem var(--mono); color: var(--accent); text-transform: uppercase; }
+    .snapshot span { color: var(--ink); font-size: 1.02rem; }
+    #step-explanation { min-height: 10rem; border-left: 4px solid var(--accent); padding: 1rem; background: color-mix(in srgb, var(--accent) 8%, transparent); }
+    #step-explanation h3 { margin: 0 0 .45rem; font-size: 1.35rem; }
+    #step-explanation p { margin: 0; color: var(--muted); }
+    .warning { margin-top: .8rem; border-left: 4px solid var(--accent-2); padding: .75rem; color: #ffe2a7; background: color-mix(in srgb, var(--accent-2) 8%, transparent); }
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: 1rem; }
+    .metric { border: 1px solid var(--line); padding: .85rem; background: rgba(255,255,255,.03); }
+    .metric span { color: var(--muted); }
+    .metric strong { display: block; margin-top: .25rem; font: 1.12rem var(--serif); color: var(--good); }
+    .study-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding: 0 0 2rem; }
+    .study-card { border: 1px solid var(--line); padding: 1rem; background: color-mix(in srgb, var(--panel) 96%, black); box-shadow: var(--shadow); }
+    .study-card h2 { margin: 0 0 .6rem; font-family: var(--serif); }
+    .study-card p, .study-card li { color: var(--muted); }
+    .study-card ul, .study-card ol { padding-left: 1.2rem; }
+    .callout { border-left: 4px solid var(--good); padding-left: .9rem; }
+    .code-panel { margin-bottom: 3rem; }
+    .code-tabs { display: flex; flex-wrap: wrap; gap: .4rem; padding: 1rem 1rem 0; }
+    .code-tabs button { padding: .55rem .7rem; }
+    pre { margin: 0; overflow: auto; padding: 1rem; background: #0a0c12; color: #eef3ff; font: .88rem/1.55 var(--mono); }
+    pre[hidden] { display: none; }
+    code { font-family: var(--mono); color: #dce8ff; }
+    @media (max-width: 920px) { .lab, .study-grid { grid-template-columns: 1fr; } .snapshot, .metrics { grid-template-columns: 1fr; } }
 
-    .page {
-      width: min(1120px, calc(100% - 28px));
-      margin: 24px auto 40px;
-      display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 18px;
-    }
-
-    .card {
-      background: linear-gradient(180deg, var(--paper-2), var(--paper));
-      border: 1px solid var(--line);
-      box-shadow: 0 18px 40px var(--shadow);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero {
-      padding: 30px;
-    }
-
-    .hero::before {
-      content: "tree notebook";
-      position: absolute;
-      right: -18px;
-      top: 26px;
-      transform: rotate(90deg);
-      letter-spacing: 0.26em;
-      text-transform: uppercase;
-      color: rgba(168, 87, 42, 0.26);
-      font-size: 0.72rem;
-    }
-
-    .eyebrow {
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      color: var(--accent);
-      font-size: 0.78rem;
-    }
-
-    h1 {
-      margin: 10px 0 14px;
-      font-size: clamp(2.3rem, 4.7vw, 4.4rem);
-      line-height: 0.92;
-    }
-
-    h2 {
-      margin: 0 0 10px;
-      color: var(--accent);
-      font-size: 1.05rem;
-    }
-
-    p, li {
-      line-height: 1.72;
-      color: var(--muted);
-    }
-
-    .note {
-      padding: 14px 16px;
-      background: rgba(255, 250, 240, 0.72);
-      border-left: 4px solid var(--accent);
-      margin: 18px 0;
-    }
-
-    .tree {
-      margin-top: 22px;
-      padding: 18px;
-      border: 1px dashed var(--line);
-      background: rgba(255, 255, 255, 0.38);
-    }
-
-    .tree pre {
-      margin: 0;
-      font-family: "Courier New", monospace;
-      font-size: 0.96rem;
-      color: var(--ink);
-      line-height: 1.45;
-    }
-
-    .stack {
-      display: grid;
-      gap: 16px;
-      padding: 24px;
-    }
-
-    .panel {
-      padding: 16px;
-      background: rgba(255, 255, 255, 0.54);
-      border: 1px solid var(--line);
-    }
-
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .metric {
-      border: 1px solid var(--line);
-      background: var(--accent-soft);
-      padding: 12px;
-      min-height: 76px;
-    }
-
-    pre.code {
-      margin: 0;
-      padding: 16px;
-      border-radius: 12px;
-      background: #2c221c;
-      color: #f7efe3;
-      overflow-x: auto;
-      font-size: 0.92rem;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 860px) {
-      .page {
-        grid-template-columns: 1fr;
-      }
+  </style>
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .progress > div { transition: none; }
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <section class="card hero">
-      <div class="eyebrow">Guia sintetizado de entrevista</div>
-      <h1>Maximum Depth<br />of Binary Tree</h1>
-      <div class="note">
-        A pergunta real e: como transformar a altura da arvore em uma funcao que cada no consegue responder a partir de suas duas subarvores?
-      </div>
-      <h2>Hints do entrevistador</h2>
-      <ul>
-        <li>Qual e o retorno certo quando o no e nulo?</li>
-        <li>O no atual precisa do que vem da esquerda e da direita.</li>
-        <li>Se a resposta depende do ramo mais profundo, o `max` ja esta sugerido.</li>
-      </ul>
-      <div class="tree">
-        <pre>        3
-      /   \
-     9    20
-         /  \
-        15   7
+  <header class="hero">
+    <div class="shell">
+      <div class="eyebrow">08 Árvores · laboratório interativo</div>
+      <h1>Maximum Depth of Binary Tree</h1>
+      <p class="lead">Profundidade máxima pode ser calculada com DFS iterativa: cada item da pilha carrega um nó e sua profundidade.</p>
+      <div class="chips"><span class="chip">DFS iterativa</span><span class="chip">pilha explícita</span><span class="chip">altura</span></div>
+    </div>
+  </header>
 
-Profundidade maxima = 3 nos</pre>
-      </div>
-    </section>
-
-    <section class="card stack">
-      <div class="panel">
-        <h2>Caminho ingenuo</h2>
-        <p>Fazer level order com fila e contar quantos niveis existem. Funciona, mas nao explora a simetria recursiva da estrutura tanto quanto a DFS.</p>
-      </div>
-
-      <div class="panel">
-        <h2>Caminho otimizado</h2>
-        <p>Para cada no, calcule a profundidade da esquerda, calcule a profundidade da direita e retorne `1 + max(...)`.</p>
-      </div>
-
-      <div class="panel">
-        <h2>Complexidade</h2>
-        <div class="metrics">
-          <div class="metric">Tempo BFS ingenua: O(n)</div>
-          <div class="metric">Espaco BFS ingenua: O(n)</div>
-          <div class="metric">Tempo DFS otimizada: O(n)</div>
-          <div class="metric">Espaco DFS otimizada: O(h)</div>
+  <main class="shell">
+    <section class="lab" aria-label="Laboratório interativo">
+      <article class="panel">
+        <div class="panel-header">
+          <h2>Visualização passo a passo</h2>
+          <span class="step-counter" id="step-counter">passo 1</span>
         </div>
-        <p>O tempo continua linear porque todos os nos precisam ser observados. O ponto fino esta no espaco: a pilha recursiva cresce com a altura da arvore, nao com todos os nos ao mesmo tempo.</p>
-      </div>
+        <div class="panel-body">
+          <div class="control-label">Controles da simulação</div>
+          <div class="control-row" aria-label="Controles">
+            <button type="button" data-action="prev">◀ Passo anterior</button>
+            <button type="button" class="primary" data-action="next">Próximo passo ▶</button>
+            <button type="button" data-action="run">Executar</button>
+            <button type="button" data-action="pause">Pausar</button>
+            <button type="button" data-action="reset">Reiniciar</button>
+          </div>
+          <div class="progress" aria-hidden="true"><div id="progress-bar"></div></div>
+          <div id="visualizer" aria-live="polite"></div>
+        </div>
+      </article>
 
-      <div class="panel">
-        <h2>Solucao final</h2>
-        <pre class="code">def max_depth(root):
-    if root is None:
-        return 0
-
-    profundidade_esquerda = max_depth(root.left)
-    profundidade_direita = max_depth(root.right)
-
-    return 1 + max(profundidade_esquerda, profundidade_direita)</pre>
-      </div>
+      <aside class="panel">
+        <div class="panel-header"><h2>Raciocínio atual</h2></div>
+        <div class="panel-body">
+          <div id="step-explanation" aria-live="polite"></div>
+          <div class="warning"><strong>Foco de entrevista:</strong> O caso base <code>null → 0</code> evita off-by-one e deixa folha retornar 1.</div>
+          <div class="metrics">
+            <div class="metric"><span>ingênua</span><strong>O(n) tempo · O(n) espaço</strong></div>
+            <div class="metric"><span>otimizada</span><strong>O(n) tempo · O(h) espaço</strong></div>
+          </div>
+        </div>
+      </aside>
     </section>
-  </div>
+
+    <section class="study-grid" aria-label="Explicações didáticas">
+      <article class="study-card" data-section="naive">
+        <h2>Solução ingênua</h2>
+        <p>Faça BFS por níveis com fila e conte quantas camadas existem. É claro, mas pode guardar um nível inteiro.</p>
+        <ul><li>Cada nó entra e sai da fila uma vez.</li><li>A fila pode conter <code>O(n)</code> nós em árvore larga.</li></ul>
+      </article>
+
+      <article class="study-card" data-section="optimized">
+        <h2>Solução otimizada</h2>
+        <p>Use DFS iterativa e empilhe cada filho com a profundidade do pai mais 1.</p>
+        <p class="callout"><strong>Invariante:</strong> cada par na pilha contém a profundidade correta do nó recebido.</p>
+      </article>
+
+      <article class="study-card" data-section="complexity">
+        <h2>Big O</h2>
+        <p>Tempo <code>O(n)</code> porque todos os nós são visitados; espaço <code>O(h)</code> pela pilha explícita, onde <code>h</code> é a altura.</p>
+      </article>
+
+      <article class="study-card" data-section="interview">
+        <h2>Como falar em entrevista</h2>
+        <ul><li>Defina se profundidade conta nós ou arestas; aqui conta nós.</li><li>Explique por que folha retorna 1.</li><li>Compare BFS e DFS sem fingir que uma visita menos nós.</li></ul>
+      </article>
+    </section>
+
+    <section class="panel code-panel" aria-label="Soluções em código">
+      <div class="panel-header"><h2>Código de referência</h2></div>
+      <div class="code-tabs" role="group" aria-label="Linguagens">
+        <button type="button" data-code-tab="javascript" aria-pressed="true">JavaScript</button>
+        <button type="button" data-code-tab="typescript" aria-pressed="false">TypeScript</button>
+      </div>
+      <pre data-language="javascript"><code>function maxDepth(root) {
+  if (root === null) return 0;
+  let deepest = 0;
+  const stack = [[root, 1]];
+  while (stack.length) {
+    const [node, depth] = stack.pop();
+    deepest = Math.max(deepest, depth);
+    if (node.left !== null) stack.push([node.left, depth + 1]);
+    if (node.right !== null) stack.push([node.right, depth + 1]);
+  }
+  return deepest;
+}</code></pre>
+      <pre data-language="typescript" hidden><code>type TreeNode = { val: number; left: TreeNode | null; right: TreeNode | null };
+
+function maxDepth(root: TreeNode | null): number {
+  if (root === null) return 0;
+  let deepest = 0;
+  const stack: Array&lt;[TreeNode, number]&gt; = [[root, 1]];
+  while (stack.length) {
+    const [node, depth] = stack.pop()!;
+    deepest = Math.max(deepest, depth);
+    if (node.left !== null) stack.push([node.left, depth + 1]);
+    if (node.right !== null) stack.push([node.right, depth + 1]);
+  }
+  return deepest;
+}</code></pre>
+    </section>
+  </main>
+
+  <script>
+
+    (() => {
+      "use strict";
+
+      const steps = [{'title': 'Começar na raiz', 'explanation': 'A raiz 3 precisa saber a maior profundidade entre esquerda e direita.', 'lanes': [{'title': 'árvore', 'note': 'níveis', 'items': [{'value': '3', 'state': 'hot'}, '9', '20', '15', '7']}], 'facts': [{'label': 'função', 'value': 'maxDepth(3)'}, {'label': 'caso base', 'value': 'null → 0'}, {'label': 'meta', 'value': '1 + max'}]}, {'title': 'Subárvore esquerda', 'explanation': 'O nó 9 é folha. Seus filhos nulos retornam 0, então ele retorna 1.', 'lanes': [{'title': 'chamada', 'note': 'left', 'items': [{'value': '9', 'state': 'good'}]}, {'title': 'filhos', 'note': 'nulos', 'items': ['null', 'null']}], 'facts': [{'label': 'left depth', 'value': '1'}, {'label': 'retorno', 'value': '1 + max(0,0)'}, {'label': 'folha', 'value': 'sim'}]}, {'title': 'Subárvore direita', 'explanation': 'O nó 20 tem duas folhas, 15 e 7. Cada folha retorna 1, então 20 retorna 2.', 'lanes': [{'title': 'chamada', 'note': 'right', 'items': [{'value': '20', 'state': 'hot'}]}, {'title': 'filhos', 'note': 'folhas', 'items': [{'value': '15', 'state': 'good'}, {'value': '7', 'state': 'good'}]}], 'facts': [{'label': 'right depth', 'value': '2'}, {'label': 'retorno', 'value': '1 + max(1,1)'}, {'label': 'nó', 'value': '20'}]}, {'title': 'Combinar na raiz', 'explanation': 'A raiz recebe esquerda = 1 e direita = 2. A resposta é 1 + max(1, 2) = 3.', 'lanes': [{'title': 'resultados', 'note': 'subárvores', 'items': ['left:1', {'value': 'right:2', 'state': 'good'}]}, {'title': 'resposta', 'note': 'profundidade', 'items': [{'value': '3', 'state': 'good'}]}], 'facts': [{'label': 'max', 'value': '2'}, {'label': 'somar raiz', 'value': '+1'}, {'label': 'retorno', 'value': '3'}]}];
+      let index = 0;
+      let timer = null;
+
+      const visualizer = document.getElementById("visualizer");
+      const explanation = document.getElementById("step-explanation");
+      const counter = document.getElementById("step-counter");
+      const progress = document.getElementById("progress-bar");
+      const controls = document.querySelectorAll("[data-action]");
+
+      function tokenMarkup(item) {
+        const value = typeof item === "string" ? item : item.value;
+        const state = typeof item === "string" ? "" : (item.state || "");
+        return `<span class="token ${state}">${value}</span>`;
+      }
+
+      function renderLane(lane) {
+        const items = lane.items.length
+          ? lane.items.map(tokenMarkup).join('<span class="arrow">→</span>')
+          : '<span class="token muted">∅</span>';
+        return `
+          <section class="lane">
+            <div class="lane-title"><span>${lane.title}</span><span>${lane.note || ""}</span></div>
+            <div class="token-row">${items}</div>
+          </section>
+        `;
+      }
+
+      function render() {
+        const step = steps[index];
+        visualizer.innerHTML = `
+          ${step.lanes.map(renderLane).join("")}
+          <div class="snapshot">
+            ${(step.facts || []).map((fact) => `<div><strong>${fact.label}</strong><span>${fact.value}</span></div>`).join("")}
+          </div>
+        `;
+        explanation.innerHTML = `<h3>${step.title}</h3><p>${step.explanation}</p>`;
+        counter.textContent = `passo ${index + 1} de ${steps.length}`;
+        progress.style.width = `${((index + 1) / steps.length) * 100}%`;
+        document.querySelector('[data-action="prev"]').disabled = index === 0;
+        document.querySelector('[data-action="next"]').disabled = index === steps.length - 1;
+      }
+
+      function stop() {
+        if (timer) {
+          clearInterval(timer);
+          timer = null;
+        }
+      }
+
+      function go(delta) {
+        stop();
+        index = Math.max(0, Math.min(steps.length - 1, index + delta));
+        render();
+      }
+
+      function run() {
+        stop();
+        timer = setInterval(() => {
+          if (index >= steps.length - 1) {
+            stop();
+            return;
+          }
+          index += 1;
+          render();
+        }, 1450);
+      }
+
+      controls.forEach((button) => {
+        button.addEventListener("click", () => {
+          const action = button.dataset.action;
+          if (action === "prev") go(-1);
+          if (action === "next") go(1);
+          if (action === "run") run();
+          if (action === "pause") stop();
+          if (action === "reset") {
+            stop();
+            index = 0;
+            render();
+          }
+        });
+      });
+
+      document.querySelectorAll("[data-code-tab]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const language = button.dataset.codeTab;
+          document.querySelectorAll("[data-code-tab]").forEach((candidate) => {
+            candidate.setAttribute("aria-pressed", String(candidate === button));
+          });
+          document.querySelectorAll("[data-language]").forEach((block) => {
+            block.hidden = block.dataset.language !== language;
+          });
+        });
+      });
+
+      render();
+    })();
+
+  </script>
 </body>
 </html>

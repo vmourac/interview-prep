@@ -256,7 +256,22 @@
       .lab, .study-grid { grid-template-columns: 1fr; }
       .pointer-board, .metrics { grid-template-columns: 1fr; }
     }
-  </style>
+
+  /* Contain wide interactive content without widening the document. */
+  html, body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
+  .shell, .lab, .panel, .panel-body, #visualizer { min-width: 0; max-width: 100%; }
+  #visualizer { overflow-x: auto; overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
 </head>
 <body>
   <header class="hero">
@@ -286,7 +301,7 @@
             <button type="button" class="primary" data-action="next">Próximo passo ▶</button>
             <button type="button" data-action="run">Executar</button>
             <button type="button" data-action="pause">Pausar</button>
-            <button type="button" data-action="reset">Reset</button>
+            <button type="button" data-action="reset">Reiniciar</button>
           </div>
           <div class="progress" aria-hidden="true"><div id="progress-bar"></div></div>
           <div id="visualizer" aria-live="polite"></div>
@@ -298,7 +313,7 @@
           <h2>Raciocínio atual</h2>
         </div>
         <div class="panel-body">
-          <div id="step-explanation"></div>
+          <div id="step-explanation" aria-live="polite"></div>
           <div class="warning"><strong>Armadilha clássica:</strong> se você fizer <code>current.next = prev</code> antes de salvar <code>nextNode</code>, perde o restante da lista.</div>
           <div class="metrics">
             <div class="metric"><span>ingênua</span><strong>O(n) tempo · O(n) espaço</strong></div>
@@ -345,7 +360,7 @@
       <div class="panel-header">
         <h2>Código de referência</h2>
       </div>
-      <div class="code-tabs" role="tablist" aria-label="Linguagens">
+      <div class="code-tabs" role="group" aria-label="Linguagens">
         <button type="button" data-code-tab="javascript" aria-pressed="true">JavaScript</button>
         <button type="button" data-code-tab="typescript" aria-pressed="false">TypeScript</button>
       </div>

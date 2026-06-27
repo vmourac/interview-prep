@@ -1,202 +1,95 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Two Sum - Interview Prep</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Two Sum — Laboratório Interativo</title>
   <style>
-    :root {
-      --paper: #f5f0e6;
-      --ink: #1f1a17;
-      --accent: #9b3d22;
-      --accent-soft: #d9a88f;
-      --line: #b9ab97;
-      --note: #fffaf1;
-      --shadow: rgba(31, 26, 23, 0.14);
+    :root{color-scheme:dark;--bg:#111410;--panel:#182018;--ink:#f0f7ec;--muted:#afbdac;--line:#42543f;--accent:#92d39d;--hot:#f0c36a;--bad:#ef806f;--mono:SFMono-Regular,Consolas,monospace;--serif:Georgia,serif;--sans:Trebuchet MS,Gill Sans,sans-serif}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 8%,#2d6a4466,transparent 24rem),linear-gradient(135deg,#111410,#162016);color:var(--ink);font-family:var(--sans);line-height:1.6}.shell{width:min(1180px,calc(100% - 32px));margin:auto}.hero{padding:3.5rem 0 1.2rem;border-bottom:1px solid var(--line)}.eyebrow,.chip,.step-counter,.control-label,.metric span,.code-tabs button{font:.73rem var(--mono);letter-spacing:.12em;text-transform:uppercase}.eyebrow,.chip{color:var(--accent)}h1{font:clamp(3rem,8vw,6rem)/.9 var(--serif);margin:.3rem 0 1rem;letter-spacing:-.06em}.lead{max-width:850px;color:var(--muted);font-size:1.1rem}.chips,.control-row,.code-tabs{display:flex;gap:.5rem;flex-wrap:wrap}.chip{border:1px solid var(--line);padding:.28rem .5rem;background:#92d39d14}.lab,.study-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:1rem;padding:1.2rem 0}.panel,.study-card{border:1px solid var(--line);background:#182018ee;box-shadow:0 22px 70px #0006}.panel-header{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem;border-bottom:1px solid var(--line)}.panel-header h2,.study-card h2{margin:0;font-family:var(--serif)}.panel-body,.study-card{padding:1rem}button{font:inherit;border:1px solid var(--line);background:#101710;color:var(--ink);padding:.65rem .78rem;cursor:pointer}button:hover,button[aria-pressed=true]{border-color:var(--accent);background:#1d341f}button.primary{background:var(--accent);border-color:var(--accent);color:#0c150d;font-weight:800}button:disabled{opacity:.45;cursor:not-allowed}.progress{height:.7rem;border:1px solid var(--line);background:#0b100b;margin:.8rem 0;overflow:hidden}.progress div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--hot));transition:.2s}#visualizer{min-height:330px;border:1px solid var(--line);background:#0b100b;padding:1rem;overflow:auto}.array{display:flex;gap:.45rem;flex-wrap:wrap;margin:1rem 0}.cell{min-width:4.1rem;border:2px solid #587254;background:#142014;text-align:center}.cell b{display:block;font:1.25rem var(--serif);padding:.65rem}.cell span{display:block;border-top:1px solid var(--line);color:var(--muted);font:.72rem var(--mono);padding:.18rem}.cell.current{border-color:var(--hot);box-shadow:0 0 0 4px #f0c36a33}.cell.match{border-color:var(--accent);box-shadow:0 0 0 4px #92d39d33}.facts,.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}.fact,.metric{border:1px solid var(--line);background:#ffffff08;padding:.75rem}.fact strong,.metric strong{display:block;color:var(--accent)}.map{display:flex;gap:.5rem;flex-wrap:wrap}.pill{border:1px solid var(--line);background:#101710;padding:.45rem .6rem;font-family:var(--mono)}#step-explanation{min-height:10rem;border-left:4px solid var(--accent);background:#92d39d14;padding:1rem}#step-explanation h3{margin:0 0 .4rem}.study-card p,.study-card li,#step-explanation p{color:var(--muted)}.study-card ul{padding-left:1.2rem}.callout{border-left:4px solid var(--hot);padding-left:.8rem}.code-panel{margin-bottom:3rem}pre{margin:0;padding:1rem;overflow:auto;background:#080c08;color:#f0f7ec;font:.88rem/1.55 var(--mono)}pre[hidden]{display:none}code{font-family:var(--mono);color:#dcffd8}@media(max-width:850px){.lab,.study-grid,.facts,.metrics{grid-template-columns:1fr}}
+
+  /* Contain wide interactive content without widening the document. */
+  html, body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
+  .shell, .lab, .panel, .panel-body, #visualizer { min-width: 0; max-width: 100%; }
+  #visualizer { overflow-x: auto; overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+      scroll-behavior: auto !important;
     }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at top left, rgba(155, 61, 34, 0.12), transparent 28%),
-        repeating-linear-gradient(0deg, var(--paper), var(--paper) 32px, #efe7da 32px, #efe7da 33px);
-    }
-
-    .sheet {
-      width: min(980px, calc(100% - 32px));
-      margin: 24px auto;
-      background: rgba(255, 250, 241, 0.95);
-      border: 1px solid var(--line);
-      box-shadow: 0 20px 50px var(--shadow);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .sheet::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 72px;
-      width: 2px;
-      height: 100%;
-      background: rgba(155, 61, 34, 0.18);
-    }
-
-    header, main {
-      padding: 28px 28px 28px 104px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .eyebrow {
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      font-size: 0.74rem;
-      color: var(--accent);
-      margin-bottom: 10px;
-    }
-
-    h1, h2 {
-      font-weight: 600;
-      margin: 0 0 12px;
-    }
-
-    h1 { font-size: clamp(2rem, 4vw, 3.5rem); }
-    h2 { font-size: 1.3rem; border-bottom: 1px dashed var(--line); padding-bottom: 8px; }
-
-    .lede {
-      max-width: 62ch;
-      line-height: 1.7;
-      font-size: 1.05rem;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-      margin: 26px 0;
-    }
-
-    .card {
-      background: var(--note);
-      border: 1px solid var(--line);
-      padding: 16px;
-      box-shadow: 8px 8px 0 rgba(155, 61, 34, 0.08);
-    }
-
-    .card strong {
-      color: var(--accent);
-      display: block;
-      margin-bottom: 8px;
-    }
-
-    .code {
-      background: #201a17;
-      color: #f8f1e4;
-      padding: 16px;
-      border-radius: 10px;
-      overflow-x: auto;
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-
-    ul {
-      padding-left: 20px;
-      line-height: 1.7;
-    }
-
-    .complexity {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-
-    .chip {
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(155, 61, 34, 0.06);
-    }
-
-    @media (max-width: 720px) {
-      .sheet::before { left: 28px; }
-      header, main { padding: 24px 18px 24px 48px; }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
-  <article class="sheet">
-    <header>
-      <div class="eyebrow">Caderno de entrevista</div>
-      <h1>Two Sum</h1>
-      <p class="lede">Guia sintetizado para treino de entrevista. A fonte do topico original e introdutoria e sem transcricao; por isso, este material organiza um problema canonico de arrays e hash map em formato de entrevistador.</p>
-    </header>
-    <main>
-      <section>
-        <h2>Prompt</h2>
-        <p>Dado um array de inteiros e um target, retorne os indices de dois elementos cuja soma seja exatamente igual ao target. Existe exatamente uma solucao valida.</p>
-      </section>
+  <header class="hero"><div class="shell"><div class="eyebrow">01 Estrutura da entrevista DSA · hash map</div><h1>Two Sum</h1><p class="lead">Transforme “achar dois números” em “para este número, o complemento já apareceu?”. Guardar índices evita reutilizar o mesmo elemento.</p><div class="chips"><span class="chip">complemento</span><span class="chip">troca tempo por espaço</span><span class="chip">O(n)</span></div></div></header>
+  <main class="shell">
+    <section class="lab" aria-label="Laboratório interativo"><article class="panel"><div class="panel-header"><h2>Visualização passo a passo</h2><span class="step-counter" id="step-counter">passo 1</span></div><div class="panel-body"><div class="control-label">Controles da simulação</div><div class="control-row" aria-label="Controles"><button type="button" data-action="prev">◀ Passo anterior</button><button type="button" class="primary" data-action="next">Próximo passo ▶</button><button type="button" data-action="run">Executar</button><button type="button" data-action="pause">Pausar</button><button type="button" data-action="reset">Reiniciar</button></div><div class="progress" aria-hidden="true"><div id="progress-bar"></div></div><div id="visualizer" aria-live="polite"></div></div></article>
+      <aside class="panel"><div class="panel-header"><h2>Raciocínio atual</h2></div><div class="panel-body"><div id="step-explanation" aria-live="polite"></div><div class="metrics"><div class="metric"><span>ingênua</span><strong>O(n²) tempo · O(1) espaço</strong></div><div class="metric"><span>otimizada</span><strong>O(n) tempo · O(n) espaço</strong></div></div></div></aside></section>
+    <section class="study-grid" aria-label="Explicações didáticas">
+      <article class="study-card" data-section="naive"><h2>Solução ingênua</h2><p>Teste todos os pares <code>i, j</code> com <code>j &gt; i</code> até encontrar a soma igual ao alvo.</p><ul><li><strong>Tempo:</strong> <code>O(n²)</code>, todos os pares possíveis.</li><li><strong>Espaço:</strong> <code>O(1)</code>.</li></ul></article>
+      <article class="study-card" data-section="optimized"><h2>Solução otimizada</h2><p>Percorra uma vez. Para cada valor, calcule <code>target - valor</code>. Se o complemento já está no map, retorne o índice guardado e o atual.</p><p class="callout"><strong>Ordem importa:</strong> verificar antes de inserir impede usar o mesmo elemento duas vezes.</p></article>
+      <article class="study-card" data-section="complexity"><h2>Big O</h2><p><strong>Tempo otimizado:</strong> <code>O(n)</code> com lookup/inserção amortizados <code>O(1)</code>.</p><p><strong>Espaço otimizado:</strong> <code>O(n)</code>, pois o map pode guardar quase todos os valores.</p></article>
+      <article class="study-card" data-section="interview"><h2>Como falar em entrevista</h2><ul><li>Mostre primeiro a força bruta para estabelecer correção.</li><li>Explique a troca memória por tempo.</li><li>Diga que o map guarda valor → índice.</li><li>Reforce a garantia de uma solução válida, se aplicável.</li></ul></article>
+    </section>
+    <section class="panel code-panel" aria-label="Soluções em código"><div class="panel-header"><h2>Código de exemplo</h2></div><div class="code-tabs" role="group" aria-label="Linguagem do código"><button type="button" data-code-tab="javascript" aria-pressed="true">JavaScript</button><button type="button" data-code-tab="typescript" aria-pressed="false">TypeScript</button></div>
+<pre data-language="javascript"><code>function twoSum(nums, target) {
+  const seen = new Map();
 
-      <section>
-        <h2>Hints</h2>
-        <div class="grid">
-          <div class="card"><strong>Hint 1</strong>Pense no que falta para cada numero atingir o target.</div>
-          <div class="card"><strong>Hint 2</strong>Se voce ja viu o complemento antes, a resposta esta pronta.</div>
-          <div class="card"><strong>Hint 3</strong>Troque um segundo loop por memoria auxiliar.</div>
-        </div>
-      </section>
+  for (let i = 0; i < nums.length; i += 1) {
+    const complement = target - nums[i];
+    if (seen.has(complement)) return [seen.get(complement), i];
+    seen.set(nums[i], i);
+  }
 
-      <section>
-        <h2>Caminho ingenuo</h2>
-        <p>Teste todos os pares com dois loops. E correto, mas compara pares demais.</p>
-        <ul>
-          <li>Escolha um indice.</li>
-          <li>Compare com todos os indices seguintes.</li>
-          <li>Retorne quando a soma bater.</li>
-        </ul>
-      </section>
+  return [];
+}</code></pre>
+<pre data-language="typescript" hidden><code>function twoSum(nums: number[], target: number): number[] {
+  const seen = new Map&lt;number, number&gt;();
 
-      <section>
-        <h2>Caminho otimizado</h2>
-        <p>Use um hash map de valor para indice. Para cada numero, procure o complemento antes de inserir o valor atual.</p>
-        <ul>
-          <li>Calcule complemento = target - valor.</li>
-          <li>Se complemento ja existe no mapa, termine.</li>
-          <li>Senao, registre o valor atual.</li>
-        </ul>
-      </section>
+  for (let i = 0; i &lt; nums.length; i += 1) {
+    const complement = target - nums[i];
+    if (seen.has(complement)) return [seen.get(complement)!, i];
+    seen.set(nums[i], i);
+  }
 
-      <section>
-        <h2>Complexidade</h2>
-        <div class="complexity">
-          <div class="chip">Ingenua: tempo O(n^2)</div>
-          <div class="chip">Ingenua: espaco O(1)</div>
-          <div class="chip">Otimizada: tempo O(n)</div>
-          <div class="chip">Otimizada: espaco O(n)</div>
-        </div>
-        <p>A queda para O(n) acontece porque cada elemento e processado uma vez e cada consulta ao hash map custa O(1) em media. O espaco sobe para O(n) porque o mapa pode guardar quase todos os elementos.</p>
-      </section>
-
-      <section>
-        <h2>Solucao final</h2>
-        <pre class="code">def two_sum(nums, target):
-    vistos = {}
-
-    for indice, valor in enumerate(nums):
-        complemento = target - valor
-        if complemento in vistos:
-            return [vistos[complemento], indice]
-        vistos[valor] = indice
-
-    return []</pre>
-      </section>
-    </main>
-  </article>
+  return [];
+}</code></pre></section>
+  </main>
+  <script>
+    const nums = [2, 7, 11, 15];
+    const target = 9;
+    const steps = [
+      { title: "Map vazio", text: "Antes de ler qualquer valor, ainda não vimos nenhum complemento possível.", index: null, complement: "—", seen: [], matches: [] },
+      { title: "Leia 2", text: "Para 2, o complemento é 7. Ele ainda não apareceu, então guardamos 2 → índice 0.", index: 0, complement: 7, seen: [[2, 0]], matches: [] },
+      { title: "Leia 7", text: "Para 7, o complemento é 2. O map já tem 2 no índice 0; retornamos [0, 1].", index: 1, complement: 2, seen: [[2, 0]], matches: [0, 1] }
+    ];
+    let current = 0;
+    let timer = null;
+    const visualizer = document.getElementById("visualizer");
+    const explanation = document.getElementById("step-explanation");
+    const counter = document.getElementById("step-counter");
+    const progress = document.getElementById("progress-bar");
+    function render() {
+      const step = steps[current];
+      visualizer.innerHTML = `<div class="facts"><div class="fact"><span>target</span><strong>${target}</strong></div><div class="fact"><span>complemento</span><strong>${step.complement}</strong></div></div><div class="array">${nums.map((value,index)=>`<div class="cell ${index === step.index ? "current" : ""} ${step.matches.includes(index) ? "match" : ""}"><b>${value}</b><span>${index}</span></div>`).join("")}</div><h3>Valores vistos</h3><div class="map">${step.seen.length ? step.seen.map(([value,index])=>`<span class="pill">${value} → ${index}</span>`).join("") : '<span class="pill">vazio</span>'}</div>`;
+      explanation.innerHTML = `<h3>${step.title}</h3><p>${step.text}</p>`;
+      counter.textContent = `passo ${current + 1} de ${steps.length}`;
+      progress.style.width = `${((current + 1) / steps.length) * 100}%`;
+      document.querySelector('[data-action="prev"]').disabled = current === 0;
+      document.querySelector('[data-action="next"]').disabled = current === steps.length - 1;
+    }
+    function pause(){ clearInterval(timer); timer = null; }
+    function next(){ if (current < steps.length - 1) { current += 1; render(); } else pause(); }
+    function prev(){ if (current > 0) { current -= 1; render(); } }
+    function reset(){ pause(); current = 0; render(); }
+    function run(){ pause(); timer = setInterval(next, 1200); }
+    document.querySelectorAll("[data-action]").forEach(button => button.addEventListener("click", () => ({prev,next,run,pause,reset})[button.dataset.action]()));
+    document.querySelectorAll("[data-code-tab]").forEach(button => button.addEventListener("click", () => { document.querySelectorAll("[data-code-tab]").forEach(tab => tab.setAttribute("aria-pressed", String(tab === button))); document.querySelectorAll("pre[data-language]").forEach(pre => { pre.hidden = pre.dataset.language !== button.dataset.codeTab; }); }));
+    render();
+  </script>
 </body>
 </html>

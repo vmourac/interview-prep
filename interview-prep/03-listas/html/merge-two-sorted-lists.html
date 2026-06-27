@@ -165,7 +165,22 @@
       .lab, .study-grid { grid-template-columns: 1fr; }
       .decision, .metrics { grid-template-columns: 1fr; }
     }
-  </style>
+
+  /* Contain wide interactive content without widening the document. */
+  html, body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
+  .shell, .lab, .panel, .panel-body, #visualizer { min-width: 0; max-width: 100%; }
+  #visualizer { overflow-x: auto; overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
 </head>
 <body>
   <header class="hero">
@@ -195,7 +210,7 @@
             <button type="button" class="primary" data-action="next">Próximo passo ▶</button>
             <button type="button" data-action="run">Executar</button>
             <button type="button" data-action="pause">Pausar</button>
-            <button type="button" data-action="reset">Reset</button>
+            <button type="button" data-action="reset">Reiniciar</button>
           </div>
           <div class="progress" aria-hidden="true"><div id="progress-bar"></div></div>
           <div id="visualizer" aria-live="polite"></div>
@@ -205,7 +220,7 @@
       <aside class="panel">
         <div class="panel-header"><h2>Raciocínio atual</h2></div>
         <div class="panel-body">
-          <div id="step-explanation"></div>
+          <div id="step-explanation" aria-live="polite"></div>
           <div class="warning"><strong>Por que dummy ajuda?</strong> Ele evita o caso especial “a resposta ainda não tem cabeça”. O retorno final é sempre <code>dummy.next</code>.</div>
           <div class="metrics">
             <div class="metric"><span>ingênua</span><strong>O(k log k) tempo · O(k) espaço</strong></div>
@@ -250,7 +265,7 @@
 
     <section class="panel code-panel" aria-label="Soluções em código">
       <div class="panel-header"><h2>Código de referência</h2></div>
-      <div class="code-tabs" role="tablist" aria-label="Linguagens">
+      <div class="code-tabs" role="group" aria-label="Linguagens">
         <button type="button" data-code-tab="javascript" aria-pressed="true">JavaScript</button>
         <button type="button" data-code-tab="typescript" aria-pressed="false">TypeScript</button>
       </div>
