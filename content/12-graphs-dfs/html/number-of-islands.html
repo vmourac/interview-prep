@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Laboratório interativo para entender Number of Islands passo a passo em JavaScript e TypeScript.">
+  <title>Number of Islands — Laboratório Interativo</title>
+  <style>
+:root{color-scheme:dark;--bg:#10131a;--panel:#171c26;--panel2:#202737;--ink:#eef3ff;--muted:#aeb8cb;--line:#40506a;--accent:#8dbbff;--accent2:#8ee0c4;--gold:#f0c36a;--red:#ef806f;--violet:#b9a1ff;--mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;--serif:Georgia,Cambria,"Times New Roman",serif;--sans:"Trebuchet MS","Gill Sans",sans-serif;--shadow:0 24px 80px rgba(0,0,0,.34)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;background:var(--bg)}body{margin:0;min-width:320px;color:var(--ink);font-family:var(--sans);line-height:1.6;background:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px),radial-gradient(circle at 82% 8%,rgba(141,187,255,.15),transparent 28rem),radial-gradient(circle at 10% 34%,rgba(142,224,196,.12),transparent 30rem),var(--bg);background-size:36px 36px,36px 36px,auto,auto,auto}button{font:inherit;border:1px solid var(--line);padding:.68rem .78rem;color:var(--ink);background:var(--panel);cursor:pointer}button:hover,button[aria-pressed=true]{border-color:var(--accent);background:#17233a}button.primary{color:#0f131a;border-color:var(--accent);background:var(--accent);font-weight:800}button:disabled{opacity:.45;cursor:not-allowed}:focus-visible{outline:3px solid var(--gold);outline-offset:3px}.shell{width:min(1240px,calc(100% - 32px));margin:0 auto}.hero{padding:clamp(2rem,6vw,5rem) 0 1.4rem;border-bottom:1px solid var(--line)}.eyebrow,.chip,.metric span,.control-label,.code-tabs button,.step-counter{font:.73rem var(--mono);letter-spacing:.12em;text-transform:uppercase}.eyebrow{color:var(--accent)}h1{max-width:960px;margin:.35rem 0 1rem;font:clamp(3rem,8vw,6.3rem)/.9 var(--serif);letter-spacing:-.065em}.lead{max-width:850px;color:var(--muted);font-size:1.1rem}.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.2rem 0}.chip{border:1px solid var(--line);padding:.28rem .48rem;color:var(--accent);background:rgba(141,187,255,.08)}.lab{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:1rem;padding:1.2rem 0 2rem}.panel{border:1px solid var(--line);background:linear-gradient(145deg,rgba(255,255,255,.04),transparent),rgba(23,28,38,.96);box-shadow:var(--shadow)}.panel-header{display:flex;justify-content:space-between;gap:1rem;align-items:center;border-bottom:1px solid var(--line);padding:1rem}.panel-header h2,.panel h3{margin:0;font-family:var(--serif)}.panel-body{padding:1rem}.control-row{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0}.control-label{display:block;color:var(--muted);margin-bottom:.35rem}.progress{height:.7rem;border:1px solid var(--line);background:#0a0d12;overflow:hidden}.progress>div{width:0%;height:100%;background:linear-gradient(90deg,var(--accent),var(--violet),var(--gold));transition:width .2s ease}#visualizer{min-height:430px;border:1px solid var(--line);background:radial-gradient(circle at 22% 18%,rgba(142,224,196,.08),transparent 17rem),#0b0f17;overflow:auto;padding:1rem}svg{display:block;width:100%;min-width:680px;height:auto}.edge{stroke:#66738e;stroke-width:3;fill:none}.edge.directed{marker-end:url(#arrow)}.edge.active{stroke:var(--gold);stroke-width:5}.node circle,.node rect{fill:#172131;stroke:#657493;stroke-width:3}.node text{fill:var(--ink);font:17px var(--mono);text-anchor:middle;dominant-baseline:central}.node.visited circle,.node.visited rect{stroke:var(--accent2);filter:drop-shadow(0 0 8px rgba(142,224,196,.35))}.node.frontier circle,.node.frontier rect{stroke:var(--gold);filter:drop-shadow(0 0 8px rgba(240,195,106,.35))}.node.current circle,.node.current rect{stroke:var(--red);stroke-width:5}.node.result circle,.node.result rect{stroke:var(--violet);stroke-width:5}.grid{display:grid;gap:.45rem;align-content:start}.cell{display:grid;place-items:center;min-height:3.6rem;border:2px solid #657493;background:#172131;color:var(--ink);font:1rem var(--mono);position:relative}.cell.water{opacity:.42}.cell.rotten,.cell.current{border-color:var(--red);box-shadow:0 0 0 4px rgba(239,128,111,.14)}.cell.fresh,.cell.frontier{border-color:var(--gold)}.cell.visited{border-color:var(--accent2)}.cell.result{border-color:var(--violet);box-shadow:0 0 0 4px rgba(185,161,255,.16)}.cell small{position:absolute;right:.25rem;bottom:.15rem;color:var(--muted);font:.65rem var(--mono)}.status-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;margin-top:.8rem}.status-strip div{border:1px solid var(--line);padding:.75rem;background:rgba(255,255,255,.03)}.status-strip strong{display:block;font:.78rem var(--mono);color:var(--accent);text-transform:uppercase}.status-strip span{color:var(--ink);font-size:1.05rem}#step-explanation{min-height:10rem;border-left:4px solid var(--accent);padding:1rem;background:rgba(141,187,255,.08)}#step-explanation h3{margin:0 0 .45rem;font-size:1.35rem}#step-explanation p{margin:0;color:var(--muted)}.warning{margin-top:.8rem;border-left:4px solid var(--violet);padding:.75rem;color:#ded4ff;background:rgba(185,161,255,.08)}.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem;margin-top:1rem}.metric{border:1px solid var(--line);padding:.85rem;background:rgba(255,255,255,.03)}.metric span{color:var(--muted)}.metric strong{display:block;margin-top:.25rem;font:1.12rem var(--serif);color:var(--accent2)}.study-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;padding:0 0 2rem}.study-card{border:1px solid var(--line);padding:1rem;background:rgba(23,28,38,.96);box-shadow:var(--shadow)}.study-card h2{margin:0 0 .6rem;font-family:var(--serif)}.study-card p,.study-card li{color:var(--muted)}.study-card ul{padding-left:1.2rem}.callout{border-left:4px solid var(--accent2);padding-left:.9rem}.code-panel{margin-bottom:3rem}.code-tabs{display:flex;flex-wrap:wrap;gap:.4rem;padding:1rem 1rem 0}.code-tabs button{padding:.55rem .7rem}pre{margin:0;overflow:auto;padding:1rem;background:#0a0c12;color:#eef3ff;font:.88rem/1.55 var(--mono)}pre[hidden]{display:none}code{font-family:var(--mono);color:#dce8ff}@media(max-width:920px){.lab,.study-grid{grid-template-columns:1fr}.status-strip,.metrics{grid-template-columns:1fr}svg{min-width:560px}}</style>
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .progress > div { transition: none; }
+    }
+    @media (max-width: 420px) {
+      .lab > .panel {
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="shell">
+      <div class="eyebrow">12 Grafos · DFS · laboratório interativo</div>
+      <h1>Number of Islands</h1>
+      <p class="lead">Uma grade é um grafo implícito: cada terra se conecta às quatro terras vizinhas.</p>
+      <div class="chips"><span class="chip">grade como grafo</span><span class="chip">componentes</span><span class="chip">marcar cedo</span><span class="chip">O(R · C)</span></div>
+    </div>
+  </header>
+  <main class="shell">
+    <section class="lab" aria-label="Laboratório interativo">
+      <article class="panel">
+        <div class="panel-header"><h2>Visualização passo a passo</h2><span class="step-counter" id="step-counter">passo 1</span></div>
+        <div class="panel-body">
+          <div class="control-label">Controles da simulação</div>
+          <div class="control-row" aria-label="Controles">
+            <button type="button" data-action="prev">◀ Passo anterior</button>
+            <button type="button" class="primary" data-action="next">Próximo passo ▶</button>
+            <button type="button" data-action="run">Executar</button>
+            <button type="button" data-action="pause">Pausar</button>
+            <button type="button" data-action="reset">Reiniciar</button>
+          </div>
+          <div class="progress" aria-hidden="true"><div id="progress-bar"></div></div>
+          <div id="visualizer" aria-live="polite"></div>
+        </div>
+      </article>
+      <aside class="panel">
+        <div class="panel-header"><h2>Raciocínio atual</h2></div>
+        <div class="panel-body">
+          <div id="step-explanation" aria-live="polite"></div>
+          <div class="warning"><strong>Foco de entrevista:</strong> Marque a célula assim que entra na DFS; marcar tarde permite reentrada e recontagem.</div>
+          <div class="metrics">
+            <div class="metric"><span>ingênua</span><strong>O((R · C)²) tempo</strong></div>
+            <div class="metric"><span>otimizada</span><strong>O(R · C) tempo · O(R · C) espaço</strong></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+    <section class="study-grid" aria-label="Explicações didáticas">
+      <article class="study-card" data-section="naive"><h2>Solução ingênua</h2><p>Iniciar uma busca separada para cada terra sem marcação global reexplora a mesma ilha muitas vezes, especialmente quando há uma massa grande de terra.</p></article>
+      <article class="study-card" data-section="optimized"><h2>Solução otimizada</h2><p>Varra a matriz. Ao achar terra, incremente <code>islands</code> e use uma pilha explícita para consumir toda a ilha, marcando cada célula ao empilhá-la.</p></article>
+      <article class="study-card" data-section="complexity"><h2>Big O</h2><p><strong>Tempo:</strong> <code>O(R · C)</code>, cada célula é processada poucas vezes.</p><p><strong>Espaço:</strong> <code>O(R · C)</code> no pior caso pela pilha explícita.</p></article>
+      <article class="study-card" data-section="interview"><h2>Explicação de entrevista</h2><p>Na entrevista, comece modelando o grafo e nomeie a estrutura que evita repetição. Depois caminhe por um exemplo pequeno, declare o invariante e só então escreva o código. Feche justificando tempo e espaço em termos de vértices/arestas ou células.</p></article>
+    </section>
+    <section class="panel code-panel" aria-label="Código de exemplo">
+      <div class="panel-header"><h2>Código de exemplo</h2></div>
+      <div class="code-tabs" role="group" aria-label="Linguagem do código">
+        <button type="button" data-code-tab="javascript" aria-pressed="true">JavaScript</button>
+        <button type="button" data-code-tab="typescript" aria-pressed="false">TypeScript</button>
+      </div>
+      <pre data-language="javascript"><code>function numIslands(grid) {
+  const rows = grid.length, cols = grid[0].length;
+  let islands = 0;
+  for (let r = 0; r &lt; rows; r++) for (let c = 0; c &lt; cols; c++) {
+    if (grid[r][c] !== '1') continue;
+    islands++;
+    grid[r][c] = '0';
+    const stack = [[r, c]];
+    while (stack.length) {
+      const [row, col] = stack.pop();
+      for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        const nr = row + dr, nc = col + dc;
+        if (nr &lt; 0 || nr &gt;= rows || nc &lt; 0 || nc &gt;= cols || grid[nr][nc] !== '1') continue;
+        grid[nr][nc] = '0';
+        stack.push([nr, nc]);
+      }
+    }
+  }
+  return islands;
+}</code></pre>
+      <pre data-language="typescript" hidden><code>function numIslands(grid: string[][]): number {
+  const rows = grid.length, cols = grid[0].length;
+  let islands = 0;
+  for (let r = 0; r &lt; rows; r++) for (let c = 0; c &lt; cols; c++) {
+    if (grid[r][c] !== '1') continue;
+    islands++;
+    grid[r][c] = '0';
+    const stack: Array&lt;[number, number]&gt; = [[r, c]];
+    while (stack.length) {
+      const [row, col] = stack.pop()!;
+      for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]] as const) {
+        const nr = row + dr, nc = col + dc;
+        if (nr &lt; 0 || nr &gt;= rows || nc &lt; 0 || nc &gt;= cols || grid[nr][nc] !== '1') continue;
+        grid[nr][nc] = '0';
+        stack.push([nr, nc]);
+      }
+    }
+  }
+  return islands;
+}</code></pre>
+    </section>
+  </main>
+  <script>
+    const visual = {
+  "type": "grid",
+  "grid": [
+    [
+      "1",
+      "1",
+      "0",
+      "0"
+    ],
+    [
+      "1",
+      "0",
+      "0",
+      "1"
+    ],
+    [
+      "0",
+      "0",
+      "1",
+      "1"
+    ],
+    [
+      "1",
+      "0",
+      "0",
+      "0"
+    ]
+  ]
+};
+    const steps = [
+  {
+    "title": "Primeira terra inicia ilha 1",
+    "text": "A célula (0,0) é terra. Conte uma ilha e marque antes de expandir.",
+    "current": [
+      "0,0"
+    ],
+    "frontier": [
+      "0,1",
+      "1,0"
+    ],
+    "queue": "DFS(0,0)",
+    "seen": "{0,0}",
+    "answer": "1"
+  },
+  {
+    "title": "Consuma toda a primeira ilha",
+    "text": "DFS alcança (0,1) e (1,0). Essas células não poderão iniciar nova ilha depois.",
+    "visited": [
+      "0,0",
+      "0,1",
+      "1,0"
+    ],
+    "queue": "retorna",
+    "seen": "3 células",
+    "answer": "1"
+  },
+  {
+    "title": "Próxima terra isolada",
+    "text": "Ao chegar em (1,3), ela ainda não foi visitada. Começa a ilha 2.",
+    "current": [
+      "1,3"
+    ],
+    "frontier": [
+      "2,3"
+    ],
+    "visited": [
+      "0,0",
+      "0,1",
+      "1,0"
+    ],
+    "queue": "DFS(1,3)",
+    "seen": "ilha 1 consumida",
+    "answer": "2"
+  },
+  {
+    "title": "Ilha 2 inclui vizinhas",
+    "text": "(2,3) conecta a (2,2), então todas pertencem ao mesmo componente.",
+    "current": [
+      "2,3",
+      "2,2"
+    ],
+    "visited": [
+      "0,0",
+      "0,1",
+      "1,0",
+      "1,3",
+      "2,3",
+      "2,2"
+    ],
+    "queue": "DFS expande",
+    "seen": "6 terras",
+    "answer": "2"
+  },
+  {
+    "title": "Última ilha",
+    "text": "(3,0) não conecta horizontal/verticalmente com outras terras. Resposta final: 3.",
+    "current": [
+      "3,0"
+    ],
+    "visited": [
+      "0,0",
+      "0,1",
+      "1,0",
+      "1,3",
+      "2,3",
+      "2,2",
+      "3,0"
+    ],
+    "result": [
+      "3,0"
+    ],
+    "queue": "vazio",
+    "seen": "todas as terras",
+    "answer": "3"
+  }
+];
+
+    let currentStep = 0;
+    let timer = null;
+    const visualizer = document.getElementById('visualizer');
+    const explanation = document.getElementById('step-explanation');
+    const counter = document.getElementById('step-counter');
+    const progress = document.getElementById('progress-bar');
+    const buttons = document.querySelectorAll('[data-action]');
+
+    function has(list, value) { return Array.isArray(list) && list.includes(value); }
+    function cellKey(row, col) { return row + ',' + col; }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    function setStep(next) { currentStep = Math.max(0, Math.min(steps.length - 1, next)); render(); }
+
+    function edgeActive(step, from, to) {
+      return Array.isArray(step.edges) && step.edges.some(edge => edge[0] === from && edge[1] === to);
+    }
+
+    function renderGraph(step) {
+      const width = 700;
+      const height = 360;
+      const directed = Boolean(visual.directed);
+      const edgeMarkup = visual.edges.map(([from, to]) => {
+        const a = visual.nodes.find(node => node.id === from);
+        const b = visual.nodes.find(node => node.id === to);
+        const classes = ['edge', directed ? 'directed' : '', edgeActive(step, from, to) || edgeActive(step, to, from) ? 'active' : ''].filter(Boolean).join(' ');
+        return '<line class="' + classes + '" x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '"></line>';
+      }).join('');
+      const nodeMarkup = visual.nodes.map(node => {
+        const classes = ['node'];
+        if (has(step.visited, node.id)) classes.push('visited');
+        if (has(step.frontier, node.id)) classes.push('frontier');
+        if (has(step.current, node.id)) classes.push('current');
+        if (has(step.result, node.id)) classes.push('result');
+        const shape = visual.shape === 'box'
+          ? '<rect x="' + (node.x - 34) + '" y="' + (node.y - 24) + '" width="68" height="48" rx="10"></rect>'
+          : '<circle cx="' + node.x + '" cy="' + node.y + '" r="30"></circle>';
+        return '<g class="' + classes.join(' ') + '">' + shape + '<text x="' + node.x + '" y="' + node.y + '">' + node.id + '</text></g>';
+      }).join('');
+      return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Estado do grafo"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#f0c36a"></path></marker></defs>' + edgeMarkup + nodeMarkup + '</svg>';
+    }
+
+    function renderGrid(step) {
+      const rows = visual.grid;
+      const cols = rows[0].length;
+      const current = step.current || [];
+      const visited = step.visited || [];
+      const frontier = step.frontier || [];
+      const result = step.result || [];
+      const cells = rows.map((row, r) => row.map((value, c) => {
+        const key = cellKey(r, c);
+        const classes = ['cell'];
+        if (value === 0 || value === '0') classes.push('water');
+        if (value === 2) classes.push('rotten');
+        if (value === 1 || value === '1') classes.push('fresh');
+        if (visited.includes(key)) classes.push('visited');
+        if (frontier.includes(key)) classes.push('frontier');
+        if (current.includes(key)) classes.push('current');
+        if (result.includes(key)) classes.push('result');
+        return '<div class="' + classes.join(' ') + '">' + value + '<small>' + r + ',' + c + '</small></div>';
+      }).join('')).join('');
+      return '<div class="grid" style="grid-template-columns:repeat(' + cols + ', minmax(3.6rem, 1fr))">' + cells + '</div>';
+    }
+
+    function render() {
+      const step = steps[currentStep];
+      visualizer.innerHTML = visual.type === 'grid' ? renderGrid(step) : renderGraph(step);
+      explanation.innerHTML = '<h3>' + step.title + '</h3><p>' + step.text + '</p><div class="status-strip"><div><strong>fronteira</strong><span>' + (step.queue || '—') + '</span></div><div><strong>visitados</strong><span>' + (step.seen || '—') + '</span></div><div><strong>resultado</strong><span>' + (step.answer || '—') + '</span></div></div>';
+      counter.textContent = 'passo ' + (currentStep + 1) + ' de ' + steps.length;
+      progress.style.width = ((currentStep + 1) / steps.length * 100) + '%';
+      document.querySelector('[data-action="prev"]').disabled = currentStep === 0;
+      document.querySelector('[data-action="next"]').disabled = currentStep === steps.length - 1;
+    }
+
+    buttons.forEach(button => button.addEventListener('click', () => {
+      const action = button.dataset.action;
+      if (action === 'prev') { stop(); setStep(currentStep - 1); }
+      if (action === 'next') { stop(); setStep(currentStep + 1); }
+      if (action === 'reset') { stop(); setStep(0); }
+      if (action === 'pause') stop();
+      if (action === 'run') {
+        stop();
+        timer = setInterval(() => {
+          if (currentStep >= steps.length - 1) { stop(); return; }
+          setStep(currentStep + 1);
+        }, 1200);
+      }
+    }));
+
+    document.querySelectorAll('[data-code-tab]').forEach(tab => tab.addEventListener('click', () => {
+      const lang = tab.dataset.codeTab;
+      document.querySelectorAll('[data-code-tab]').forEach(other => other.setAttribute('aria-pressed', String(other === tab)));
+      document.querySelectorAll('pre[data-language]').forEach(pre => { pre.hidden = pre.dataset.language !== lang; });
+    }));
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Laboratório interativo para entender Design Add and Search Words Data Structure passo a passo em JavaScript e TypeScript.">
+  <title>Design Add and Search Words Data Structure — Laboratório Interativo</title>
+  <style>
+
+    :root {
+      color-scheme: dark;
+      --bg: #10131a;
+      --panel: #171c26;
+      --panel-2: #202736;
+      --ink: #eef3ff;
+      --muted: #aeb8cb;
+      --line: #3f4b62;
+      --accent: #8dbbff;
+      --accent-2: #f0c36a;
+      --good: #88d9bd;
+      --hot: #ef806f;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .34);
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --serif: Georgia, Cambria, "Times New Roman", serif;
+      --sans: "Trebuchet MS", "Gill Sans", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      margin: 0; min-width: 320px; color: var(--ink);
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+        radial-gradient(circle at 82% 8%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 28rem),
+        radial-gradient(circle at 12% 32%, color-mix(in srgb, var(--good) 12%, transparent), transparent 30rem),
+        var(--bg);
+      background-size: 36px 36px, 36px 36px, auto, auto, auto;
+      font-family: var(--sans); line-height: 1.6;
+    }
+    button { font: inherit; }
+    button { border: 1px solid var(--line); padding: .68rem .78rem; color: var(--ink); background: var(--panel); cursor: pointer; }
+    button:hover, button[aria-pressed="true"] { border-color: var(--accent); background: var(--panel-2); }
+    button.primary { color: #0f131a; border-color: var(--accent); background: var(--accent); font-weight: 800; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    :focus-visible { outline: 3px solid var(--accent-2); outline-offset: 3px; }
+    .shell { width: min(1240px, calc(100% - 32px)); margin: 0 auto; }
+    .hero { padding: clamp(2rem, 6vw, 5rem) 0 1.4rem; border-bottom: 1px solid var(--line); }
+    .eyebrow, .chip, .metric span, .control-label, .code-tabs button, .step-counter, .lane-title { font: .73rem var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .eyebrow { color: var(--accent); }
+    h1 { max-width: 960px; margin: .35rem 0 1rem; font: clamp(3rem, 8vw, 6.2rem)/.9 var(--serif); letter-spacing: -.065em; }
+    .lead { max-width: 860px; color: var(--muted); font-size: 1.1rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.2rem 0; }
+    .chip { border: 1px solid var(--line); padding: .28rem .48rem; color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+    .lab { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); gap: 1rem; padding: 1.2rem 0 2rem; }
+    .panel { border: 1px solid var(--line); background: linear-gradient(145deg, rgba(255,255,255,.035), transparent), color-mix(in srgb, var(--panel) 96%, black); box-shadow: var(--shadow); }
+    .panel-header { display: flex; justify-content: space-between; gap: 1rem; align-items: center; border-bottom: 1px solid var(--line); padding: 1rem; }
+    .panel-header h2, .panel h3 { margin: 0; font-family: var(--serif); }
+    .panel-body { padding: 1rem; }
+    .control-row { display: flex; flex-wrap: wrap; gap: .5rem; margin: .8rem 0 0; }
+    .control-label { display: block; color: var(--muted); margin-bottom: .35rem; }
+    .progress { height: .7rem; border: 1px solid var(--line); background: #0a0c12; overflow: hidden; margin: .8rem 0; }
+    .progress > div { width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), var(--good), var(--accent-2)); transition: width .2s ease; }
+    #visualizer { min-height: 430px; border: 1px solid var(--line); background: radial-gradient(circle at 70% 25%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 16rem), #0b0f17; overflow: auto; padding: 1rem; }
+    .lane { margin: 0 0 1rem; padding: .85rem; border: 1px solid color-mix(in srgb, var(--line) 76%, white); background: rgba(255,255,255,.025); }
+    .lane-title { display: flex; justify-content: space-between; gap: .8rem; color: var(--muted); margin-bottom: .75rem; }
+    .token-row { display: flex; align-items: center; gap: .45rem; min-height: 4.2rem; flex-wrap: wrap; }
+    .token { min-width: 3.4rem; border: 2px solid #657493; background: #172131; box-shadow: 0 12px 26px rgba(0,0,0,.22); padding: .55rem .7rem; text-align: center; font: 1.02rem var(--mono); }
+    .token.hot { border-color: var(--hot); box-shadow: 0 0 0 4px color-mix(in srgb, var(--hot) 18%, transparent); }
+    .token.good { border-color: var(--good); }
+    .token.accent { border-color: var(--accent); }
+    .token.muted { color: var(--muted); border-style: dashed; }
+    .arrow { color: var(--accent-2); font: 1.3rem var(--mono); }
+    .snapshot { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin-top: .8rem; }
+    .snapshot div { border: 1px solid var(--line); padding: .75rem; background: rgba(255,255,255,.03); }
+    .snapshot strong { display: block; font: .78rem var(--mono); color: var(--accent); text-transform: uppercase; }
+    .snapshot span { color: var(--ink); font-size: 1.02rem; }
+    #step-explanation { min-height: 10rem; border-left: 4px solid var(--accent); padding: 1rem; background: color-mix(in srgb, var(--accent) 8%, transparent); }
+    #step-explanation h3 { margin: 0 0 .45rem; font-size: 1.35rem; }
+    #step-explanation p { margin: 0; color: var(--muted); }
+    .warning { margin-top: .8rem; border-left: 4px solid var(--accent-2); padding: .75rem; color: #ffe2a7; background: color-mix(in srgb, var(--accent-2) 8%, transparent); }
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: 1rem; }
+    .metric { border: 1px solid var(--line); padding: .85rem; background: rgba(255,255,255,.03); }
+    .metric span { color: var(--muted); }
+    .metric strong { display: block; margin-top: .25rem; font: 1.12rem var(--serif); color: var(--good); }
+    .study-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding: 0 0 2rem; }
+    .study-card { border: 1px solid var(--line); padding: 1rem; background: color-mix(in srgb, var(--panel) 96%, black); box-shadow: var(--shadow); }
+    .study-card h2 { margin: 0 0 .6rem; font-family: var(--serif); }
+    .study-card p, .study-card li { color: var(--muted); }
+    .study-card ul, .study-card ol { padding-left: 1.2rem; }
+    .callout { border-left: 4px solid var(--good); padding-left: .9rem; }
+    .code-panel { margin-bottom: 3rem; }
+    .code-tabs { display: flex; flex-wrap: wrap; gap: .4rem; padding: 1rem 1rem 0; }
+    .code-tabs button { padding: .55rem .7rem; }
+    pre { margin: 0; overflow: auto; padding: 1rem; background: #0a0c12; color: #eef3ff; font: .88rem/1.55 var(--mono); }
+    pre[hidden] { display: none; }
+    code { font-family: var(--mono); color: #dce8ff; }
+    @media (max-width: 920px) { .lab, .study-grid { grid-template-columns: 1fr; } .snapshot, .metrics { grid-template-columns: 1fr; } }
+
+
+  /* Contain wide interactive content without widening the document. */
+  html, body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
+  .shell, .lab, .panel, .panel-body, #visualizer { min-width: 0; max-width: 100%; }
+  #visualizer { overflow-x: auto; overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="shell">
+      <div class="eyebrow">09 Tries · laboratório interativo</div>
+      <h1>Design Add and Search Words Data Structure</h1>
+      <p class="lead">Wildcard transforma busca em trie de caminho único em DFS com ramificação controlada.</p>
+      <div class="chips"><span class="chip">WordDictionary</span><span class="chip">wildcard .</span><span class="chip">DFS</span></div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="lab" aria-label="Laboratório interativo">
+      <article class="panel">
+        <div class="panel-header">
+          <h2>Visualização passo a passo</h2>
+          <span class="step-counter" id="step-counter">passo 1</span>
+        </div>
+        <div class="panel-body">
+          <div class="control-label">Controles da simulação</div>
+          <div class="control-row" aria-label="Controles">
+            <button type="button" data-action="prev">◀ Passo anterior</button>
+            <button type="button" class="primary" data-action="next">Próximo passo ▶</button>
+            <button type="button" data-action="run">Executar</button>
+            <button type="button" data-action="pause">Pausar</button>
+            <button type="button" data-action="reset">Reiniciar</button>
+          </div>
+          <div class="progress" aria-hidden="true"><div id="progress-bar"></div></div>
+          <div id="visualizer" aria-live="polite"></div>
+        </div>
+      </article>
+
+      <aside class="panel">
+        <div class="panel-header"><h2>Raciocínio atual</h2></div>
+        <div class="panel-body">
+          <div id="step-explanation" aria-live="polite"></div>
+          <div class="warning"><strong>Foco de entrevista:</strong> Quando encontrar ponto, explore filhos; quando encontrar literal, siga um único ramo.</div>
+          <div class="metrics">
+            <div class="metric"><span>ingênua</span><strong>add O(1) amort. · search O(NL) · espaço O(S)</strong></div>
+            <div class="metric"><span>otimizada</span><strong>add O(L) · search pior O(B^L) · espaço O(S)</strong></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="study-grid" aria-label="Explicações didáticas">
+      <article class="study-card" data-section="naive">
+        <h2>Solução ingênua</h2>
+        <p>Guarde todas as palavras e compare a consulta contra cada uma, tratando ponto como qualquer caractere.</p>
+        <ul><li>Busca pode testar N palavras.</li><li>Cada comparação pode consumir L caracteres.</li></ul>
+      </article>
+
+      <article class="study-card" data-section="optimized">
+        <h2>Solução otimizada</h2>
+        <p>Use trie para adicionar palavras. Na busca, literais seguem uma aresta; ponto tenta todos os filhos com DFS.</p>
+        <p class="callout"><strong>Invariante:</strong> no índice i, a chamada DFS representa todos os caminhos que casaram o prefixo da consulta até i.</p>
+      </article>
+
+      <article class="study-card" data-section="complexity">
+        <h2>Big O</h2>
+        <p>addWord custa <code>O(L)</code>. search sem wildcard é <code>O(L)</code>; com muitos pontos pode ramificar até <code>O(B^L)</code>.</p>
+      </article>
+
+      <article class="study-card" data-section="interview">
+        <h2>Como falar em entrevista</h2>
+        <ul><li>Mostre pruning: ramo sem próximo literal morre cedo.</li><li>Explique que ponto casa exatamente um caractere.</li><li>Destaque que terminal importa no fim da palavra.</li></ul>
+      </article>
+    </section>
+
+    <section class="panel code-panel" aria-label="Soluções em código">
+      <div class="panel-header"><h2>Código de referência</h2></div>
+      <div class="code-tabs" role="group" aria-label="Linguagens">
+        <button type="button" data-code-tab="javascript" aria-pressed="true">JavaScript</button>
+        <button type="button" data-code-tab="typescript" aria-pressed="false">TypeScript</button>
+      </div>
+      <pre data-language="javascript"><code>class TrieNode { constructor() { this.children = new Map(); this.isEnd = false; } }
+class WordDictionary {
+  constructor() { this.root = new TrieNode(); }
+  addWord(word) { let node = this.root; for (const ch of word) { if (!node.children.has(ch)) node.children.set(ch, new TrieNode()); node = node.children.get(ch); } node.isEnd = true; }
+  search(word) {
+    const dfs = (i, node) =&gt; {
+      if (i === word.length) return node.isEnd;
+      const ch = word[i];
+      if (ch === &#x27;.&#x27;) return [...node.children.values()].some(child =&gt; dfs(i + 1, child));
+      return node.children.has(ch) &amp;&amp; dfs(i + 1, node.children.get(ch));
+    };
+    return dfs(0, this.root);
+  }
+}</code></pre>
+      <pre data-language="typescript" hidden><code>class TrieNode { children = new Map&lt;string, TrieNode&gt;(); isEnd = false; }
+class WordDictionary {
+  private root = new TrieNode();
+  addWord(word: string): void { let node = this.root; for (const ch of word) { if (!node.children.has(ch)) node.children.set(ch, new TrieNode()); node = node.children.get(ch)!; } node.isEnd = true; }
+  search(word: string): boolean {
+    const dfs = (i: number, node: TrieNode): boolean =&gt; {
+      if (i === word.length) return node.isEnd;
+      const ch = word[i];
+      if (ch === &#x27;.&#x27;) return [...node.children.values()].some((child) =&gt; dfs(i + 1, child));
+      const next = node.children.get(ch);
+      return next !== undefined &amp;&amp; dfs(i + 1, next);
+    };
+    return dfs(0, this.root);
+  }
+}</code></pre>
+    </section>
+  </main>
+
+  <script>
+
+    (() => {
+      "use strict";
+
+      const steps = [{'title': 'Adicionar bad, dad, mad', 'explanation': 'Cada palavra vira um caminho terminal na trie.', 'lanes': [{'title': 'palavras', 'note': 'addWord', 'items': [{'value': 'bad', 'state': 'good'}, {'value': 'dad', 'state': 'good'}, {'value': 'mad', 'state': 'good'}]}, {'title': 'raízes', 'note': 'primeira letra', 'items': ['b', 'd', 'm']}], 'facts': [{'label': 'operação', 'value': 'addWord'}, {'label': 'terminal', 'value': 'fim da palavra'}, {'label': 'estrutura', 'value': 'trie'}]}, {'title': 'Buscar bad literal', 'explanation': 'Sem wildcard, a busca segue um único caminho b → a → d e exige terminal ao final.', 'lanes': [{'title': 'caminho', 'note': 'literal', 'items': [{'value': 'b', 'state': 'accent'}, {'value': 'a', 'state': 'accent'}, {'value': 'd*', 'state': 'good'}]}], 'facts': [{'label': 'consulta', 'value': 'bad'}, {'label': 'ramificação', 'value': 'nenhuma'}, {'label': 'resultado', 'value': 'true'}]}, {'title': 'Buscar b.d', 'explanation': 'Seguimos b, encontramos ponto no índice 1 e testamos todos os filhos daquele nó. O ramo a leva a d terminal.', 'lanes': [{'title': 'DFS', 'note': 'wildcard', 'items': ['b', {'value': '.', 'state': 'hot'}, 'd']}, {'title': 'ramo aceito', 'note': 'casamento', 'items': ['b', {'value': 'a', 'state': 'good'}, 'd*']}], 'facts': [{'label': 'ponto', 'value': 'qualquer letra'}, {'label': 'profundidade', 'value': '1 char'}, {'label': 'resultado', 'value': 'true'}]}, {'title': 'Consulta falha', 'explanation': 'Se todos os ramos abertos pelo ponto falham antes do terminal correto, search retorna false.', 'lanes': [{'title': 'exemplo', 'note': 'b..z', 'items': ['b', '.', '.', {'value': 'z', 'state': 'hot'}]}, {'title': 'decisão', 'note': 'nenhum terminal', 'items': [{'value': 'false', 'state': 'hot'}]}], 'facts': [{'label': 'pruning', 'value': 'sem filho z'}, {'label': 'fim', 'value': 'isEnd obrigatório'}, {'label': 'retorno', 'value': 'false'}]}];
+      let index = 0;
+      let timer = null;
+
+      const visualizer = document.getElementById("visualizer");
+      const explanation = document.getElementById("step-explanation");
+      const counter = document.getElementById("step-counter");
+      const progress = document.getElementById("progress-bar");
+      const controls = document.querySelectorAll("[data-action]");
+
+      function tokenMarkup(item) {
+        const value = typeof item === "string" ? item : item.value;
+        const state = typeof item === "string" ? "" : (item.state || "");
+        return `<span class="token ${state}">${value}</span>`;
+      }
+
+      function renderLane(lane) {
+        const items = lane.items.length
+          ? lane.items.map(tokenMarkup).join('<span class="arrow">→</span>')
+          : '<span class="token muted">∅</span>';
+        return `
+          <section class="lane">
+            <div class="lane-title"><span>${lane.title}</span><span>${lane.note || ""}</span></div>
+            <div class="token-row">${items}</div>
+          </section>
+        `;
+      }
+
+      function render() {
+        const step = steps[index];
+        visualizer.innerHTML = `
+          ${step.lanes.map(renderLane).join("")}
+          <div class="snapshot">
+            ${(step.facts || []).map((fact) => `<div><strong>${fact.label}</strong><span>${fact.value}</span></div>`).join("")}
+          </div>
+        `;
+        explanation.innerHTML = `<h3>${step.title}</h3><p>${step.explanation}</p>`;
+        counter.textContent = `passo ${index + 1} de ${steps.length}`;
+        progress.style.width = `${((index + 1) / steps.length) * 100}%`;
+        document.querySelector('[data-action="prev"]').disabled = index === 0;
+        document.querySelector('[data-action="next"]').disabled = index === steps.length - 1;
+      }
+
+      function stop() {
+        if (timer) {
+          clearInterval(timer);
+          timer = null;
+        }
+      }
+
+      function go(delta) {
+        stop();
+        index = Math.max(0, Math.min(steps.length - 1, index + delta));
+        render();
+      }
+
+      function run() {
+        stop();
+        timer = setInterval(() => {
+          if (index >= steps.length - 1) {
+            stop();
+            return;
+          }
+          index += 1;
+          render();
+        }, 1450);
+      }
+
+      controls.forEach((button) => {
+        button.addEventListener("click", () => {
+          const action = button.dataset.action;
+          if (action === "prev") go(-1);
+          if (action === "next") go(1);
+          if (action === "run") run();
+          if (action === "pause") stop();
+          if (action === "reset") {
+            stop();
+            index = 0;
+            render();
+          }
+        });
+      });
+
+      document.querySelectorAll("[data-code-tab]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const language = button.dataset.codeTab;
+          document.querySelectorAll("[data-code-tab]").forEach((candidate) => {
+            candidate.setAttribute("aria-pressed", String(candidate === button));
+          });
+          document.querySelectorAll("[data-language]").forEach((block) => {
+            block.hidden = block.dataset.language !== language;
+          });
+        });
+      });
+
+      render();
+    })();
+
+  </script>
+</body>
+</html>
