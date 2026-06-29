@@ -27,10 +27,19 @@ PRIVATE_MARKERS = tuple(f"{name}/" for name in ("raw", "wiki", "outputs"))
 @dataclass(frozen=True)
 class Exercise:
     title: str
+    category: str
     group: str
     kind: str
     href: str
     source_path: str
+    topic_number: int
+    topic_slug: str
+    item_number: int
+    item_label: str
+    material_type: str
+
+
+TOPIC_RE = re.compile(r"^(?P<number>\d{2})-(?P<theme>.+)$")
 
 
 def humanize_slug(value: str) -> str:
@@ -38,6 +47,50 @@ def humanize_slug(value: str) -> str:
     words = value.replace("_", "-").replace("ç", "c").split("-")
     small = {"da", "de", "do", "das", "dos", "and", "of", "e"}
     return " ".join(word if word in small else word.capitalize() for word in words if word)
+
+
+def topic_metadata(topic_slug: str) -> tuple[int, str]:
+    match = TOPIC_RE.fullmatch(topic_slug)
+    if not match:
+        raise ValueError(f"invalid numbered topic directory: {topic_slug}")
+    return int(match.group("number")), humanize_slug(match.group("theme"))
+
+
+def readme_html_order(topic_dir: Path) -> dict[str, int]:
+    readme = topic_dir / "README.md"
+    if not readme.exists():
+        return {}
+    try:
+        readme_text = readme.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return {}
+    filenames = re.findall(
+        r"\]\(\./html/([^\s)#?]+\.html)\)",
+        readme_text,
+        flags=re.IGNORECASE,
+    )
+    order: dict[str, int] = {}
+    for index, filename in enumerate(filenames, start=1):
+        order.setdefault(filename, index)
+    return order
+
+
+def ordered_topic_htmls(topic_dir: Path) -> list[Path]:
+    paths = list((topic_dir / "html").glob("*.html"))
+    readme_order = readme_html_order(topic_dir)
+    return sorted(
+        paths,
+        key=lambda path: (
+            0 if path.name == "01-conceitos.html" else 1,
+            readme_order.get(path.name, 10_000),
+            path.name,
+        ),
+    )
+
+
+def numbered_topic_dirs(root: Path) -> list[Path]:
+    topics = [path for path in root.glob("[0-9][0-9]-*") if path.is_dir()]
+    return sorted(topics, key=lambda path: (topic_metadata(path.name)[0], path.name))
 
 
 def title_from_html(path: Path) -> str:
@@ -98,59 +151,118 @@ def copy_content() -> None:
 def discover_exercises() -> list[Exercise]:
     exercises: list[Exercise] = []
 
-    for path in sorted(SOURCE.glob("[0-9][0-9]-*/html/*.html")):
-        topic = path.parents[1].name
-        rel = path.relative_to(SOURCE)
-        exercises.append(
-            Exercise(
-                title=title_from_html(path),
-                group=humanize_slug(topic),
-                kind="DSA",
-                href=f"content/{rel.as_posix()}",
-                source_path=rel.as_posix(),
+    for topic_dir in numbered_topic_dirs(SOURCE):
+        topic_number, topic_title = topic_metadata(topic_dir.name)
+        for item_number, path in enumerate(ordered_topic_htmls(topic_dir), start=1):
+            rel = path.relative_to(SOURCE)
+            exercises.append(
+                Exercise(
+                    title=title_from_html(path),
+                    category="Algoritmos e Estruturas de Dados (DSA)",
+                    group=topic_title,
+                    kind="DSA",
+                    href=f"content/{rel.as_posix()}",
+                    source_path=rel.as_posix(),
+                    topic_number=topic_number,
+                    topic_slug=topic_dir.name,
+                    item_number=item_number,
+                    item_label=f"{topic_number:02d}.{item_number}",
+                    material_type=(
+                        "Conceitos" if path.name == "01-conceitos.html" else "Exercício"
+                    ),
+                )
             )
-        )
 
-    for path in sorted((SOURCE / "system-design").glob("[0-9][0-9]-*/index.html")):
-        topic = path.parent.name
+    system_design = SOURCE / "system-design"
+    for topic_dir in numbered_topic_dirs(system_design):
+        path = topic_dir / "index.html"
+        if not path.exists():
+            continue
+        topic_number, topic_title = topic_metadata(topic_dir.name)
         rel = path.relative_to(SOURCE)
         exercises.append(
             Exercise(
                 title=title_from_html(path),
-                group=humanize_slug(topic),
+                category="System Design",
+                group=topic_title,
                 kind="System Design",
                 href=f"content/{rel.as_posix()}",
                 source_path=rel.as_posix(),
+                topic_number=topic_number,
+                topic_slug=topic_dir.name,
+                item_number=1,
+                item_label=f"{topic_number:02d}.1",
+                material_type="Cockpit",
             )
         )
 
     return exercises
 
 
-def render_cards(exercises: list[Exercise]) -> str:
-    cards = []
+def grouped_exercises(
+    exercises: list[Exercise],
+) -> list[tuple[tuple[str, int, str], list[Exercise]]]:
+    groups: dict[tuple[str, int, str], list[Exercise]] = {}
     for exercise in exercises:
-        search_blob = f"{exercise.title} {exercise.group} {exercise.kind} {exercise.source_path}".lower()
-        cards.append(
-            f"""
-          <article class="card" data-kind="{html.escape(exercise.kind)}" data-search="{html.escape(search_blob)}">
+        key = (exercise.kind, exercise.topic_number, exercise.topic_slug)
+        groups.setdefault(key, []).append(exercise)
+    return list(groups.items())
+
+
+def render_card(exercise: Exercise) -> str:
+    search_blob = (
+        f"{exercise.item_label} {exercise.material_type} {exercise.title} "
+        f"{exercise.category} {exercise.group} {exercise.kind} "
+        f"{exercise.topic_slug} {exercise.source_path}"
+    ).lower()
+    return f"""
+          <article class="card" data-kind="{html.escape(exercise.kind)}"
+            data-search="{html.escape(search_blob)}">
             <div class="card-meta">
-              <span>{html.escape(exercise.kind)}</span>
-              <span>{html.escape(exercise.group)}</span>
+              <span class="item-position">{html.escape(exercise.item_label)}</span>
+              <span class="material-type">{html.escape(exercise.material_type)}</span>
             </div>
             <h3>{html.escape(exercise.title)}</h3>
-            <p>{html.escape(exercise.source_path)}</p>
+            <p class="card-context">{html.escape(exercise.category)} · {html.escape(exercise.group)}</p>
             <a href="{html.escape(exercise.href)}">Abrir HTML</a>
           </article>"""
+
+
+def render_topic_sections(exercises: list[Exercise]) -> str:
+    sections = []
+    totals = {"DSA": 17, "System Design": 5}
+    for (kind, topic_number, topic_slug), items in grouped_exercises(exercises):
+        track_slug = "dsa" if kind == "DSA" else "system-design"
+        topic_id = f"topic-{track_slug}-{topic_number:02d}"
+        cards = "\n".join(render_card(item) for item in items)
+        material_label = "material" if len(items) == 1 else "materiais"
+        sections.append(
+            f"""
+        <section class="topic-group" data-track="{html.escape(kind)}"
+          data-topic="{topic_number:02d}" aria-labelledby="{topic_id}">
+          <header class="topic-header">
+            <div>
+              <div class="topic-kicker">
+                <span class="topic-sequence">Tópico {topic_number:02d} de {totals[kind]:02d}</span>
+                <span class="topic-category">{html.escape(items[0].category)}</span>
+              </div>
+              <h2 id="{topic_id}">{html.escape(items[0].group)}</h2>
+            </div>
+            <span class="topic-count">{len(items)} {material_label}</span>
+          </header>
+          <div class="topic-grid">{cards}
+          </div>
+        </section>"""
         )
-    return "\n".join(cards)
+    return "\n".join(sections)
 
 
 def render_index(exercises: list[Exercise]) -> str:
     total = len(exercises)
     dsa = sum(1 for item in exercises if item.kind == "DSA")
     system_design = sum(1 for item in exercises if item.kind == "System Design")
-    cards = render_cards(exercises)
+    initial_material_label = "material visível" if total == 1 else "materiais visíveis"
+    topic_sections = render_topic_sections(exercises)
     return f"""<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -179,7 +291,6 @@ def render_index(exercises: list[Exercise]) -> str:
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0;
-      min-width: 320px;
       color: var(--ink);
       background:
         linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
@@ -194,8 +305,9 @@ def render_index(exercises: list[Exercise]) -> str:
     a {{ color: var(--mint); text-underline-offset: .2em; }}
     a:hover {{ color: var(--ink); }}
     .shell {{ width: min(1180px, calc(100% - 32px)); margin: 0 auto; }}
-    header {{ padding: clamp(2.5rem, 7vw, 6rem) 0 2rem; }}
-    .eyebrow, .stat span, .filter button, .card-meta, .note strong {{
+    .shell > header {{ padding: clamp(2.5rem, 7vw, 6rem) 0 2rem; }}
+    .eyebrow, .stat span, .filter button, .card-meta, .note strong,
+    .topic-kicker, .topic-count {{
       font: .72rem var(--mono);
       letter-spacing: .12em;
       text-transform: uppercase;
@@ -252,12 +364,53 @@ def render_index(exercises: list[Exercise]) -> str:
       background: var(--gold);
       border-color: var(--gold);
     }}
-    .grid {{
+    .topic-sections {{
+      padding: 1rem 0 4rem;
+    }}
+    .topic-group {{
+      --track-accent: var(--gold);
+      border-top: 3px solid var(--track-accent);
+      padding: clamp(1.4rem, 3vw, 2.4rem) 0 clamp(3rem, 7vw, 5.5rem);
+    }}
+    .topic-group[data-track="System Design"] {{
+      --track-accent: var(--blue);
+    }}
+    .topic-header {{
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }}
+    .topic-header > div {{ min-width: 0; }}
+    .topic-kicker {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: .35rem 1rem;
+      margin-bottom: .45rem;
+      color: var(--muted);
+    }}
+    .topic-sequence {{ color: var(--gold); font-weight: 700; }}
+    .topic-category {{ color: var(--ink); }}
+    .topic-header h2 {{
+      margin: 0;
+      font: clamp(2rem, 5vw, 3.8rem)/.95 var(--serif);
+      letter-spacing: -.045em;
+      overflow-wrap: anywhere;
+    }}
+    .topic-count {{
+      border: 1px solid var(--track-accent);
+      padding: .45rem .6rem;
+      color: var(--ink);
+      background: var(--panel);
+      white-space: nowrap;
+    }}
+    .topic-grid {{
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1rem;
-      padding: 1rem 0 4rem;
     }}
+    .topic-grid > * {{ min-width: 0; }}
     .card {{
       display: grid;
       align-content: start;
@@ -274,12 +427,18 @@ def render_index(exercises: list[Exercise]) -> str:
       padding: .18rem .4rem;
       background: var(--panel-2);
     }}
+    .card-meta .item-position {{
+      border-color: var(--gold);
+      color: var(--gold);
+      font-weight: 700;
+    }}
+    .card-meta .material-type {{ color: var(--ink); }}
     .card h3 {{
       margin: 1rem 0 .4rem;
       font: 1.55rem/1.08 var(--serif);
       letter-spacing: -.025em;
     }}
-    .card p {{
+    .card-context {{
       margin: 0 0 1.2rem;
       color: var(--muted);
       font: .78rem/1.45 var(--mono);
@@ -308,12 +467,15 @@ def render_index(exercises: list[Exercise]) -> str:
     .note strong {{ color: var(--red); }}
     footer {{ border-top: 1px solid var(--line); padding: 1.5rem 0 2rem; color: var(--muted); }}
     @media (max-width: 900px) {{
-      .grid, .stats {{ grid-template-columns: 1fr 1fr; }}
-      .toolbar {{ grid-template-columns: 1fr; position: static; }}
+      .topic-grid, .stats {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+      .toolbar {{ grid-template-columns: minmax(0, 1fr); position: static; }}
     }}
     @media (max-width: 620px) {{
-      .grid, .stats {{ grid-template-columns: 1fr; }}
+      .topic-grid, .stats {{ grid-template-columns: minmax(0, 1fr); }}
+      .topic-header {{ grid-template-columns: minmax(0, 1fr); align-items: start; }}
+      .topic-count {{ justify-self: start; white-space: normal; }}
       .filter {{ flex-wrap: wrap; }}
+      .filter button {{ flex: 1 1 auto; overflow-wrap: anywhere; }}
       h1 {{ font-size: clamp(2.8rem, 18vw, 4.2rem); }}
     }}
   </style>
@@ -326,7 +488,7 @@ def render_index(exercises: list[Exercise]) -> str:
       <p class="lead">Índice pesquisável dos exercícios interativos de algoritmos e dos cockpits de System Design. Cada link abre um HTML autocontido para estudar ou apresentar diretamente no navegador.</p>
       <div class="stats" aria-label="Resumo do conteúdo publicado">
         <div class="stat"><strong>{total}</strong><span>HTMLs publicados</span></div>
-        <div class="stat"><strong>{dsa}</strong><span>DSA / algoritmos</span></div>
+        <div class="stat"><strong>{dsa}</strong><span>Algoritmos e Estruturas de Dados (DSA)</span></div>
         <div class="stat"><strong>{system_design}</strong><span>System Design</span></div>
       </div>
       <p class="note"><strong>Escopo publicado:</strong> este site inclui somente artefatos de estudo em <code>interview-prep/</code>. Fontes raw, metadados autenticados, relatórios internos e notas de processo não fazem parte do artefato Pages.</p>
@@ -340,13 +502,14 @@ def render_index(exercises: list[Exercise]) -> str:
         </label>
         <div class="filter" role="group" aria-label="Filtrar por categoria">
           <button type="button" data-filter="all" aria-pressed="true">todos</button>
-          <button type="button" data-filter="DSA" aria-pressed="false">DSA</button>
+          <button type="button" data-filter="DSA" aria-pressed="false">Algoritmos e Estruturas de Dados (DSA)</button>
           <button type="button" data-filter="System Design" aria-pressed="false">System Design</button>
         </div>
+        <span id="result-count" role="status" aria-live="polite" aria-atomic="true">{total} {initial_material_label}</span>
       </section>
-      <section class="grid" id="cards" aria-live="polite">
-{cards}
-      </section>
+      <div class="topic-sections" id="cards">
+{topic_sections}
+      </div>
     </main>
 
     <footer>
@@ -356,21 +519,33 @@ def render_index(exercises: list[Exercise]) -> str:
   <script>
     (() => {{
       const cards = Array.from(document.querySelectorAll(".card"));
+      const groups = Array.from(document.querySelectorAll(".topic-group"));
       const search = document.getElementById("search");
       const buttons = Array.from(document.querySelectorAll("[data-filter]"));
+      const resultCount = document.getElementById("result-count");
       let activeFilter = "all";
 
+      function normalizeSearch(value) {{
+        return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      }}
+
       function applyFilters() {{
-        const query = search.value.trim().toLowerCase();
+        const query = normalizeSearch(search.value.trim());
         let visible = 0;
         cards.forEach((card) => {{
           const matchesKind = activeFilter === "all" || card.dataset.kind === activeFilter;
-          const matchesSearch = !query || card.dataset.search.includes(query);
+          const matchesSearch = !query || normalizeSearch(card.dataset.search).includes(query);
           const show = matchesKind && matchesSearch;
           card.hidden = !show;
           if (show) visible += 1;
         }});
-        document.getElementById("cards").setAttribute("aria-label", `${{visible}} exercícios visíveis`);
+        groups.forEach((group) => {{
+          group.hidden = !group.querySelector(".card:not([hidden])");
+        }});
+        const materialLabel = visible === 1 ? "material visível" : "materiais visíveis";
+        const resultLabel = `${{visible}} ${{materialLabel}}`;
+        resultCount.textContent = resultLabel;
+        document.getElementById("cards").setAttribute("aria-label", resultLabel);
       }}
 
       search.addEventListener("input", applyFilters);
